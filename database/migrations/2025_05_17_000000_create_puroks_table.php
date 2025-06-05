@@ -17,9 +17,24 @@ return new class extends Migration
 
         // Optional: insert default puroks
         DB::table('puroks')->insert([
-            ['name' => 'Purok 1'],
-            ['name' => 'Purok 2'],
-            ['name' => 'Purok 3'],
+            ['name' => 'Tagumpay I'],
+            ['name' => 'Tagumpay II'],
+            ['name' => 'Tagumpay III'],
+            ['name' => 'Purok Maunlad'],
+            ['name' => 'Purok Pagkakaisa'],
+            ['name' => 'Bagong Silang'],
+            ['name' => 'Bagong Sikat'],
+            ['name' => 'Capitol West'],
+            ['name' => 'Capitol East'],
+            ['name' => 'Capitol Sentro'],
+            ['name' => 'PC Barracks'],
+            ['name' => 'Masagana I'],
+            ['name' => 'Masagana II'],
+            ['name' => 'Masagana III'],
+            ['name' => 'Mabuhay'],
+            ['name' => 'Landerio'],
+            ['name' => 'Pag-Asa I'],
+            ['name' => 'Pag-Asa II'],
         ]);
     }
 

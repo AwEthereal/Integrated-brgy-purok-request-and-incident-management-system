@@ -30,6 +30,10 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\CheckFeedbackEligibility::class,
+            \App\Http\Middleware\CheckForPendingFeedback::class,
+            // Temporarily disabled due to blank page issue
+            // \App\Http\Middleware\SetIntendedUrl::class,
         ],
 
         'api' => [
@@ -54,7 +58,7 @@ class Kernel extends HttpKernel
 
         // Custom middleware for role-based access
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
-        'purok_leader' => \App\Http\Middleware\PurokLeaderMiddleware::class,
+        'purok_president_only' => \App\Http\Middleware\PurokLeaderMiddleware::class,
         'barangay_official' => \App\Http\Middleware\BarangayOfficialMiddleware::class,
     ];
 }

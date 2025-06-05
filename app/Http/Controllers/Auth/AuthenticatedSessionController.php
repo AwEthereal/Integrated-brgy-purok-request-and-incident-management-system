@@ -28,6 +28,33 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Check if user should see feedback prompt
+        $user = $request->user();
+        
+        // Count resolved items without feedback
+        $resolvedIncidents = $user->incidentReports()
+            ->whereIn('status', ['Resolved', 'Rejected'])
+            ->whereDoesntHave('feedback')
+            ->count();
+
+        $resolvedRequests = $user->requests()
+            ->whereIn('status', ['Completed', 'Rejected'])
+            ->whereDoesntHave('feedback')
+            ->count();
+
+        $totalResolved = $resolvedIncidents + $resolvedRequests;
+        $showFeedbackPrompt = $totalResolved >= 3 && $totalResolved <= 5 && !$request->cookie('skip_feedback');
+        
+        if ($showFeedbackPrompt) {
+            $request->session()->flash('show_feedback_prompt', true);
+            $request->session()->flash('resolved_count', $totalResolved);
+            $request->session()->put('recently_shown_feedback_prompt', true);
+        }
+
+        // Redirect based on role
+        if ($user->role === 'purok_leader' || $user->role === 'purok_president') {
+            return redirect()->route('purok_leader.dashboard');
+        }
         return redirect()->intended(route('dashboard', absolute: false));
     }
 

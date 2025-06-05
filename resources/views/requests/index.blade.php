@@ -13,7 +13,7 @@
         <ul class="space-y-2">
             @forelse($requests as $request)
                 <li class="p-4 bg-white shadow rounded">
-                    {{ $request->form_type }} - {{ $request->purpose }} - {{ $request->status ?? 'Pending' }}
+                    {{ format_label($request->form_type) }} - {{ $request->purpose }} - {{ format_label($request->status ?? 'Pending') }}
                     <a href="{{ route('requests.show', $request->id) }}" class="text-blue-600 ml-2">View</a>
                     <a href="{{ route('requests.edit', $request->id) }}" class="text-blue-600 ml-2">Edit</a>
                 </li>

@@ -32,27 +32,52 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+        $validated = $request->validate([
+            // Name fields
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            
+            // Contact information
             'email' => ['required', 'string', 'email', 'max:255', 'unique:' . User::class],
-            'contact_number' => ['required', 'digits:11'],
+            'contact_number' => ['required', 'string', 'regex:/^[0-9]{11}$/'],
+            
+            // Personal details
+            'birth_date' => ['required', 'date', 'before:today'],
+            'gender' => ['required', 'in:male,female,other'],
+            'civil_status' => ['nullable', 'in:single,married,widowed,separated,divorced'],
+            'occupation' => ['nullable', 'string', 'max:255'],
+            
+            // Address information
+            'address' => ['required', 'string', 'max:1000'],
             'purok_id' => ['required', 'exists:puroks,id'],
+            
+            // Authentication
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'contact_number' => $request->contact_number,
-            'purok_id' => $request->purok_id,
-            'role' => 'resident',
-            'password' => Hash::make($request->password),
-        ]);
+        // Format contact number to remove any non-numeric characters
+        $validated['contact_number'] = preg_replace('/[^0-9]/', '', $validated['contact_number']);
+        
+        // Combine first and last name for the name field
+        $validated['name'] = trim(sprintf('%s %s', 
+            $validated['first_name'], 
+            $validated['last_name']
+        ));
+        
+        // Set default role
+        $validated['role'] = 'resident';
+        
+        // Hash the password
+        $validated['password'] = Hash::make($validated['password']);
+        
+        // Create the user with all validated data
+        $user = User::create($validated);
 
-        event(new Registered($user));
-
+        // Log in the user
         Auth::login($user);
 
-        return redirect(route('dashboard'));
+        // Redirect to dashboard after registration
+        return redirect()->route('dashboard');
     }
 }

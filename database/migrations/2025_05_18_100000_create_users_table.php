@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('contact_number')->nullable();
+            $table->string('address', 1000)->nullable();
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('role', ['resident', 'purok_president', 'sk_chairman', 'barangay_kagawad', 'secretary', 'barangay_captain']);
