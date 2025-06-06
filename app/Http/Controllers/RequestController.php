@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Request as RequestModel;
 use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class RequestController extends Controller
@@ -61,8 +62,9 @@ class RequestController extends Controller
     public function updateStatus(RequestModel $requestModel, HttpRequest $request)
     {
         // Verify the user is authorized to update this request
-        if (auth()->user()->role !== 'purok_leader' || 
-            $requestModel->purok_id !== auth()->user()->purok_id) {
+        $user = auth()->user();
+        if ((!in_array($user->role, ['purok_leader', 'purok_president'])) || 
+            $requestModel->purok_id !== $user->purok_id) {
             abort(403, 'Unauthorized action.');
         }
         
@@ -70,11 +72,16 @@ class RequestController extends Controller
             'status' => 'required|in:approved,rejected'
         ]);
         
-        $requestModel->update([
-            'status' => $validated['status'],
-            'processed_at' => now(),
-            'processed_by' => auth()->id()
-        ]);
+        if (strtolower($validated['status']) === 'approved') {
+            $requestModel->status = 'purok_approved';
+            $requestModel->purok_approved_at = now();
+            $requestModel->purok_approved_by = $user->id;
+        } else {
+            $requestModel->status = 'rejected';
+            $requestModel->purok_notes = 'Request rejected by purok leader';
+        }
+        
+        $requestModel->save();
 
         return back()->with('success', 'Request has been ' . $validated['status'] . ' successfully.');
     }
@@ -118,16 +125,13 @@ class RequestController extends Controller
                 
                 // Generate a unique filename
                 $filename = 'id_' . $user->id . '_' . $suffix . '_' . time() . '.' . $imageType;
-                $path = 'storage/ids/' . $filename;
                 
-                // Ensure the directory exists
-                if (!file_exists(public_path('storage/ids'))) {
-                    mkdir(public_path('storage/ids'), 0755, true);
-                }
+                // Use Laravel's storage system
+                $path = 'ids/' . $filename;
+                \Storage::disk('public')->put($path, $decodedImage);
                 
-                // Save the image
-                file_put_contents(public_path($path), $decodedImage);
-                return $path;
+                // Return the relative path without 'public/'
+                return 'storage/' . $path;
             }
             return null;
         }
@@ -178,20 +182,29 @@ class RequestController extends Controller
     }
 
     // Show a single request
-    public function show(RequestModel $request)
+    public function show(RequestModel $requestModel)
     {
-        $this->authorize('view', $request);
+        $this->authorize('view', $requestModel);
         
         // Load relationships for the view
-        $request->load(['purok', 'purokApprover', 'barangayApprover']);
+        $requestModel->load(['purok', 'purokApprover', 'barangayApprover']);
         
         // Calculate age from birth date if available
-        if ($request->birth_date) {
-            $request->age = now()->diffInYears($request->birth_date);
+        if ($requestModel->birth_date) {
+            $requestModel->age = now()->diffInYears($requestModel->birth_date);
+        }
+        
+        // Ensure the file paths are correct
+        if ($requestModel->valid_id_front_path && !str_starts_with($requestModel->valid_id_front_path, 'http')) {
+            $requestModel->valid_id_front_path = asset($requestModel->valid_id_front_path);
+        }
+        
+        if ($requestModel->valid_id_back_path && !str_starts_with($requestModel->valid_id_back_path, 'http')) {
+            $requestModel->valid_id_back_path = asset($requestModel->valid_id_back_path);
         }
         
         return view('requests.show', [
-            'request' => $request,
+            'request' => $requestModel,
             'puroks' => \App\Models\Purok::all(),
         ]);
     }
@@ -277,6 +290,33 @@ class RequestController extends Controller
         return redirect()->route('requests.pending-purok')
             ->with('success', 'Purok clearance approved. The resident can now proceed to the barangay office.');
     }
+    
+    /**
+     * Update private notes for a request (visible only to purok leaders and admins)
+     *
+     * @param  \App\Models\Request  $request
+     * @param  \Illuminate\Http\Request  $httpRequest
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updatePrivateNotes(RequestModel $request, HttpRequest $httpRequest)
+    {
+        $this->authorize('updatePrivateNotes', $request);
+
+        $data = $httpRequest->validate([
+            'purok_private_notes' => 'nullable|string',
+        ]);
+
+        $request->update([
+            'purok_private_notes' => $data['purok_private_notes'] ?? null,
+        ]);
+
+        // Always return JSON response for AJAX requests
+        return response()->json([
+            'success' => true,
+            'message' => 'Private notes updated successfully.',
+            'notes' => $request->purok_private_notes
+        ]);
+    }
 
     public function approveBarangay(RequestModel $request, HttpRequest $httpRequest)
     {
@@ -312,16 +352,41 @@ class RequestController extends Controller
 
     public function reject(RequestModel $request, HttpRequest $httpRequest)
     {
-        $this->authorize('reject', $request);
+        $user = auth()->user();
+        
+        // Use Laravel's authorization
+        if (!auth()->user()->can('reject', $request)) {
+            abort(403, 'You are not authorized to reject this request.');
+        }
 
         $data = $httpRequest->validate([
-            'rejection_reason' => 'required|string|max:255',
+            'rejection_reason' => 'required|string|max:500'
         ]);
 
-        $request->update([
+        $updates = [
             'status' => 'rejected',
-            'barangay_notes' => $data['rejection_reason'],
-        ]);
+            'rejected_at' => now(),
+            'rejected_by' => $user->id,
+            'rejection_reason' => $data['rejection_reason']
+        ];
+
+        // Store rejection reason in appropriate field based on user role
+        if (in_array($user->role, ['purok_leader', 'purok_president'])) {
+            $updates['purok_notes'] = 'Rejected by Purok: ' . $data['rejection_reason'];
+        } elseif (in_array($user->role, ['barangay_official', 'admin'])) {
+            $updates['barangay_notes'] = 'Rejected by Barangay: ' . $data['rejection_reason'];
+        } else {
+            $updates['barangay_notes'] = 'Rejected: ' . $data['rejection_reason'];
+        }
+
+        // Update the request
+        $request->update($updates);
+
+        // Redirect based on user role
+        if (in_array($user->role, ['purok_leader', 'purok_president'])) {
+            return redirect()->route('purok_leader.dashboard')
+                ->with('success', 'Request has been rejected.');
+        }
 
         return redirect()->route('requests.show', $request)
             ->with('success', 'Request has been rejected.');

@@ -37,12 +37,15 @@ class Request extends Model
         'postal_code',
         'valid_id_front_path',
         'valid_id_back_path',
+        'rejected_at',
+        'rejected_by',
     ];
 
     protected $casts = [
         'purok_approved_at' => 'datetime',
         'barangay_approved_at' => 'datetime',
         'document_generated_at' => 'datetime',
+        'rejected_at' => 'datetime',
     ];
 
     public function user()
@@ -68,6 +71,11 @@ class Request extends Model
     public function barangayApprover()
     {
         return $this->belongsTo(User::class, 'barangay_approved_by');
+    }
+    
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
     }
 
     public function scopePendingPurokApproval($query)

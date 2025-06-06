@@ -52,11 +52,7 @@
                                     {{ $request->created_at->format('M d, Y h:i A') }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div class="flex justify-end space-x-2">
-                                        <a href="{{ route('requests.show', $request) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
-                                        <button onclick="openApproveModal({{ $request->id }})" class="text-green-600 hover:text-green-900">Approve</button>
-                                        <button onclick="openRejectModal({{ $request->id }})" class="text-red-600 hover:text-red-900 ml-3">Reject</button>
-                                    </div>
+                                    <a href="{{ route('requests.show', $request) }}" class="text-indigo-600 hover:text-indigo-900">View Details</a>
                                 </td>
                             </tr>
                         @endforeach

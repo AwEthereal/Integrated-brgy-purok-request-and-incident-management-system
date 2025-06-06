@@ -17,9 +17,8 @@ class PurokLeaderController extends Controller
         $purokId = $user->purok_id;
         $purokName = $user->purok ? $user->purok->name : 'Unknown Purok';
 
-        // Get all clearance requests for this purok
+        // Get all requests for the purok, regardless of form_type
         $requests = RequestModel::where('purok_id', $purokId)
-            ->where('form_type', 'barangay_clearance')
             ->with('user')
             ->latest()
             ->get();

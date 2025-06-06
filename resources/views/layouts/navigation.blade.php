@@ -4,7 +4,7 @@
             @vite(['resources/css/app.css', 'resources/js/app.js'])
 
             <!-- Logo -->
-            <a href="{{ route('dashboard') }}" class="flex-shrink-0 flex items-center">
+            <a href="{{ in_array(auth()->user()->role, ['purok_leader', 'purok_president']) ? route('purok_leader.dashboard') : route('dashboard') }}" class="flex-shrink-0 flex items-center">
                 <img src="{{ asset('images/Kal2Logo.png') }}" alt="Barangay Kalawag Logo" class="h-16 w-auto">
             </a>
 

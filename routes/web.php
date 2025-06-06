@@ -44,6 +44,23 @@ Route::get('/check-auth', function () {
     return auth()->check() ? 'Logged in' : 'Not logged in';
 });
 
+// Debug route to check user role and permissions
+Route::get('/debug/user', function () {
+    if (!auth()->check()) {
+        return 'No user is logged in';
+    }
+    
+    $user = auth()->user();
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+        'email' => $user->email,
+        'role' => $user->role,
+        'purok_id' => $user->purok_id,
+        'is_president' => $user->role === 'purok_leader' ? 'Yes' : 'No',
+    ];
+})->middleware('auth');
+
 // Route to submit feedback via AJAX
 Route::post('/feedback/submit', [\App\Http\Controllers\FeedbackController::class, 'submit'])
     ->name('feedback.submit')
@@ -121,8 +138,10 @@ Route::middleware('auth')->group(function () {
         ->name('verification.update');
 });
 
-// Dashboard route
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware('auth')->name('dashboard');
+// Dashboard route - only for non-purok leader/president users
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', \App\Http\Middleware\CheckRole::class . ':resident,barangay_official,admin'])
+    ->name('dashboard');
 
 // Purok Leader Dashboard
 Route::get('/purok-leader/dashboard', [\App\Http\Controllers\PurokLeaderController::class, 'dashboard'])
@@ -137,7 +156,7 @@ Route::get('/purok-leader/residents', [\App\Http\Controllers\PurokLeaderControll
 // Update request status (approve/reject)
 Route::patch('/requests/{request}/status', [RequestController::class, 'updateStatus'])
     ->middleware(['auth', PurokLeaderMiddleware::class])
-    ->name('requests.update-status');
+    ->name('requests.updateStatus');
 
 // Feedback routes
 Route::prefix('feedback')->middleware('auth')->group(function () {
@@ -159,6 +178,43 @@ Route::get('/test-dashboard', function () {
     return 'Test Dashboard - ' . (auth()->check() ? 'Logged in as: ' . auth()->user()->email : 'Not logged in');
 })->middleware('auth');
 
+// Debug route to check user roles and permissions
+Route::get('/debug/user-info', function () {
+    $user = auth()->user();
+    if (!$user) {
+        return 'No user is logged in';
+    }
+    
+    // Get user's actual role from database
+    $dbUser = \App\Models\User::find($user->id);
+    
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+        'email' => $user->email,
+        'role' => $user->role,
+        'purok_id' => $user->purok_id,
+        'db_role' => $dbUser->role, // Get role directly from database
+        'is_president' => in_array($user->role, ['purok_leader', 'purok_president']) ? 'Yes' : 'No',
+        'can_reject' => $user->can('reject', \App\Models\Request::first()),
+        'middleware' => \Route::current()->middleware(),
+    ];
+})->middleware('auth');
+
+// Debug route to check logs
+Route::get('/debug/logs', function () {
+    if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'purok_leader', 'purok_president'])) {
+        abort(403, 'Unauthorized.');
+    }
+    
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) {
+        return 'No log file found at: ' . $logFile;
+    }
+    
+    return '<pre>' . file_get_contents($logFile) . '</pre>';
+})->middleware('auth');
+
 Route::middleware('auth')->group(function () {
     // Profile routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -174,16 +230,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('requests.my_requests');
 
     // Purok Leader Routes
-    Route::middleware('can:viewPendingPurok,App\Models\Request')->group(function () {
+    Route::middleware(['can:viewPendingPurok,App\Models\Request', \App\Http\Middleware\PurokLeaderMiddleware::class])->group(function () {
         Route::get('/requests/pending/purok', [RequestController::class, 'pendingPurok'])->name('requests.pending-purok');
         Route::post('/requests/{request}/approve-purok', [RequestController::class, 'approvePurok'])->name('requests.approve-purok');
+        Route::put('/requests/{request}/update-private-notes', [RequestController::class, 'updatePrivateNotes'])->name('requests.update-private-notes');
     });
+    
+    // Reject route for both purok leaders and barangay officials
+    Route::post('/requests/{request}/reject', [RequestController::class, 'reject'])
+        ->middleware('auth')
+        ->name('requests.reject');
 
     // Barangay Official Routes
     Route::middleware('can:viewPendingBarangay,App\Models\Request')->group(function () {
         Route::get('/requests/pending/barangay', [RequestController::class, 'pendingBarangay'])->name('requests.pending-barangay');
         Route::post('/requests/{request}/approve-barangay', [RequestController::class, 'approveBarangay'])->name('requests.approve-barangay');
-        Route::post('/requests/{request}/reject', [RequestController::class, 'reject'])->name('requests.reject');
         Route::post('/requests/{request}/complete', [RequestController::class, 'complete'])->name('requests.complete');
     });
 
