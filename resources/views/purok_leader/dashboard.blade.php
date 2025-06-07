@@ -13,7 +13,17 @@
                 <h1 class="text-2xl font-bold purok-leader-dashboard">Purok President Dashboard</h1>
                 <p class="text-gray-600">Managing: <span class="font-medium">{{ $purokName }}</span></p>
             </div>
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-4">
+                <!-- Pending Requests Badge -->
+                <div class="relative">
+                    <a href="{{ route('purok_leader.dashboard', ['status' => 'pending']) }}" class="flex items-center space-x-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium hover:bg-red-200 transition-colors">
+                        <span>Pending Requests</span>
+                        <span class="pending-requests-badge flex items-center justify-center h-5 w-5 bg-red-600 text-white text-xs rounded-full">
+                            {{ \App\Models\Request::where('purok_id', auth()->user()->purok_id)->where('status', 'pending')->count() }}
+                        </span>
+                    </a>
+                </div>
+
                 @php
                     $roleLabels = [
                         'purok_leader' => 'Purok President',
@@ -61,7 +71,7 @@
 
             <!-- Pending Requests Card -->
             <a href="{{ route('purok_leader.dashboard', ['filter' => 'status', 'value' => 'pending']) }}"
-                class="block bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-200 {{ isset($activeFilter) && $activeFilter['type'] == 'status' && $activeFilter['value'] == 'pending' ? 'ring-2 ring-yellow-500' : '' }}">
+                class="pending-requests-card block bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-200 {{ isset($activeFilter) && $activeFilter['type'] == 'status' && $activeFilter['value'] == 'pending' ? 'ring-2 ring-yellow-500' : '' }}">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"

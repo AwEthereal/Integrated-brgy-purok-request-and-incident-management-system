@@ -23,11 +23,23 @@ class RequestPolicy
      */
     public function view(User $user, Request $request)
     {
-        // Allow if user is the requester, or has purok/barangay role
-        return $user->id === $request->user_id || 
-               in_array($user->role, ['purok_leader', 'purok_president']) || 
-               $user->role === 'barangay_official' ||
-               $user->role === 'admin';
+        // Allow if user is the requester
+        if ($user->id === $request->user_id) {
+            return true;
+        }
+        
+        // Allow purok leaders and presidents to view requests from their purok
+        if (in_array($user->role, ['purok_leader', 'purok_president']) && $user->purok_id === $request->purok_id) {
+            return true;
+        }
+        
+        // Allow barangay officials and admins to view all requests
+        if (in_array($user->role, ['barangay_official', 'admin'])) {
+            return true;
+        }
+        
+        // If none of the above conditions are met, deny access
+        return false;
     }
 
 
@@ -68,9 +80,10 @@ class RequestPolicy
     public function approvePurok(User $user, Request $request): bool
     {
         // Purok leaders and purok presidents can approve requests in their purok
+        // Allow approval for both 'pending' and 'purok_approved' statuses
         return in_array($user->role, ['purok_leader', 'purok_president']) && 
                $request->purok_id === $user->purok_id &&
-               $request->status === 'pending';
+               in_array($request->status, ['pending', 'purok_approved']);
     }
 
     // Barangay Official Methods
@@ -96,9 +109,10 @@ class RequestPolicy
 
     public function reject(User $user, Request $request): bool
     {
-        // Purok leaders and purok presidents can only reject pending requests in their purok
+        // Purok leaders and purok presidents can reject requests in their purok that are pending or purok_approved
         if (in_array($user->role, ['purok_leader', 'purok_president'])) {
-            return $request->purok_id === $user->purok_id && $request->status === 'pending';
+            return $request->purok_id === $user->purok_id && 
+                   in_array($request->status, ['pending', 'purok_approved']);
         }
         
         // Barangay officials and admins can reject requests that are purok_approved or barangay_approved

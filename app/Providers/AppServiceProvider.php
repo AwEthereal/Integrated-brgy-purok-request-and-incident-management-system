@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Http;
 use App\View\Components\Feedback\FeedbackPrompt;
+use App\Providers\BroadcastServiceProvider;
 
 /**
  * Register any application services.
@@ -20,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->register(BroadcastServiceProvider::class);
     }
 
     /**

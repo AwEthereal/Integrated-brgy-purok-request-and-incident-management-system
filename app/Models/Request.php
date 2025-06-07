@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use App\Events\RequestStatusUpdated;
+use Illuminate\Support\Facades\Event;
 
 class Request extends Model
 {
@@ -15,6 +17,11 @@ class Request extends Model
         'other' => 'Other',
     ];
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'form_type',
         'purpose',
@@ -40,14 +47,46 @@ class Request extends Model
         'valid_id_back_path',
         'rejected_at',
         'rejected_by',
+        'purok_approved_at',
+        'purok_approved_by',
+        'barangay_approved_at',
+        'barangay_approved_by',
+        'document_generated_at',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
+        'birth_date' => 'date',
         'purok_approved_at' => 'datetime',
         'barangay_approved_at' => 'datetime',
         'document_generated_at' => 'datetime',
         'rejected_at' => 'datetime',
     ];
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        parent::booted();
+        
+        static::updated(function ($request) {
+            // Dispatch the event if status or purok_id was changed
+            if ($request->isDirty('status') || $request->isDirty('purok_id')) {
+                event(new RequestStatusUpdated(
+                    $request,
+                    $request->purok_id,
+                    $request->status
+                ));
+            }
+        });
+    }
 
     public function user()
     {

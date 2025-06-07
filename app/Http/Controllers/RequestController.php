@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 use App\Events\NewRequestCreated;
 use App\Models\Request as RequestModel;
 use Illuminate\Http\Request as HttpRequest;
@@ -164,14 +165,16 @@ class RequestController extends Controller
 
             // Create the request
             $newRequest = RequestModel::create($requestData);
-
-            // Dispatch event for real-time notification
+            
+            // Get the count of pending requests for this purok
             $pendingCount = RequestModel::where('purok_id', $user->purok_id)
                 ->where('status', 'pending')
                 ->count();
-            broadcast(new NewRequestCreated($user->purok_id, $pendingCount))->toOthers();
-
-            return redirect()->route('requests.show', $newRequest)
+            
+            // Broadcast the event
+            event(new NewRequestCreated($user->purok_id, $pendingCount));
+            
+            return redirect()->route('dashboard')
                 ->with('success', 'Your request has been submitted successfully!');
                 
         } catch (\Exception $e) {
@@ -191,29 +194,78 @@ class RequestController extends Controller
     // Show a single request
     public function show(RequestModel $requestModel)
     {
-        $this->authorize('view', $requestModel);
-        
-        // Load relationships for the view
-        $requestModel->load(['purok', 'purokApprover', 'barangayApprover']);
-        
-        // Calculate age from birth date if available
-        if ($requestModel->birth_date) {
-            $requestModel->age = now()->diffInYears($requestModel->birth_date);
+        try {
+            // Check if the user is authorized to view this request
+            if (!auth()->user()->can('view', $requestModel)) {
+                $errorMessage = 'You are not authorized to view this request.';
+                
+                // Provide more specific error message for purok leaders
+                if (in_array(auth()->user()->role, ['purok_leader', 'purok_president']) && 
+                    $requestModel->purok_id !== auth()->user()->purok_id) {
+                    $errorMessage = 'You can only view requests from your own purok.';
+                }
+                
+                abort(403, $errorMessage);
+            }
+            
+            // Load relationships for the view
+            $requestModel->load(['purok', 'purokApprover', 'barangayApprover']);
+            
+            // Calculate age from birth date if available
+            if ($requestModel->birth_date) {
+                $requestModel->age = now()->diffInYears($requestModel->birth_date);
+            }
+            
+            // Ensure the file paths are correct and accessible
+            if ($requestModel->valid_id_front_path) {
+                // If the path is already a URL, use it as is
+                if (str_starts_with($requestModel->valid_id_front_path, 'http')) {
+                    // Do nothing, path is already a full URL
+                } 
+                // Check if the file exists in the public storage
+                $frontFilename = basename(str_replace('storage/ids/', '', $requestModel->valid_id_front_path));
+                if (Storage::disk('public')->exists('ids/' . $frontFilename)) {
+                    $requestModel->valid_id_front_path = asset('storage/ids/' . $frontFilename);
+                }
+                // If the file exists in the private storage, generate a temporary URL
+                elseif (Storage::disk('local')->exists($requestModel->valid_id_front_path)) {
+                    $requestModel->valid_id_front_path = Storage::disk('local')->temporaryUrl(
+                        $requestModel->valid_id_front_path, 
+                        now()->addMinutes(5)
+                    );
+                }
+            }
+            
+            if ($requestModel->valid_id_back_path) {
+                // If the path is already a URL, use it as is
+                if (str_starts_with($requestModel->valid_id_back_path, 'http')) {
+                    // Do nothing, path is already a full URL
+                } 
+                // Check if the file exists in the public storage
+                $backFilename = basename(str_replace('storage/ids/', '', $requestModel->valid_id_back_path));
+                if (Storage::disk('public')->exists('ids/' . $backFilename)) {
+                    $requestModel->valid_id_back_path = asset('storage/ids/' . $backFilename);
+                }
+                // If the file exists in the private storage, generate a temporary URL
+                elseif (Storage::disk('local')->exists($requestModel->valid_id_back_path)) {
+                    $requestModel->valid_id_back_path = Storage::disk('local')->temporaryUrl(
+                        $requestModel->valid_id_back_path, 
+                        now()->addMinutes(5)
+                    );
+                }
+            }
+            
+            return view('requests.show', [
+                'request' => $requestModel,
+                'puroks' => \App\Models\Purok::all(),
+            ]);
+        } catch (\Exception $e) {
+            // Log the error for debugging
+            \Log::error('Error showing request: ' . $e->getMessage());
+            
+            // Return a user-friendly error page
+            return back()->with('error', 'An error occurred while trying to view this request. Please try again later.');
         }
-        
-        // Ensure the file paths are correct
-        if ($requestModel->valid_id_front_path && !str_starts_with($requestModel->valid_id_front_path, 'http')) {
-            $requestModel->valid_id_front_path = asset($requestModel->valid_id_front_path);
-        }
-        
-        if ($requestModel->valid_id_back_path && !str_starts_with($requestModel->valid_id_back_path, 'http')) {
-            $requestModel->valid_id_back_path = asset($requestModel->valid_id_back_path);
-        }
-        
-        return view('requests.show', [
-            'request' => $requestModel,
-            'puroks' => \App\Models\Purok::all(),
-        ]);
     }
 
     // Show form to edit a request

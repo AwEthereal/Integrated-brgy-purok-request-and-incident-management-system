@@ -47,43 +47,8 @@
                             </svg>
                             <span>Purok Residents</span>
                         </a>
-                        <!-- Optionally, keep the approvals link for purok_leader if needed -->
-                        @php
-                            $pendingPurokCount = \App\Models\Request::where('status', 'pending')->count();
-                        @endphp
-                        <a href="{{ route('requests.pending-purok') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('requests.pending-purok') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
-                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                            <span>Purok Approvals</span>
-                            @if($pendingPurokCount > 0)
-                                <span
-                                    class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                                    {{ $pendingPurokCount }}
-                                </span>
-                            @endif
-                        </a>
                     @elseif(auth()->user()->role === 'admin')
-                        <!-- Admin can see Purok Approvals link -->
-                        @php
-                            $pendingPurokCount = \App\Models\Request::where('status', 'pending')->count();
-                        @endphp
-                        <a href="{{ route('requests.pending-purok') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('requests.pending-purok') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
-                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                            <span>Purok Approvals</span>
-                            @if($pendingPurokCount > 0)
-                                <span
-                                    class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                                    {{ $pendingPurokCount }}
-                                </span>
-                            @endif
-                        </a>
+                        <!-- Admin can access purok approvals through the dashboard -->
                     @endif
 
                     @if(auth()->user()->role === 'barangay_official' || auth()->user()->role === 'admin')
@@ -192,10 +157,10 @@
                 </a>
             @elseif(auth()->user()->role === 'purok_leader' || auth()->user()->role === 'purok_president')
                 <a href="{{ route('purok_leader.dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('purok_leader.dashboard') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
-                    <span>Purok Dashboard</span>
+                    <span class="text-center">Purok Dashboard</span>
                 </a>
                 <a href="{{ route('purok_leader.residents') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('purok_leader.residents') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
-                    <span>Purok Residents</span>
+                    <span class="text-center">Purok Residents</span>
                 </a>
             @endif
 

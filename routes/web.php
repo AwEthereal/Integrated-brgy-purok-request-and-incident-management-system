@@ -1,17 +1,43 @@
 <?php
 
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Middleware\PurokLeaderMiddleware;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\IncidentReportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GeocodingController;
-use App\Http\Middleware\PurokLeaderMiddleware;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 
+
+// Test route to check file access
+Route::get('/test-file-access', function () {
+    $latestRequest = \App\Models\Request::latest()->first();
+    
+    if (!$latestRequest) {
+        return 'No requests found';
+    }
+
+    $frontPath = $latestRequest->valid_id_front_path;
+    $backPath = $latestRequest->valid_id_back_path;
+
+    $frontExists = file_exists(public_path($frontPath));
+    $backExists = file_exists(public_path($backPath));
+
+    return [
+        'request_id' => $latestRequest->id,
+        'front_path' => $frontPath,
+        'front_exists' => $frontExists ? 'Yes' : 'No',
+        'front_public_url' => $frontPath ? asset($frontPath) : 'N/A',
+        'back_path' => $backPath,
+        'back_exists' => $backExists ? 'Yes' : 'No',
+        'back_public_url' => $backPath ? asset($backPath) : 'N/A',
+    ];
+});
 
 // Debug route to check session data
 Route::get('/debug-session', function (HttpRequest $request) {
@@ -145,11 +171,11 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 
 // Purok Leader Dashboard
 Route::get('/purok-leader/dashboard', [\App\Http\Controllers\PurokLeaderController::class, 'dashboard'])
-    ->middleware(['auth', \App\Http\Middleware\PurokLeaderMiddleware::class])
+    ->middleware(['auth', PurokLeaderMiddleware::class])
     ->name('purok_leader.dashboard');
 
 // Purok Leader - View Residents
-Route::prefix('purok-leader')->middleware(['auth', \App\Http\Middleware\PurokLeaderMiddleware::class])->group(function () {
+Route::prefix('purok-leader')->middleware(['auth', PurokLeaderMiddleware::class])->group(function () {
     Route::get('/residents', [\App\Http\Controllers\PurokLeaderController::class, 'residents'])
         ->name('purok_leader.residents');
         
@@ -234,7 +260,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('requests.my_requests');
 
     // Purok Leader Routes
-    Route::middleware(['can:viewPendingPurok,App\Models\Request', \App\Http\Middleware\PurokLeaderMiddleware::class])->group(function () {
+    Route::middleware(['can:viewPendingPurok,App\Models\Request', PurokLeaderMiddleware::class])->group(function () {
         Route::get('/requests/pending/purok', [RequestController::class, 'pendingPurok'])->name('requests.pending-purok');
         Route::post('/requests/{request}/approve-purok', [RequestController::class, 'approvePurok'])->name('requests.approve-purok');
         Route::put('/requests/{request}/update-private-notes', [RequestController::class, 'updatePrivateNotes'])->name('requests.update-private-notes');
