@@ -273,8 +273,25 @@
                     @endif
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
+                            <p class="text-sm text-gray-500">Resident</p>
+                            <div class="flex items-center space-x-2">
+                                <p class="font-medium">{{ $request->user->name ?? 'N/A' }}</p>
+                                @if($request->user)
+                                    @if(in_array(auth()->user()->role, ['purok_leader', 'purok_president']))
+                                        <a href="{{ route('purok_leader.residents.show', $request->user->id) }}" 
+                                           class="text-blue-600 hover:text-blue-800 hover:underline flex items-center text-sm">
+                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                            </svg>
+                                            View Profile
+                                        </a>
+                                    @endif
+                                @endif
+                            </div>
+                        </div>
+                        <div>
                             <p class="text-sm text-gray-500">Form Type</p>
-                            <p class="font-medium">{{ $request->form_type }}</p>
+                            <p class="font-medium">{{ str_replace('_', ' ', ucfirst($request->form_type)) }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500">Purok</p>
@@ -567,8 +584,8 @@
                 </div>
             </div>
 
-            <!-- Feedback Section -->
-            @if($request->status === 'completed')
+            <!-- Feedback Section - Only shown to residents, not purok leaders -->
+            @if($request->status === 'completed' && !in_array(auth()->user()->role, ['purok_leader', 'purok_president']))
                 @php
                     // Check if feedback already exists for this request
                     $hasFeedback = \App\Models\Feedback::where('request_id', $request->id)

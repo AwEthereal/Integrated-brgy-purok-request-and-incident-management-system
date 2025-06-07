@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Events\NewRequestCreated;
 use App\Models\Request as RequestModel;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
@@ -164,8 +165,14 @@ class RequestController extends Controller
             // Create the request
             $newRequest = RequestModel::create($requestData);
 
-            return redirect()->route('requests.show', $newRequest->id)
-                ->with('success', 'Request submitted successfully!');
+            // Dispatch event for real-time notification
+            $pendingCount = RequestModel::where('purok_id', $user->purok_id)
+                ->where('status', 'pending')
+                ->count();
+            broadcast(new NewRequestCreated($user->purok_id, $pendingCount))->toOthers();
+
+            return redirect()->route('requests.show', $newRequest)
+                ->with('success', 'Your request has been submitted successfully!');
                 
         } catch (\Exception $e) {
             // Clean up any uploaded files if there was an error

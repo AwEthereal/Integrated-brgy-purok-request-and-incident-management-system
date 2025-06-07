@@ -149,9 +149,13 @@ Route::get('/purok-leader/dashboard', [\App\Http\Controllers\PurokLeaderControll
     ->name('purok_leader.dashboard');
 
 // Purok Leader - View Residents
-Route::get('/purok-leader/residents', [\App\Http\Controllers\PurokLeaderController::class, 'residents'])
-    ->middleware(['auth', \App\Http\Middleware\PurokLeaderMiddleware::class])
-    ->name('purok_leader.residents');
+Route::prefix('purok-leader')->middleware(['auth', \App\Http\Middleware\PurokLeaderMiddleware::class])->group(function () {
+    Route::get('/residents', [\App\Http\Controllers\PurokLeaderController::class, 'residents'])
+        ->name('purok_leader.residents');
+        
+    Route::get('/residents/{id}', [\App\Http\Controllers\PurokLeaderController::class, 'showResident'])
+        ->name('purok_leader.residents.show');
+});
 
 // Update request status (approve/reject)
 Route::patch('/requests/{request}/status', [RequestController::class, 'updateStatus'])

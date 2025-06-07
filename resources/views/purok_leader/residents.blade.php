@@ -30,7 +30,9 @@
                                         <span class="text-blue-600 font-medium">{{ substr($resident->first_name, 0, 1) }}{{ substr($resident->last_name, 0, 1) }}</span>
                                     </div>
                                     <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">{{ $resident->full_name }}</div>
+                                        <a href="{{ route('purok_leader.residents.show', $resident->id) }}" class="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline">
+                                            {{ $resident->full_name }}
+                                        </a>
                                         <div class="text-sm text-gray-500">{{ $resident->address }}</div>
                                     </div>
                                 </div>

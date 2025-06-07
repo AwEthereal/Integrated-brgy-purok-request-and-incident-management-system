@@ -23,6 +23,7 @@ class Request extends Model
         'user_id',
         'purok_id',
         'purok_notes',
+        'purok_private_notes',
         'barangay_notes',
         'contact_number',
         'email',
