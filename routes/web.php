@@ -131,10 +131,6 @@ if (app()->environment('local')) {
 
 Route::view('/test', 'test');
 
-Route::get('/incident-reports/create', function () {
-    return view('incidents.create');
-})->middleware('auth')->name('incident_reports.create');
-
 Route::get('/', function () {
     return view('welcome');
 });
@@ -169,18 +165,71 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', \App\Http\Middleware\CheckRole::class . ':resident,barangay_official,admin'])
     ->name('dashboard');
 
+// Routes that require an approved resident account
+Route::middleware(['auth', \App\Http\Middleware\CheckResidentApproved::class])->group(function () {
+    // Requests
+    Route::resource('requests', RequestController::class);
+    Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('requests.my_requests');
+    
+    // Incident Reports
+    Route::post('/incident-reports', [IncidentReportController::class, 'store'])->name('incident_reports.store');
+    Route::get('/incident-reports', [IncidentReportController::class, 'index'])->name('incident_reports.index');
+    Route::get('/incident-reports/my-reports', [IncidentReportController::class, 'myReports'])->name('incident_reports.my_reports');
+    Route::get('/incident-reports/create', [IncidentReportController::class, 'create'])->name('incident_reports.create');
+    Route::get('/incident-reports/{incidentReport}', [IncidentReportController::class, 'show'])->name('incident_reports.show');
+    
+    // Other routes that require an approved account
+    Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
+});
+
+// Public routes that don't require approval but need authentication
+Route::middleware('auth')->group(function () {
+    // Account deletion for rejected users
+    Route::delete('/account', [ProfileController::class, 'destroyAccount'])->name('account.destroy');
+    
+    // Profile routes
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password.edit');
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    
+    // Feedback routes
+    Route::get('/feedback/{type}/{id}', [\App\Http\Controllers\FeedbackController::class, 'showFeedbackForm'])
+        ->name('feedback.show');
+    Route::post('/feedback/skip', [\App\Http\Controllers\FeedbackController::class, 'skip'])
+        ->name('feedback.skip');
+});
+
 // Purok Leader Dashboard
 Route::get('/purok-leader/dashboard', [\App\Http\Controllers\PurokLeaderController::class, 'dashboard'])
     ->middleware(['auth', PurokLeaderMiddleware::class])
     ->name('purok_leader.dashboard');
 
-// Purok Leader - View Residents
+// Purok Leader - View and Manage Residents
 Route::prefix('purok-leader')->middleware(['auth', PurokLeaderMiddleware::class])->group(function () {
+    // List residents
     Route::get('/residents', [\App\Http\Controllers\PurokLeaderController::class, 'residents'])
         ->name('purok_leader.residents');
         
+    // View resident details
     Route::get('/residents/{id}', [\App\Http\Controllers\PurokLeaderController::class, 'showResident'])
         ->name('purok_leader.residents.show');
+        
+    // Approve/Reject resident
+    Route::prefix('residents/{resident}')->group(function () {
+        // Approve resident
+        Route::patch('/approve', [\App\Http\Controllers\PurokLeader\PurokResidentController::class, 'approve'])
+            ->name('purok_leader.residents.approve');
+            
+        // Show reject form
+        Route::get('/reject', [\App\Http\Controllers\PurokLeader\PurokResidentController::class, 'showRejectForm'])
+            ->name('purok_leader.residents.reject-form');
+            
+        // Process rejection
+        Route::post('/reject', [\App\Http\Controllers\PurokLeader\PurokResidentController::class, 'reject'])
+            ->name('purok_leader.residents.reject');
+    });
 });
 
 // Update request status (approve/reject)
@@ -255,10 +304,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password.edit');
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
-    // Purok Clearance Requests
-    Route::resource('requests', RequestController::class);
-    Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('requests.my_requests');
-
     // Purok Leader Routes
     Route::middleware(['can:viewPendingPurok,App\Models\Request', PurokLeaderMiddleware::class])->group(function () {
         Route::get('/requests/pending/purok', [RequestController::class, 'pendingPurok'])->name('requests.pending-purok');
@@ -277,11 +322,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/requests/{request}/approve-barangay', [RequestController::class, 'approveBarangay'])->name('requests.approve-barangay');
         Route::post('/requests/{request}/complete', [RequestController::class, 'complete'])->name('requests.complete');
     });
-
-    // Incident report routes
-    Route::post('/incident-reports', [IncidentReportController::class, 'store'])->name('incident_reports.store');
-    Route::get('/incident-reports', [IncidentReportController::class, 'index'])->name('incident_reports.index');
-    Route::get('/incident-reports/{id}', [IncidentReportController::class, 'show'])->name('incident_reports.show');
     Route::put('/incident-reports/{id}', [IncidentReportController::class, 'update'])->name('incident_reports.update');
     Route::get('/reverse-geocode', [GeocodingController::class, 'reverse']);
     // In routes/web.php inside 'auth' middleware group

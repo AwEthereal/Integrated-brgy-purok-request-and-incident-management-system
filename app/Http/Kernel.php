@@ -32,6 +32,7 @@ class Kernel extends HttpKernel
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\CheckFeedbackEligibility::class,
             \App\Http\Middleware\CheckForPendingFeedback::class,
+            \App\Http\Middleware\CheckResidentApproved::class,
             // Temporarily disabled due to blank page issue
             // \App\Http\Middleware\SetIntendedUrl::class,
         ],
@@ -61,5 +62,6 @@ class Kernel extends HttpKernel
         'purok_president_only' => \App\Http\Middleware\PurokLeaderMiddleware::class,
         'barangay_official' => \App\Http\Middleware\BarangayOfficialMiddleware::class,
         'check_role' => \App\Http\Middleware\CheckRole::class,
+        'resident_approved' => \App\Http\Middleware\CheckResidentApproved::class,
     ];
 }

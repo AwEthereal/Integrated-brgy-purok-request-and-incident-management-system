@@ -98,8 +98,9 @@ class RequestController extends Controller
     public function store(HttpRequest $request)
     {
         $validated = $request->validate([
-            'form_type' => 'required|string|max:255|in:barangay_clearance,business_permit,certificate_of_residency,certificate_of_indigency,other',
+            'form_type' => 'required|string|max:255|in:barangay_clearance,business_clearance,certificate_of_residency,certificate_of_indigency,other',
             'purpose' => 'required|string|max:255',
+            'remarks' => 'nullable|string|max:1000',
             'other_purpose' => 'required_if:form_type,other|string|max:255',
             'front_id_photo_data' => 'required|string',
             'back_id_photo_data' => 'required|string',
@@ -161,6 +162,7 @@ class RequestController extends Controller
                 'status' => 'pending',
                 'valid_id_front_path' => $frontIdPath,
                 'valid_id_back_path' => $backIdPath,
+                'remarks' => $validated['remarks'] ?? null,
             ];
 
             // Create the request
@@ -301,7 +303,7 @@ class RequestController extends Controller
 
         $validated = $httpRequest->validate([
             // Request details only
-            'form_type' => 'required|string|max:255|in:barangay_clearance,barangay_id,business_permit,certificate_of_residency,certificate_of_indigency,other',
+            'form_type' => 'required|string|max:255|in:barangay_clearance,barangay_id,business_clearance,certificate_of_residency,certificate_of_indigency,other',
             'purpose' => 'required|string|max:255',
             'remarks' => 'nullable|string',
             'purok_id' => 'sometimes|exists:puroks,id',
@@ -314,7 +316,7 @@ class RequestController extends Controller
         $request->update([
             'form_type' => $validated['form_type'],
             'purpose' => $validated['purpose'],
-            'remarks' => $validated['remarks'],
+            'remarks' => $validated['remarks'] ?? null,
             'purok_id' => $validated['purok_id'] ?? $request->purok_id,
             // User's profile data is automatically used from the user model
             'contact_number' => $user->contact_number,

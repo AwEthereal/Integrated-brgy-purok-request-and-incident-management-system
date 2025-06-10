@@ -187,7 +187,7 @@
                         <select name="form_type" id="form_type" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
                             <option value="">Select request type</option>
                             <option value="barangay_clearance" {{ old('form_type') == 'barangay_clearance' ? 'selected' : '' }}>Barangay Clearance</option>
-                            <option value="business_permit" {{ old('form_type') == 'business_permit' ? 'selected' : '' }}>Business Permit</option>
+                            <option value="business_clearance" {{ old('form_type') == 'business_clearance' ? 'selected' : '' }}>Business Clearance</option>
                             <option value="certificate_of_residency" {{ old('form_type') == 'certificate_of_residency' ? 'selected' : '' }}>Certificate of Residency</option>
                             <option value="certificate_of_indigency" {{ old('form_type') == 'certificate_of_indigency' ? 'selected' : '' }}>Certificate of Indigency</option>
                             <option value="other" {{ old('form_type') == 'other' ? 'selected' : '' }}>Other</option>

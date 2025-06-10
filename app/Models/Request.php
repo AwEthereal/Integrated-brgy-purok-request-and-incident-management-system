@@ -11,7 +11,7 @@ class Request extends Model
 {
     public const FORM_TYPES = [
         'barangay_clearance' => 'Barangay Clearance',
-        'business_permit' => 'Business Permit',
+        'business_clearance' => 'Business Clearance',
         'certificate_of_residency' => 'Certificate of Residency',
         'certificate_of_indigency' => 'Certificate of Indigency',
         'other' => 'Other',
@@ -45,6 +45,7 @@ class Request extends Model
         'postal_code',
         'valid_id_front_path',
         'valid_id_back_path',
+        'rejection_reason',
         'rejected_at',
         'rejected_by',
         'purok_approved_at',

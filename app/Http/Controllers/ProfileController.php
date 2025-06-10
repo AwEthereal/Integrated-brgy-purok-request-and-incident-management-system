@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\PurokChangeRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -60,6 +61,27 @@ class ProfileController extends Controller
             // Check if email is being updated
             $emailChanged = $user->email !== $validated['email'];
             
+            // Check if purok is being changed for an active resident
+            $purokChanged = isset($validated['purok_id']) && $user->purok_id != $validated['purok_id'];
+            $isActiveResident = $user->role === 'resident' && $user->is_approved;
+            
+            if ($purokChanged && $isActiveResident) {
+                // For active residents, create a purok change request instead of updating directly
+                PurokChangeRequest::create([
+                    'user_id' => $user->id,
+                    'current_purok_id' => $user->purok_id,
+                    'requested_purok_id' => $validated['purok_id'],
+                    'status' => 'pending',
+                    'requested_at' => now(),
+                ]);
+                
+                // Remove purok_id from the update to prevent direct update
+                unset($validated['purok_id']);
+                
+                // Add success message for purok change request
+                session()->flash('success', 'Your purok change request has been submitted for approval.');
+            }
+            
             // Update all fields including the name
             $user->fill($validated);
             
@@ -71,9 +93,11 @@ class ProfileController extends Controller
                 
                 // Reset verification if email changed
                 $user->email_verified_at = null;
-                
-                // Save all changes
-                if ($user->save()) {
+            }
+            
+            // Save all changes
+            if ($user->save()) {
+                if ($emailChanged) {
                     Log::info('User record updated with new email', [
                         'user_id' => $user->id,
                         'email_updated' => true
@@ -82,18 +106,20 @@ class ProfileController extends Controller
                     // Send verification email
                     $user->sendEmailVerificationNotification();
                     Log::info('Verification email sent to new address');
-                } else {
-                    Log::error('Failed to update user email', [
-                        'user_id' => $user->id
-                    ]);
                 }
             } else {
-                // Save if email didn't change
-                if (!$user->save()) {
-                    Log::error('Failed to update user profile', [
-                        'user_id' => $user->id
-                    ]);
+                Log::error('Failed to update user profile', [
+                    'user_id' => $user->id
+                ]);
+                
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to update profile. Please try again.'
+                    ], 422);
                 }
+                
+                return back()->with('error', 'Failed to update profile. Please try again.');
             }
             
             // Refresh the user's session data
@@ -193,5 +219,39 @@ class ProfileController extends Controller
         
         return back()->with('status', 'password-updated')
                      ->with('success', 'Password updated successfully!');
+    }
+    
+    /**
+     * Delete the user's account (for rejected users).
+     */
+    public function destroyAccount(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        
+        // Only allow deletion for rejected accounts
+        if (!$user->rejected_at) {
+            return redirect()->back()
+                ->with('error', 'This action is only allowed for rejected accounts.');
+        }
+        
+        try {
+            // Log out the user
+            Auth::logout();
+            
+            // Delete the user
+            $user->delete();
+            
+            // Invalidate the session and regenerate the CSRF token
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            
+            return redirect()->route('welcome')
+                ->with('status', 'Your account has been successfully deleted.');
+                
+        } catch (\Exception $e) {
+            Log::error('Error deleting rejected account: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'An error occurred while deleting your account. Please try again.');
+        }
     }
 }

@@ -84,7 +84,7 @@
                             <select name="form_type" id="form_type" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" required>
                                 <option value="barangay_clearance" {{ old('form_type', $request->form_type) == 'barangay_clearance' ? 'selected' : '' }}>Barangay Clearance</option>
 
-                                <option value="business_permit" {{ old('form_type', $request->form_type) == 'business_permit' ? 'selected' : '' }}>Business Permit</option>
+                                <option value="business_clearance" {{ old('form_type', $request->form_type) == 'business_clearance' ? 'selected' : '' }}>Business Clearance</option>
                                 <option value="certificate_of_residency" {{ old('form_type', $request->form_type) == 'certificate_of_residency' ? 'selected' : '' }}>Certificate of Residency</option>
                                 <option value="certificate_of_indigency" {{ old('form_type', $request->form_type) == 'certificate_of_indigency' ? 'selected' : '' }}>Certificate of Indigency</option>
                                 <option value="other" {{ old('form_type', $request->form_type) == 'other' ? 'selected' : '' }}>Other</option>

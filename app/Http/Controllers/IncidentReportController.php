@@ -83,6 +83,24 @@ class IncidentReportController extends Controller
 
         return view('admin.incidents.index', compact('reports'));
     }
+    
+    // Resident views their own incident reports
+    public function myReports()
+    {
+        $reports = IncidentReport::where('user_id', auth()->id())
+            ->when(request('type'), function($query, $type) {
+                return $query->where('incident_type', $type);
+            })
+            ->when(request('status'), function($query, $status) {
+                return $query->where('status', $status);
+            })
+            ->with('purok')
+            ->orderBy('created_at', 'desc')
+            ->paginate(10)
+            ->appends(request()->query());
+            
+        return view('incident-reports.my-reports', compact('reports'));
+    }
 
     // Staff views a specific report
     public function show($id)
@@ -115,23 +133,6 @@ class IncidentReportController extends Controller
         return back()->with('success', 'Report updated.');
     }
 
-    // Optional: Resident views their own submitted reports
-    public function myReports()
-    {
-        $reports = IncidentReport::where('user_id', auth()->id())
-            ->when(request('type'), function($query, $type) {
-                return $query->where('incident_type', $type);
-            })
-            ->when(request('status'), function($query, $status) {
-                return $query->where('status', $status);
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10)
-            ->appends(request()->query());
-
-        return view('resident.incidents.my_reports', compact('reports'));
-    }
-    
     /**
      * Store feedback for an incident report
      */

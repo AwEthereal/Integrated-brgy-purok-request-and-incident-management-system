@@ -6,6 +6,35 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("Not on purok leader dashboard, exiting");
         return;
     }
+    
+    // Create and preload the audio element
+    const notificationSound = new Audio('/sounds/810191__mokasza__notification-chime.mp3');
+    notificationSound.preload = 'auto';
+    notificationSound.volume = 0.5; // Start with 50% volume
+    
+    // Track if we can play sound (will be true after first user interaction)
+    let canPlaySound = false;
+    
+    // Function to enable sound after user interaction
+    function enableSound() {
+        if (!canPlaySound) {
+            canPlaySound = true;
+            // Try to play/pause immediately to unlock audio
+            notificationSound.play().then(() => {
+                notificationSound.pause();
+                notificationSound.currentTime = 0;
+            }).catch(e => {
+                console.log('Audio playback not ready yet:', e);
+            });
+            // Remove the event listeners after first interaction
+            document.removeEventListener('click', enableSound);
+            document.removeEventListener('keydown', enableSound);
+        }
+    }
+    
+    // Enable sound on any user interaction
+    document.addEventListener('click', enableSound, { once: true });
+    document.addEventListener('keydown', enableSound, { once: true });
 
     // Check if Echo is available
     if (typeof window.Echo === "undefined") {
@@ -340,8 +369,33 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Function to play notification sound
+    function playNotificationSound() {
+        if (!canPlaySound) {
+            console.log('Sound not enabled yet - waiting for user interaction');
+            return;
+        }
+        
+        try {
+            // Clone the audio element to allow multiple overlapping sounds
+            const audio = notificationSound.cloneNode(true);
+            audio.volume = 0.5; // Set volume to 50%
+            audio.play().catch(error => {
+                console.error('Error playing notification sound:', error);
+                // If we get an error, try to re-enable sound for next time
+                canPlaySound = false;
+                enableSound();
+            });
+        } catch (error) {
+            console.error('Error initializing audio:', error);
+        }
+    }
+
     // Function to show a notification
     function showNewRequestNotification(count) {
+        // Play notification sound
+        playNotificationSound();
+        
         // Check if the browser supports notifications
         if (!('Notification' in window)) {
             console.log('This browser does not support desktop notification');
@@ -393,7 +447,20 @@ document.addEventListener("DOMContentLoaded", function () {
         // Also show an in-app notification
         const notification = document.createElement("div");
         notification.className =
-            "fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm z-50 border-l-4 border-blue-500";
+            "fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 max-w-sm z-50 border-l-4 border-blue-500 animate-fade-in-up";
+        
+        // Add fade-in animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in-up {
+                animation: fadeInUp 0.3s ease-out forwards;
+            }
+        `;
+        document.head.appendChild(style);
         notification.innerHTML = `
             <div class="flex items-start">
                 <div class="flex-shrink-0 pt-0.5">

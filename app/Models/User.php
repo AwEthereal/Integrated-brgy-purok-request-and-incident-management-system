@@ -27,6 +27,11 @@ class User extends Authenticatable
         'password',
         'role',
         'is_approved',
+        'approved_at',
+        'approved_by',
+        'rejected_at',
+        'rejected_by',
+        'rejection_reason',
         'birth_date',
         'gender',
         'civil_status',
@@ -42,8 +47,56 @@ class User extends Authenticatable
     protected $casts = [
         'birth_date' => 'date',
         'is_approved' => 'boolean',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
         'email_verified_at' => 'datetime',
     ];
+    
+    /**
+     * Check if user is an admin
+     *
+     * @return bool
+     */
+    /**
+     * Check if user is an admin
+     *
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin' || $this->role === 'administrator';
+    }
+    
+    /**
+     * Check if user is a purok leader
+     *
+     * @return bool
+     */
+    /**
+     * Check if user is a purok leader or purok president
+     *
+     * @return bool
+     */
+    public function isPurokLeader()
+    {
+        return in_array($this->role, ['purok_leader', 'purok_president']);
+    }
+    
+    /**
+     * Get the user who approved this resident
+     */
+    public function approvedBy()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+    
+    /**
+     * Get the user who rejected this resident
+     */
+    public function rejectedBy()
+    {
+        return $this->belongsTo(User::class, 'rejected_by');
+    }
     
     /**
      * Get the purok that the user belongs to.

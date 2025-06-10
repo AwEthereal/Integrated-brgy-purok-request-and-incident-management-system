@@ -243,7 +243,7 @@
                                         $color = $statusColors[$request->status] ?? 'bg-gray-100 text-gray-800';
                                         $statusLabel = [
                                             'pending' => 'Pending',
-                                            'purok_approved' => 'Approved',
+                                            'purok_approved' => 'Purok Approved',
                                             'completed' => 'Completed',
                                             'rejected' => 'Rejected',
                                             'cancelled' => 'Cancelled'

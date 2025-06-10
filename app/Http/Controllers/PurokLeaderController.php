@@ -99,19 +99,21 @@ class PurokLeaderController extends Controller
         $user = Auth::user();
         $purokName = $user->purok ? $user->purok->name : 'Unknown Purok';
         
+        // Get residents with their request counts and approval status
         $residents = User::where('purok_id', $user->purok_id)
             ->where('role', 'resident')
-            ->withCount(['requests' => function($query) {
-                $query->where('form_type', 'barangay_clearance');
+            ->withCount(['requests' => function($query) use ($user) {
+                $query->where('purok_id', $user->purok_id);
             }])
-            ->latest()
-            ->get();
+            ->orderBy('is_approved')
+            ->orderBy('last_name')
+            ->paginate(15);
             
         return view('purok_leader.residents', compact('residents', 'purokName'));
     }
     
     /**
-     * Show a specific resident's profile and their requests
+     * Show details of a specific resident
      */
     public function showResident($id)
     {

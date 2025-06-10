@@ -19,6 +19,7 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requests</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -53,16 +54,60 @@
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                         Active
                                     </span>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        Approved on {{ $resident->approved_at?->format('M d, Y') }}
+                                    </div>
+                                @elseif($resident->rejected_at)
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Rejected
+                                    </span>
+                                    @if($resident->rejection_reason)
+                                        <div class="text-xs text-gray-500 mt-1" title="{{ $resident->rejection_reason }}">
+                                            {{ Str::limit($resident->rejection_reason, 30) }}
+                                        </div>
+                                    @endif
                                 @else
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                         Pending Approval
                                     </span>
                                 @endif
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center justify-end space-x-2">
+                                    @if(!$resident->is_approved && !$resident->rejected_at)
+                                        <form action="{{ route('purok_leader.residents.approve', $resident) }}" method="POST" class="inline-flex items-center" onsubmit="return confirm('Are you sure you want to approve this resident?');">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="p-1 text-green-600 hover:text-green-900 rounded-full hover:bg-green-50" title="Approve">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                        <a href="{{ route('purok_leader.residents.reject-form', $resident) }}" class="p-1 text-red-600 hover:text-red-900 rounded-full hover:bg-red-50" title="Reject">
+                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </a>
+                                    @elseif($resident->rejected_at)
+                                        <form action="{{ route('purok_leader.residents.approve', $resident) }}" method="POST" class="inline-flex items-center" onsubmit="return confirm('Are you sure you want to approve this resident?');">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="p-1 text-green-600 hover:text-green-900 rounded-full hover:bg-green-50" title="Approve">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="text-xs text-gray-400">Approved</span>
+                                    @endif
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                            <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
                                 No residents found in your purok.
                             </td>
                         </tr>

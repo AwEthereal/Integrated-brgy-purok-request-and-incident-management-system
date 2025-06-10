@@ -244,6 +244,16 @@
                 <!-- Request Details -->
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h2 class="text-lg font-semibold text-gray-700 mb-4">Request Information</h2>
+                    
+                    <!-- Processing Fee Notice -->
+                    @if($request->status === 'pending')
+                    <div class="mb-4 p-4 bg-blue-50 rounded-md">
+                        <p class="text-sm text-blue-700">
+                            <span class="font-medium">Note to Resident:</span> To receive your purok clearance,
+                            please prepare 20 pesos for the processing fee.
+                        </p>
+                    </div>
+                    @endif
 
                     <!-- ID Photos Section -->
                     @if($request->valid_id_front_path || $request->valid_id_back_path)
@@ -297,7 +307,13 @@
                             <p class="text-sm text-gray-500">Purok</p>
                             <p class="font-medium">{{ $request->purok->name ?? 'N/A' }}</p>
                         </div>
-                        <div class="md:col-span-2">
+                        @if($request->remarks)
+                        <div>
+                            <p class="text-sm text-gray-500">Additional Notes</p>
+                            <p class="font-medium text-blue-600">{{ $request->remarks }}</p>
+                        </div>
+                        @endif
+                        <div>
                             <p class="text-sm text-gray-500">Purpose</p>
                             <p class="font-medium">{{ $request->purpose }}</p>
                         </div>
@@ -456,15 +472,6 @@
                                 <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
                                     {{ $request->status === 'pending' ? 'Approve Purok Clearance' : 'Approve Barangay Clearance' }}
                                 </h3>
-
-                                @if($request->status === 'pending')
-                                    <div class="mb-4 p-4 bg-blue-50 rounded-md">
-                                        <p class="text-sm text-blue-700">
-                                            <span class="font-medium">Note to Resident:</span> To receive your purok clearance,
-                                            please prepare 20 pesos for the processing fee.
-                                        </p>
-                                    </div>
-                                @endif
 
                                 <div class="mt-4">
                                     <label for="notes" class="block text-sm font-medium text-gray-700">

@@ -1,5 +1,35 @@
 @extends('layouts.app')
 
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const newPassword = document.querySelector('input[name="password"]');
+            const confirmPassword = document.querySelector('input[name="password_confirmation"]');
+            const confirmIcon = document.getElementById('confirm-icon');
+            
+            function checkPasswordsMatch() {
+                if (confirmPassword.value === '') {
+                    confirmIcon.classList.remove('text-green-500');
+                    confirmIcon.classList.add('text-gray-400');
+                } else if (newPassword.value === confirmPassword.value) {
+                    confirmIcon.classList.remove('text-gray-400');
+                    confirmIcon.classList.add('text-green-500');
+                } else {
+                    confirmIcon.classList.remove('text-green-500');
+                    confirmIcon.classList.add('text-gray-400');
+                }
+            }
+
+            // Check on input for both fields
+            newPassword.addEventListener('input', checkPasswordsMatch);
+            confirmPassword.addEventListener('input', checkPasswordsMatch);
+            
+            // Initial check in case of autofill
+            checkPasswordsMatch();
+        });
+    </script>
+@endpush
+
 @push('styles')
     <style>
         .password-header {
@@ -17,11 +47,10 @@
             position: absolute;
             top: -50px;
             right: -50px;
-            width: 200px;
-            height: 200px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             pointer-events: none;
+            z-index: 0;
         }
 
         .back-btn {
@@ -34,6 +63,8 @@
             padding: 0.5rem 0.75rem;
             border-radius: 0.375rem;
             background: rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 10;
         }
 
         .back-btn:hover {
@@ -61,7 +92,7 @@
                 <div class="password-header">
                     <div class="relative z-10">
                         <div class="flex items-center justify-between">
-                            <div class="ml-4">
+                            <div class="mr-0">
                                 <h1 class="text-2xl font-bold flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
@@ -70,9 +101,9 @@
                                     </svg>
                                     Update Password
                                 </h1>
-                                <p class="text-gray-700 text-sm mt-1 ml-2">Secure your account with a new password</p>
+                                <p class="text-white text-sm mt-1 ml-2">Secure your account with a new password</p>
                             </div>
-                            <a href="{{ route('profile.edit') }}" class="back-btn mr-2">
+                            <a href="{{ route('profile.edit') }}" class="back-btn mr-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-8  " viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -175,10 +206,6 @@
                                     class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md bg-white shadow-sm transition duration-150 ease-in-out"
                                     placeholder="Enter your new password">
                             </div>
-                            <p class="mt-2 text-sm text-gray-500">
-                                Password must be at least 8 characters long and include a mix of letters, numbers, and
-                                symbols.
-                            </p>
                         </div>
 
                         <!-- Confirm New Password -->
@@ -187,20 +214,22 @@
                                 Confirm New Password
                             </label>
                             <div class="mt-1 relative rounded-md shadow-sm">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
+                                    <svg id="password-match-icon" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                                     </svg>
                                 </div>
                                 <input type="password" name="password_confirmation" id="password_confirmation" required
-                                    class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md bg-white shadow-sm transition duration-150 ease-in-out"
+                                    class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-3 sm:text-sm border-gray-300 rounded-md bg-white shadow-sm transition duration-150 ease-in-out"
                                     placeholder="Confirm your new password">
                             </div>
+                            <p class="mt-2 text-sm text-gray-500">
+                                Password must be at least 8 characters long and include a mix of letters, numbers, and
+                                symbols.
+                            </p>
                         </div>
-
-                        <div class="flex justify-end pt-6 border-t border-gray-200">
+                        
+                        <div class="flex justify-end pt-6">
                             <a href="{{ route('dashboard') }}"
                                 class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 Cancel
@@ -211,6 +240,33 @@
                             </button>
                         </div>
                     </form>
+                    
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const password = document.getElementById('password');
+                            const confirmPassword = document.getElementById('password_confirmation');
+                            const passwordMatchIcon = document.getElementById('password-match-icon');
+                            
+                            function checkPasswordsMatch() {
+                                if (confirmPassword.value === '') {
+                                    passwordMatchIcon.classList.remove('text-green-500');
+                                    passwordMatchIcon.classList.add('text-gray-400');
+                                } else if (password.value === confirmPassword.value) {
+                                    passwordMatchIcon.classList.remove('text-gray-400');
+                                    passwordMatchIcon.classList.add('text-green-500');
+                                } else {
+                                    passwordMatchIcon.classList.remove('text-green-500');
+                                    passwordMatchIcon.classList.add('text-gray-400');
+                                }
+                            }
+                            
+                            password.addEventListener('input', checkPasswordsMatch);
+                            confirmPassword.addEventListener('input', checkPasswordsMatch);
+                            
+                            // Initial check in case of autofill
+                            checkPasswordsMatch();
+                        });
+                    </script>
                 </div>
             </div>
         </div>
