@@ -7,6 +7,7 @@ use App\Models\IncidentReport;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreFeedbackRequest;
 use App\Models\Purok;
+use App\Models\IncidentReport as IncidentReportModel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
@@ -65,7 +66,7 @@ class IncidentReportController extends Controller
         'latitude' => $request->latitude,
         'longitude' => $request->longitude,
         'location' => $request->location,
-        'status' => 'Pending',
+        'status' => IncidentReportModel::STATUS_PENDING,
     ]);
 
     return redirect()->route('incident_reports.show', $incident->id)
@@ -81,7 +82,7 @@ class IncidentReportController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('admin.incidents.index', compact('reports'));
+        return view('admin.incidents.pending', compact('reports'));
     }
     
     // Resident views their own incident reports
@@ -107,8 +108,15 @@ class IncidentReportController extends Controller
     {
         $report = IncidentReport::with(['user', 'purok'])->findOrFail($id);
         
-        // Check if the authenticated user is an admin
-        if (auth()->user()->role === 'admin' || auth()->user()->role === 'barangay_official') {
+        // Check if the authenticated user is an admin or barangay official
+        if (in_array(auth()->user()->role, ['admin', 'barangay_kagawad', 'barangay_captain', 'secretary', 'sk_chairman'])) {
+            // Mark as viewed if not already viewed
+            if (is_null($report->viewed_at)) {
+                $report->update(['viewed_at' => now()]);
+                // Refresh the report to get the updated viewed_at
+                $report->refresh();
+            }
+            
             return view('admin.incidents.show', compact('report'));
         }
         
@@ -162,5 +170,92 @@ class IncidentReportController extends Controller
     public function create()
     {
         return view('incidents.create');
+    }
+
+    /**
+     * Show pending incident reports for barangay officials
+     */
+    public function pendingApproval()
+    {
+        $reports = IncidentReport::where('status', IncidentReportModel::STATUS_PENDING)
+            ->with(['user', 'purok'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+            
+        return view('admin.incidents.pending', compact('reports'));
+    }
+    
+    /**
+     * Mark an incident report as In Progress
+     */
+    public function markInProgress(IncidentReport $incidentReport)
+    {
+        $this->authorize('update', $incidentReport);
+        
+        $incidentReport->update([
+            'status' => IncidentReportModel::STATUS_IN_PROGRESS,
+            'staff_notes' => $incidentReport->staff_notes . "\n\nMarked as In Progress by " . auth()->user()->name . " on " . now()->toDateTimeString(),
+        ]);
+
+        return back()->with('success', 'Incident report marked as In Progress');
+    }
+    
+    /**
+     * Mark an incident report as Resolved
+     */
+    public function markResolved(IncidentReport $incidentReport)
+    {
+        $this->authorize('update', $incidentReport);
+        
+        $incidentReport->update([
+            'status' => IncidentReportModel::STATUS_RESOLVED,
+            'resolved_at' => now(),
+            'resolved_by' => auth()->id(),
+            'staff_notes' => $incidentReport->staff_notes . "\n\nMarked as Resolved by " . auth()->user()->name . " on " . now()->toDateTimeString(),
+        ]);
+
+        return back()->with('success', 'Incident report marked as Resolved');
+    }
+
+    /**
+     * Approve an incident report
+     */
+    public function approve(IncidentReport $incidentReport)
+    {
+        $this->authorize('approve', $incidentReport);
+        
+        $incidentReport->update([
+            'status' => IncidentReportModel::STATUS_RESOLVED,
+            'approved_by' => auth()->id(),
+            'approved_at' => now(),
+            'rejected_by' => null,
+            'rejected_at' => null,
+            'rejection_reason' => null
+        ]);
+
+        return back()->with('success', 'Incident report approved successfully');
+    }
+
+    /**
+     * Reject an incident report
+     */
+    public function reject(Request $request, IncidentReport $incidentReport)
+    {
+        $this->authorize('reject', $incidentReport);
+        
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string|max:500'
+        ]);
+
+        $incidentReport->update([
+            'status' => IncidentReportModel::STATUS_INVALID,
+            'rejection_reason' => $validated['rejection_reason'],
+            'rejected_by' => auth()->id(),
+            'rejected_at' => now(),
+            'approved_by' => null,
+            'approved_at' => null
+        ]);
+
+        return back()->with('success', 'Incident report rejected');
     }
 }

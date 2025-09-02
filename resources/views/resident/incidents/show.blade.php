@@ -23,12 +23,13 @@
                                     'Pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
                                     'In Progress' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
                                     'Resolved' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-                                    'Rejected' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                                    'Invalid Report' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
                                 ];
-                                $statusClass = $statusClasses[$report->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+                                $displayStatus = $report->getDisplayStatusForResident();
+                                $statusClass = $statusClasses[$displayStatus] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
                             @endphp
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClass }}">
-                                {{ format_label($report->status) }}
+                                {{ $displayStatus }}
                             </span>
                             <a href="{{ route('incident_reports.my_reports') }}" 
                                class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600">

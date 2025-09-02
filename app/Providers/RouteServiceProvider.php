@@ -14,10 +14,18 @@ class RouteServiceProvider extends ServiceProvider
     {
         parent::boot();
 
-        // Explicit route model binding
+        // Explicit route model bindings
         Route::model('request', RequestModel::class);
+        
+        // Custom binding for requests
         Route::bind('request', function ($value) {
             return RequestModel::findOrFail($value);
+        });
+        
+        // Handle purok_leader route parameter to prevent binding errors
+        Route::bind('purok_leader', function ($value) {
+            return \App\Models\User::where('role', 'purok_leader')
+                                 ->findOrFail($value);
         });
 
         Route::middleware('web')

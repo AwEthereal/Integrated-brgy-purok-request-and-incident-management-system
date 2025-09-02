@@ -14,11 +14,23 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+    <!-- User Meta Tags -->
+    @auth
+        <meta name="user-role" content="{{ auth()->user()->role }}">
+        <meta name="purok-id" content="{{ auth()->user()->purok_id }}">
+    @endauth
+    
+    <!-- Pusher JS (CDN) -->
+    <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
+
+    <!-- Custom CSS for Incident Reports -->
+    <link href="{{ asset('css/incident-reports.css') }}" rel="stylesheet">
+    
     <!-- Scripts -->
     @vite([
         'resources/css/app.css',
         'resources/js/app.js',
-        'resources/js/echo.js'
+        'resources/js/global-notifications.js'
     ])
     
     <!-- Notification Sound Script -->
@@ -32,7 +44,6 @@
                     ]
                 ]) !!};
             </script>
-            <script src="{{ asset('js/notification.js') }}"></script>
         @endif
     @endauth
     
@@ -40,6 +51,7 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     @stack('styles')
+    
 </head>
 <body class="font-sans antialiased bg-green-50">
     <div class="min-h-screen">

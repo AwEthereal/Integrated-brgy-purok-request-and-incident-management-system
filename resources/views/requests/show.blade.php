@@ -121,20 +121,17 @@
                     </div>
                     <div class="text-right">
                         <span class="text-xs font-semibold inline-block text-blue-600">
-                            @if($request->status === 'pending') 25%
-                            @elseif($request->status === 'purok_approved') 50%
-                            @elseif($request->status === 'barangay_approved') 75%
+                            @if($request->status === 'pending') 33%
+                            @elseif($request->status === 'purok_approved') 66%
                             @else 100% @endif
                         </span>
                     </div>
                 </div>
                 <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
-                    <div style="width:@if($request->status === 'pending') 25%
-                    @elseif($request->status === 'purok_approved') 50%
-                        @elseif($request->status === 'barangay_approved') 75%
-                            @else 100% @endif" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center 
+                    <div style="width:@if($request->status === 'pending') 33%
+                    @elseif($request->status === 'purok_approved') 66%
+                        @else 100% @endif" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center 
                                                                 @if($request->status === 'rejected') bg-red-500
-                                                                @elseif($request->status === 'completed') bg-green-500
                                                                 @else bg-blue-500 @endif">
                     </div>
                 </div>
@@ -212,31 +209,22 @@
                         </div>
                     @endif
 
-                    {{-- Step 4: Final --}}
-                    <div class="text-center">
-                        <div class="w-8 h-8 mx-auto rounded-full flex items-center justify-center 
-                                @if($request->status === 'completed') 
-                                    bg-green-500 text-white 
-                                @elseif($request->status === 'rejected') 
-                                    bg-red-500 text-white 
-                                @else 
-                                    bg-gray-200 
-                                @endif">
-                            @if(in_array($request->status, ['rejected', 'completed']))
+                    {{-- Step 3: Barangay is now the final step --}}
+                    @if($isPurokRejected || $isBarangayRejected)
+                        <div class="text-center">
+                            <div class="w-8 h-8 mx-auto rounded-full flex items-center justify-center bg-red-500 text-white">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                 </svg>
-                            @else
-                                <span class="text-xs">4</span>
+                            </div>
+                            <div class="mt-1">Rejected</div>
+                            @if($request->purok_rejected_at)
+                                <div class="text-xs text-gray-500">{{ $request->purok_rejected_at->format('M d, Y') }}</div>
+                            @elseif($request->barangay_rejected_at)
+                                <div class="text-xs text-gray-500">{{ $request->barangay_rejected_at->format('M d, Y') }}</div>
                             @endif
                         </div>
-                        <div class="mt-1">
-                            {{ $request->status === 'rejected' ? 'Rejected' : 'Completed' }}
-                        </div>
-                        @if($request->document_generated_at)
-                            <div class="text-xs text-gray-500">{{ $request->document_generated_at->format('M d, Y') }}</div>
-                        @endif
-                    </div>
+                    @endif
 
                 </div>
 
@@ -310,7 +298,7 @@
                         @if($request->remarks)
                         <div>
                             <p class="text-sm text-gray-500">Additional Notes</p>
-                            <p class="font-medium text-blue-600">{{ $request->remarks }}</p>
+                            <p class="font-medium text-blue-600 break-words">{{ $request->remarks }}</p>
                         </div>
                         @endif
                         <div>
@@ -441,11 +429,22 @@
                             </form>
                         @endif
 
-                        @if($request->status === 'pending' && auth()->user()->id === $request->user_id)
-                            <a href="{{ route('requests.edit', $request) }}"
-                                class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
-                                Edit Request
-                            </a>
+                        @if(($request->status === 'pending' || $request->status === 'rejected') && auth()->user()->id === $request->user_id)
+                            @if($request->status === 'pending')
+                                <a href="{{ route('requests.edit', $request) }}"
+                                    class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2">
+                                    Edit Request
+                                </a>
+                            @endif
+                            <form action="{{ route('requests.destroy', $request) }}" method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" 
+                                    class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                    onclick="return confirm('Are you sure you want to delete this request? This action cannot be undone.')">
+                                    Delete Request
+                                </button>
+                            </form>
                         @endif
 
                         @if($request->status === 'completed' && $request->document_path)

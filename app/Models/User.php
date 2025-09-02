@@ -51,6 +51,36 @@ class User extends Authenticatable
         'rejected_at' => 'datetime',
         'email_verified_at' => 'datetime',
     ];
+
+    /**
+     * Get the user's abilities/permissions.
+     *
+     * @return array
+     */
+    public function getAbilities()
+    {
+        // Define base abilities based on user role
+        $abilities = [];
+        
+        // Add role-based abilities
+        if ($this->role === 'admin') {
+            $abilities = ['*'];
+        } else {
+            // Add abilities based on role
+            $roleAbilities = [
+                'barangay_captain' => ['view_dashboard', 'manage_requests', 'approve_requests', 'reject_requests', 'view_reports'],
+                'barangay_kagawad' => ['view_dashboard', 'view_requests', 'approve_requests', 'view_reports'],
+                'secretary' => ['view_dashboard', 'manage_requests', 'view_reports'],
+                'sk_chairman' => ['view_dashboard', 'view_requests', 'view_reports'],
+                'purok_president' => ['view_dashboard', 'view_own_purok_requests', 'approve_own_purok_requests'],
+                'resident' => ['view_own_requests', 'create_requests'],
+            ];
+            
+            $abilities = $roleAbilities[$this->role] ?? [];
+        }
+        
+        return $abilities;
+    }
     
     /**
      * Check if user is an admin

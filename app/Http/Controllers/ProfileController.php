@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\PurokChangeRequest;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -34,18 +34,30 @@ class ProfileController extends Controller
             session(['profile_previous_url' => $previousUrl]);
         }
 
+        $user = $request->user();
+        $purokChangeRequest = null;
+        
+        // Check if user has any pending or rejected purok change requests
+        if ($user->role === 'resident' && $user->is_approved) {
+            $purokChangeRequest = PurokChangeRequest::where('user_id', $user->id)
+                ->whereIn('status', ['pending', 'rejected'])
+                ->latest()
+                ->first();
+        }
+
         return view('profile.edit', [
-            'user' => $request->user(),
+            'user' => $user,
+            'purokChangeRequest' => $purokChangeRequest,
         ]);
     }
 
     /**
      * Update the user's profile information.
+     *
+     * @param  \App\Http\Requests\ProfileUpdateRequest  $request
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
-    /**
-     * Update the user's profile information.
-     */
-    public function update(ProfileUpdateRequest $request): RedirectResponse
+    public function update(ProfileUpdateRequest $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
     {
         try {
             $user = $request->user();
@@ -66,6 +78,16 @@ class ProfileController extends Controller
             $isActiveResident = $user->role === 'resident' && $user->is_approved;
             
             if ($purokChanged && $isActiveResident) {
+                // Check if there's already a pending purok change request
+                $existingRequest = PurokChangeRequest::where('user_id', $user->id)
+                    ->whereIn('status', ['pending'])
+                    ->first();
+                
+                if ($existingRequest) {
+                    // If there's already a pending request, show an error
+                    return back()->with('error', 'You already have a pending purok change request. Please wait for it to be processed.');
+                }
+                
                 // For active residents, create a purok change request instead of updating directly
                 PurokChangeRequest::create([
                     'user_id' => $user->id,
@@ -73,27 +95,18 @@ class ProfileController extends Controller
                     'requested_purok_id' => $validated['purok_id'],
                     'status' => 'pending',
                     'requested_at' => now(),
+                    'rejection_reason' => null
                 ]);
                 
-                // Remove purok_id from the update to prevent direct update
+                // Remove purok_id from validated data to prevent direct update
                 unset($validated['purok_id']);
                 
-                // Add success message for purok change request
-                session()->flash('success', 'Your purok change request has been submitted for approval.');
+                // Show success message
+                return back()->with('success', 'Your purok change request has been submitted for approval.');
             }
             
-            // Update all fields including the name
-            $user->fill($validated);
-            
-            if ($emailChanged) {
-                Log::info('Email changed, updating user record', [
-                    'old_email' => $user->email,
-                    'new_email' => $validated['email']
-                ]);
-                
-                // Reset verification if email changed
-                $user->email_verified_at = null;
-            }
+            // Update user data
+            $user->fill($request->validated());
             
             // Save all changes
             if ($user->save()) {
@@ -107,6 +120,33 @@ class ProfileController extends Controller
                     $user->sendEmailVerificationNotification();
                     Log::info('Verification email sent to new address');
                 }
+                
+                // Refresh the user's session data
+                Auth::login($user);
+                Log::info('User session refreshed after update');
+                
+                // Always redirect to dashboard after profile update
+                $redirectUrl = route('dashboard');
+                
+                // Store success message in session
+                session()->flash('success', 'Profile updated successfully!');
+                
+                // For AJAX requests, return JSON response
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Profile updated successfully!',
+                        'redirect' => $redirectUrl,
+                        'user' => [
+                            'first_name' => $user->first_name,
+                            'last_name' => $user->last_name,
+                            'email' => $user->email
+                        ]
+                    ]);
+                }
+                
+                // For regular form submissions, redirect to dashboard with success message
+                return redirect()->route('dashboard')->with('success', 'Profile updated successfully!');
             } else {
                 Log::error('Failed to update user profile', [
                     'user_id' => $user->id
@@ -121,40 +161,6 @@ class ProfileController extends Controller
                 
                 return back()->with('error', 'Failed to update profile. Please try again.');
             }
-            
-            // Refresh the user's session data
-            Auth::login($user);
-            Log::info('User session refreshed after update');
-            
-            // Get the previous URL from session or use a default
-            $previousUrl = session()->pull('profile_previous_url', route('dashboard'));
-            
-            // If the previous URL is the current page, use dashboard as fallback
-            if (url()->current() === $previousUrl) {
-                $previousUrl = route('dashboard');
-            }
-            
-            // Store success message in session
-            session()->flash('success', 'Profile updated successfully!');
-            
-            // For AJAX requests, return JSON response
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Profile updated successfully!',
-                    'redirect' => $previousUrl,
-                    'user' => [
-                        'first_name' => $user->first_name,
-                        'last_name' => $user->last_name,
-                        'email' => $user->email
-                    ]
-                ]);
-            }
-            
-            // For regular form submissions, redirect to the previous URL
-            return redirect($previousUrl)
-                ->with('status', 'profile-updated');
-                
         } catch (\Exception $e) {
             // Log the error for debugging
             \Log::error('Profile update error: ' . $e->getMessage());

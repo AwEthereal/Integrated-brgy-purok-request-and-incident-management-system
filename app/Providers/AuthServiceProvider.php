@@ -7,17 +7,31 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use App\Models\Request;
+use App\Models\IncidentReport;
 use App\Policies\RequestPolicy;
+use App\Policies\IncidentReportPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
     protected $policies = [
         Request::class => RequestPolicy::class,
+        IncidentReport::class => IncidentReportPolicy::class,
     ];
 
     public function boot(): void
     {
         $this->registerPolicies();
+
+        // Gate for Barangay Official actions
+        Gate::define('barangay-official-actions', function ($user) {
+            return in_array($user->role, [
+                'barangay_captain',
+                'barangay_kagawad',
+                'secretary',
+                'sk_chairman',
+                'admin',
+            ]);
+        });
 
         // Set the URL for email verification links
         if (app()->environment('production')) {

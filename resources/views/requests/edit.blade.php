@@ -40,6 +40,39 @@
         justify-content: center;
         margin-top: 1rem;
     }
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 50;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 1.5rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        width: 90%;
+        max-width: 32rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    .close {
+        color: #6b7280;
+        float: right;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1;
+        cursor: pointer;
+    }
+    .close:hover {
+        color: #374151;
+    }
 </style>
 @endpush
 
@@ -101,19 +134,28 @@
                         
                         <!-- Purpose -->
                         <div class="md:col-span-2">
-                            <label for="purpose" class="block text-sm font-medium text-gray-700 mb-1">Purpose <span class="text-red-600">*</span></label>
+                            <div class="flex justify-between items-baseline">
+                                <label for="purpose" class="block text-sm font-medium text-gray-700 mb-1">Purpose <span class="text-red-600">*</span></label>
+                                <span id="purpose-counter" class="text-xs text-gray-500">{{ strlen(old('purpose', $request->purpose)) }}/50</span>
+                            </div>
                             <input type="text" name="purpose" id="purpose" 
                                    value="{{ old('purpose', $request->purpose) }}" 
                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" 
-                                   placeholder="e.g., Employment, Business, etc." required>
+                                   placeholder="e.g., Employment, Business, etc." required maxlength="50"
+                                   oninput="document.getElementById('purpose-counter').textContent = this.value.length + '/50';">
                         </div>
                         
                         <!-- Remarks -->
                         <div class="md:col-span-2">
-                            <label for="remarks" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (Optional)</label>
+                            <div class="flex justify-between items-baseline">
+                                <label for="remarks" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (Optional)</label>
+                                <span id="remarks-counter" class="text-xs text-gray-500">{{ strlen(old('remarks', $request->remarks)) }}/100</span>
+                            </div>
                             <textarea name="remarks" id="remarks" rows="3" 
                                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50" 
-                                      placeholder="Any additional information or special requests">{{ old('remarks', $request->remarks) }}</textarea>
+                                      placeholder="Any additional information or special requests"
+                                      maxlength="100"
+                                      oninput="document.getElementById('remarks-counter').textContent = this.value.length + '/100';">{{ old('remarks', $request->remarks) }}</textarea>
                         </div>
                     </div>
                 </div>
@@ -181,11 +223,87 @@
                 <!-- Form Actions -->
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6 sm:mt-8">
                     <a href="{{ route('requests.show', $request) }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 text-center">
-                        Cancel
+                        Back to List
                     </a>
-                    <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Update Request
-                    </button>
+                    @if($request->status == 'pending' && auth()->user()->hasRole('barangay_official'))
+                        <button type="button" onclick="document.getElementById('approveModal').classList.remove('hidden')" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Approve Request
+                        </button>
+                        <button type="button" onclick="document.getElementById('rejectModal').classList.remove('hidden')" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                            <svg class="-ml-1 mr-2 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            Reject Request
+                        </button>
+                    @else
+                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Update Request
+                        </button>
+                    @endif
+                </div>
+
+                <!-- Approve Modal -->
+                <div id="approveModal" class="modal">
+                    <div class="modal-content">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-medium text-gray-900">Approve Request</h3>
+                            <span class="close" onclick="document.getElementById('approveModal').classList.add('hidden')">&times;</span>
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-gray-600">Are you sure you want to approve this request? This action cannot be undone.</p>
+                            <div class="mt-6 flex justify-end space-x-3">
+                                <button type="button" onclick="document.getElementById('approveModal').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Cancel
+                                </button>
+                                <form action="{{ route('requests.approve', $request) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                        Confirm Approval
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reject Modal -->
+                <div id="rejectModal" class="modal">
+                    <div class="modal-content">
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-lg font-medium text-gray-900">Reject Request</h3>
+                            <span class="close" onclick="document.getElementById('rejectModal').classList.add('hidden')">&times;</span>
+                        </div>
+                        <form action="{{ route('requests.reject', $request) }}" method="POST">
+                            @csrf
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-600 mb-4">Please provide a reason for rejecting this request. This will be sent to the requester.</p>
+                                <div class="mb-4">
+                                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-1">Reason for Rejection <span class="text-red-500">*</span></label>
+                                    <textarea id="rejection_reason" name="rejection_reason" rows="3" 
+                                        class="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md p-2"
+                                        placeholder="Please provide a reason for rejecting this request..."
+                                        required></textarea>
+                                </div>
+                                <div class="mt-6 flex justify-end space-x-3">
+                                    <button type="button" onclick="document.getElementById('rejectModal').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                        Confirm Rejection
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </form>
         </div>
@@ -195,17 +313,36 @@
 @push('scripts')
 <script>
     // Format contact number input
-    document.getElementById('contact_number').addEventListener('input', function(e) {
+    document.getElementById('contact_number')?.addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
         value = value.substring(0, 11);
         e.target.value = value;
     });
     
     // Format postal code input
-    document.getElementById('postal_code').addEventListener('input', function(e) {
+    document.getElementById('postal_code')?.addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
         value = value.substring(0, 4);
         e.target.value = value;
+    });
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        const modals = ['approveModal', 'rejectModal'];
+        modals.forEach(modalId => {
+            const modal = document.getElementById(modalId);
+            if (event.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+    }
+
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            document.getElementById('approveModal')?.classList.add('hidden');
+            document.getElementById('rejectModal')?.classList.add('hidden');
+        }
     });
 </script>
 @endpush

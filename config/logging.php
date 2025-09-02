@@ -18,7 +18,12 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    'default' => env('LOG_CHANNEL', 'daily'),
+    
+    /*
+     * Override the default log level for the application.
+     */
+    'level' => env('LOG_LEVEL', 'debug'),
 
     /*
     |--------------------------------------------------------------------------
@@ -54,8 +59,18 @@ return [
 
         'stack' => [
             'driver' => 'stack',
-            'channels' => explode(',', env('LOG_STACK', 'single')),
+            'channels' => ['daily', 'stderr'],
             'ignore_exceptions' => false,
+        ],
+
+        'console' => [
+            'driver' => 'monolog',
+            'level' => 'debug',
+            'handler' => StreamHandler::class,
+            'with' => [
+                'stream' => 'php://stdout',
+            ],
+            'formatter' => env('LOG_STDERR_FORMATTER'),
         ],
 
         'single' => [

@@ -1,30 +1,18 @@
 <?php
 
 return [
-    'default' => env('BROADCAST_DRIVER', 'reverb'),
-    
-    'connections' => [
-        'reverb' => [
-            'driver' => 'reverb',
-            'key' => 'kalawag_brgy_key',
-            'secret' => 'kalawag_brgy_secret',
-            'app_id' => 'kalawag_brgy_system',
-            'options' => [
-                'host' => '127.0.0.1',
-                'port' => 8080,
-                'scheme' => 'http',
-                'useTLS' => false,
-            ],
-            'client_options' => [
-                'verify' => false,
-                'curl' => [
-                    CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
-                ],
-            ],
-        ],
+    'default' => env('BROADCAST_DRIVER', 'pusher'),
 
-        'null' => [
-            'driver' => 'null',
+    'connections' => [
+        'pusher' => [
+            'driver' => 'pusher',
+            'key' => env('PUSHER_APP_KEY'),
+            'secret' => env('PUSHER_APP_SECRET'),
+            'app_id' => env('PUSHER_APP_ID'),
+            'options' => [
+                'cluster' => env('PUSHER_APP_CLUSTER'),
+                'useTLS' => true,
+            ],
         ],
     ],
 ];

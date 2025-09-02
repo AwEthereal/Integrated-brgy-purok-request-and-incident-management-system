@@ -36,43 +36,20 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener('click', enableSound, { once: true });
     document.addEventListener('keydown', enableSound, { once: true });
 
-    // Check if Echo is available
-    if (typeof window.Echo === "undefined") {
-        console.error("Laravel Echo is not properly initialized");
-        return;
-    }
-    
     // Get the purok ID from the meta tag
     const purokId = document.querySelector('meta[name="purok-id"]')?.getAttribute("content");
     if (!purokId) {
         console.error("Purok ID not found in meta tags");
         return;
     }
-    
-    console.log("Setting up WebSocket listener for purok ID:", purokId);
-    
-    // Wait for Echo to be fully initialized
-    const waitForEcho = setInterval(() => {
-        if (window.Echo.connector.pusher.connection.state === 'connected') {
-            clearInterval(waitForEcho);
-            setupWebSocket();
-        } else if (window.Echo.connector.pusher.connection.state === 'failed') {
-            clearInterval(waitForEcho);
-            console.error('Failed to connect to WebSocket server');
-        }
-    }, 100);
-    
-    // Set a timeout in case the connection never succeeds
-    setTimeout(() => {
-        clearInterval(waitForEcho);
-        if (window.Echo.connector.pusher.connection.state !== 'connected') {
-            console.error('Timed out waiting for WebSocket connection');
-            // Try to reconnect
-            setupWebSocket();
-        }
-    }, 5000);
 
     console.log("Setting up WebSocket listener for purok ID:", purokId);
+
+    // Wait for Echo to be fully initialized and connected
+    window.waitForEcho(function(Echo) {
+        console.log('Echo is ready and connected!');
+        setupWebSocket();
+    });
 
     // Function to update the pending requests badge and card
     function updatePendingBadge(count) {
@@ -123,26 +100,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Ensure Echo connector is properly initialized
-            if (!window.Echo.connector || !window.Echo.connector.pusher || !window.Echo.connector.pusher.config) {
-                console.error('Echo connector not properly initialized');
+            // Ensure Echo is properly initialized
+            if (!window.Echo) {
+                console.error('Echo not properly initialized');
                 setTimeout(setupWebSocket, 3000);
                 return;
-            }
-
-            // Initialize auth headers if they don't exist
-            if (!window.Echo.connector.pusher.config.auth) {
-                window.Echo.connector.pusher.config.auth = {};
-            }
-            if (!window.Echo.connector.pusher.config.auth.headers) {
-                window.Echo.connector.pusher.config.auth.headers = {};
             }
 
             // Get the CSRF token for authentication
             const token = document.head.querySelector('meta[name="csrf-token"]');
             if (token && token.content) {
-                window.Echo.connector.pusher.config.auth.headers['X-CSRF-TOKEN'] = token.content;
-                console.log('CSRF token set for WebSocket connection');
+                // Reverb automatically includes the CSRF token from the meta tag
+                console.log('CSRF token found for WebSocket connection');
             } else {
                 console.warn('CSRF token not found in meta tags');
             }
@@ -222,20 +191,19 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             // Handle connection state changes
-            const connection = window.Echo.connector.pusher.connection;
-            connection.bind('state_change', (states) => {
-                console.log('Connection state changed:', states);
-                
-                if (states.current === 'failed' || states.current === 'unavailable') {
-                    console.error(`Connection ${states.current}, attempting to reconnect...`);
-                    setTimeout(setupWebSocket, 3000);
-                }
-                // If reconnected, resubscribe to the channel
-                else if (states.current === 'connected' && states.previous === 'disconnected') {
-                    console.log('Reconnected to WebSocket, resubscribing to channel...');
-                    setupWebSocket();
-                }
-            });
+            const pusherConnection = window.Echo.connector && window.Echo.connector.pusher && window.Echo.connector.pusher.connection;
+            if (pusherConnection && typeof pusherConnection.on === 'function') {
+                pusherConnection.on('state_change', (states) => {
+                    console.log('Pusher connection state changed:', states);
+                    if (states.current === 'failed' || states.current === 'unavailable') {
+                        console.error(`Connection ${states.current}, attempting to reconnect...`);
+                        setTimeout(setupWebSocket, 3000);
+                    } else if (states.current === 'connected' && states.previous === 'disconnected') {
+                        console.log('Reconnected to WebSocket, resubscribing to channel...');
+                        setupWebSocket();
+                    }
+                });
+            }
 
             // Log all events for debugging
             channel.listen('*', (event, data) => {
@@ -254,33 +222,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     };
 
-    // Setup connection status listeners
+    // Setup connection status listeners (Pusher Cloud compatible)
     const initializeWebSocket = () => {
-        if (window.Echo && window.Echo.connector) {
-            // If we have a socket connection
-            if (window.Echo.connector.socket) {
-                window.Echo.connector.socket.on("connect", () => {
-                    console.log("Successfully connected to WebSockets server");
-                    setupWebSocket();
-                });
-
-                window.Echo.connector.socket.on("error", (error) => {
-                    console.error("WebSocket connection error:", error);
-                });
-
-                // If already connected, setup the WebSocket
-                if (window.Echo.connector.socket.connected) {
-                    setupWebSocket();
-                }
+        if (window.Echo && window.Echo.connector && window.Echo.connector.pusher) {
             } else {
-                // Try to initialize after a delay if socket is not available yet
-                console.log("Waiting for WebSocket connection...");
-                setTimeout(initializeWebSocket, 1000);
+                console.warn('Echo/Pusher not properly initialized yet, retrying...');
             }
-        } else {
-            console.warn("Echo not properly initialized yet, retrying...");
-            setTimeout(initializeWebSocket, 1000);
-        }
     };
 
     // Start the WebSocket initialization process

@@ -8,6 +8,7 @@ use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\IncidentReportController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Middleware\CheckRole;
 use App\Http\Controllers\GeocodingController;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Route;
@@ -59,8 +60,10 @@ Route::get('/test-feedback-prompt', function (HttpRequest $request) {
     }
     
     // Simulate having 4 resolved items (within the 3-5 range)
-    $request->session()->flash('show_feedback_prompt', true);
-    $request->session()->flash('resolved_count', 4);
+    session([
+        'show_feedback_prompt' => true,
+        'resolved_count' => 4
+    ]);
     
     return redirect()->route('dashboard');
 })->middleware('auth')->name('test.feedback.prompt');
@@ -122,8 +125,8 @@ Route::get('/debug/feedback-prompt', function () {
 if (app()->environment('local')) {
     Route::get('/test/feedback', function (HttpRequest $request) {
         // Simulate having 3 resolved items
-        $request->session()->flash('show_feedback_prompt', true);
-        $request->session()->flash('resolved_count', 3);
+        session()->flash('show_feedback_prompt', true);
+        session()->flash('resolved_count', 3);
         
         return view('test-feedback');
     })->middleware(['auth']);
@@ -160,10 +163,28 @@ Route::middleware('auth')->group(function () {
         ->name('verification.update');
 });
 
-// Dashboard route - only for non-purok leader/president users
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', \App\Http\Middleware\CheckRole::class . ':resident,barangay_official,admin'])
-    ->name('dashboard');
+// Barangay Official Approval Routes
+Route::middleware('auth')
+    ->prefix('barangay/approvals')
+    ->name('barangay.approvals.')
+    ->group(function () {
+        // Index and show routes are accessible by both barangay officials and purok leaders
+        Route::middleware(['can:viewAny,App\Models\Request'])->group(function () {
+            Route::get('/', [\App\Http\Controllers\BarangayApprovalController::class, 'index'])->name('index');
+            Route::get('/{id}', [\App\Http\Controllers\BarangayApprovalController::class, 'show'])->name('show');
+        });
+        
+        // Approve/Reject actions require barangay official permissions
+        Route::middleware(['can:barangay-official-actions'])->group(function () {
+            Route::post('/{id}/approve', [\App\Http\Controllers\BarangayApprovalController::class, 'approve'])->name('approve');
+            Route::post('/{id}/reject', [\App\Http\Controllers\BarangayApprovalController::class, 'reject'])->name('reject');
+        });
+    });
+
+// Dashboard route for all authenticated users
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+});
 
 // Routes that require an approved resident account
 Route::middleware(['auth', \App\Http\Middleware\CheckResidentApproved::class])->group(function () {
@@ -205,6 +226,21 @@ Route::middleware('auth')->group(function () {
 Route::get('/purok-leader/dashboard', [\App\Http\Controllers\PurokLeaderController::class, 'dashboard'])
     ->middleware(['auth', PurokLeaderMiddleware::class])
     ->name('purok_leader.dashboard');
+
+// Purok Leader - Purok Change Requests
+Route::prefix('purok-leader')->middleware(['auth', PurokLeaderMiddleware::class])->group(function () {
+    // List purok change requests
+    Route::get('/purok-change-requests', [\App\Http\Controllers\PurokLeaderController::class, 'purokChangeRequests'])
+        ->name('purok_leader.purok_change_requests');
+        
+    // Approve purok change request
+    Route::post('/purok-change-requests/{changeRequest}/approve', [\App\Http\Controllers\PurokLeaderController::class, 'approvePurokChange'])
+        ->name('purok_leader.approve-purok-change');
+        
+    // Reject purok change request
+    Route::post('/purok-change-requests/{changeRequest}/reject', [\App\Http\Controllers\PurokLeaderController::class, 'rejectPurokChange'])
+        ->name('purok_leader.reject-purok-change');
+});
 
 // Purok Leader - View and Manage Residents
 Route::prefix('purok-leader')->middleware(['auth', PurokLeaderMiddleware::class])->group(function () {
@@ -316,11 +352,22 @@ Route::middleware('auth')->group(function () {
         ->middleware('auth')
         ->name('requests.reject');
 
-    // Barangay Official Routes
+    // Barangay Official Routes - Request Related
     Route::middleware('can:viewPendingBarangay,App\Models\Request')->group(function () {
+        // Request-related routes
         Route::get('/requests/pending/barangay', [RequestController::class, 'pendingBarangay'])->name('requests.pending-barangay');
         Route::post('/requests/{request}/approve-barangay', [RequestController::class, 'approveBarangay'])->name('requests.approve-barangay');
         Route::post('/requests/{request}/complete', [RequestController::class, 'complete'])->name('requests.complete');
+    });
+    
+    // Incident Report Routes for Barangay Officials
+    // Authorization is handled in the controller methods
+    Route::prefix('barangay/incident-reports')->name('barangay.incident_reports.')->group(function () {
+        Route::get('/', [IncidentReportController::class, 'pendingApproval'])->name('index');
+        Route::post('/{incidentReport}/approve', [IncidentReportController::class, 'approve'])->name('approve');
+        Route::post('/{incidentReport}/reject', [IncidentReportController::class, 'reject'])->name('reject');
+        Route::post('/{incidentReport}/in-progress', [IncidentReportController::class, 'markInProgress'])->name('in_progress');
+        Route::post('/{incidentReport}/resolve', [IncidentReportController::class, 'markResolved'])->name('resolve');
     });
     Route::put('/incident-reports/{id}', [IncidentReportController::class, 'update'])->name('incident_reports.update');
     Route::get('/reverse-geocode', [GeocodingController::class, 'reverse']);
@@ -333,6 +380,9 @@ Route::middleware('auth')->group(function () {
     // Feedback routes
     Route::get('/feedback', [\App\Http\Controllers\FeedbackController::class, 'showFeedbackForm'])
         ->name('feedback.form');
+        
+    // Request routes
+    Route::resource('requests', RequestController::class)->only(['index', 'create', 'store', 'show']);
         
     Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])
         ->name('feedback.store');
@@ -395,5 +445,119 @@ Route::get('/reverse-geocode', function () {
 if (app()->environment('local')) {
     require __DIR__.'/test-feedback.php';
 }
+
+// Debug route to check user permissions
+Route::get('/debug/permissions', function () {
+    $user = auth()->user();
+    
+    if (!$user) {
+        return response()->json(['error' => 'Not authenticated'], 401);
+    }
+    
+    // Test the Gate directly
+    $gate = app('Illuminate\Contracts\Auth\Access\Gate');
+    $canBarangayActions = $gate->forUser($user)->check('barangay-official-actions');
+    
+    // Get user's role from database directly
+    $dbUser = \App\Models\User::find($user->id);
+    
+    // Check if user has any of the barangay official roles
+    $isBarangayOfficial = in_array($user->role, [
+        'barangay_captain',
+        'barangay_kagawad',
+        'secretary',
+        'sk_chairman',
+        'admin'
+    ]);
+    
+    return response()->json([
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'purok_id' => $user->purok_id ?? null,
+            'email_verified_at' => $user->email_verified_at ? 'verified' : 'not verified'
+        ],
+        'database_check' => [
+            'user_exists' => (bool)$dbUser,
+            'db_role' => $dbUser ? $dbUser->role : 'not found'
+        ],
+        'permissions' => [
+            'is_authenticated' => auth()->check(),
+            'is_barangay_official' => $isBarangayOfficial,
+            'can_barangay_actions' => $canBarangayActions,
+            'gate_defined' => $gate->has('barangay-official-actions'),
+            'gate_check' => $canBarangayActions
+        ],
+        'session' => [
+            'id' => session()->getId(),
+            'previous_url' => url()->previous()
+        ],
+        'auth' => [
+            'driver' => config('auth.defaults.guard'),
+            'user_class' => get_class(auth()->user())
+        ]
+    ]);
+})->middleware('auth');
+
+// Temporary debug route to view logs
+Route::get('/debug/logs', function () {
+    if (!in_array(auth()->user()->role, ['admin', 'barangay_captain', 'barangay_kagawad'])) {
+        abort(403, 'Unauthorized');
+    }
+    
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) {
+        return 'Log file not found';
+    }
+    
+    $logs = file_get_contents($logFile);
+    return '<pre>' . htmlspecialchars($logs) . '</pre>';
+})->middleware('auth');
+
+// Temporary debug route - remove after use
+Route::get('/debug/request/{id}', function ($id) {
+    $request = \App\Models\Request::with(['user', 'purok'])->find($id);
+    
+    if (!$request) {
+        return response()->json(['error' => 'Request not found'], 404);
+    }
+    
+    // Use getAttribute to safely access properties
+    $requestData = [
+        'id' => $request->getAttribute('id'),
+        'status' => $request->getAttribute('status'),
+        'purok_id' => $request->getAttribute('purok_id'),
+        'user_id' => $request->getAttribute('user_id'),
+        'created_at' => $request->getAttribute('created_at'),
+        'purok_approved_at' => $request->getAttribute('purok_approved_at'),
+        'barangay_approved_at' => $request->getAttribute('barangay_approved_at'),
+        'rejected_at' => $request->getAttribute('rejected_at'),
+    ];
+    
+    // Add user data if available
+    if ($request->relationLoaded('user') && $request->user) {
+        $requestData['user'] = [
+            'id' => $request->user->getAttribute('id'),
+            'name' => $request->user->getAttribute('name'),
+            'role' => $request->user->getAttribute('role')
+        ];
+    } else {
+        $requestData['user'] = null;
+    }
+    
+    // Add purok data if available
+    if ($request->relationLoaded('purok') && $request->purok) {
+        $requestData['purok'] = [
+            'id' => $request->purok->getAttribute('id'),
+            'name' => $request->purok->getAttribute('name')
+        ];
+    } else {
+        $requestData['purok'] = null;
+    }
+    
+    return response()->json($requestData);
+})->middleware('auth');
 
 require __DIR__ . '/auth.php';

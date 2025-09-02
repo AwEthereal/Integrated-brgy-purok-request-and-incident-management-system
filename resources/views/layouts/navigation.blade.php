@@ -33,8 +33,7 @@
 
                 @auth
                     @if(auth()->user()->role === 'purok_leader' || auth()->user()->role === 'purok_president')
-                        <a href="{{ route('purok_leader.dashboard') }}
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('purok_leader.dashboard') ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-100 hover:text-green-800' }} transition-colors">
+                        <a href="{{ route('purok_leader.dashboard') }}" class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('purok_leader.dashboard') ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-100 hover:text-green-800' }} transition-colors">
                             <svg class="h-5 w-5 mr-2 {{ request()->routeIs('purok_leader.dashboard') ? 'text-green-600' : 'text-gray-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -49,14 +48,32 @@
                             </svg>
                             <span>Purok Residents</span>
                         </a>
+                        
+                        <a href="{{ route('purok_leader.purok_change_requests') }}"
+                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('purok_leader.purok_change_requests') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                            <span>Purok Change Requests</span>
+                            @php
+                                $pendingChangeRequestsCount = \App\Models\PurokChangeRequest::where('requested_purok_id', auth()->user()->purok_id)
+                                    ->where('status', 'pending')
+                                    ->count();
+                            @endphp
+                            @if($pendingChangeRequestsCount > 0)
+                                <span class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                                    {{ $pendingChangeRequestsCount }}
+                                </span>
+                            @endif
+                        </a>
                     @elseif(auth()->user()->role === 'admin')
                         <!-- Admin can access purok approvals through the dashboard -->
                     @endif
 
-                    @if(auth()->user()->role === 'barangay_official' || auth()->user()->role === 'admin')
+                    @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin']) || auth()->user()->role === 'admin')
                         <!-- Barangay Official Links -->
-                        <a href="{{ route('requests.pending-barangay') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('requests.pending-barangay') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                        <a href="{{ route('barangay.approvals.index') }}"
+                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('barangay.approvals.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -66,9 +83,26 @@
                                 $pendingBarangayCount = \App\Models\Request::where('status', 'purok_approved')->count();
                             @endphp
                             @if($pendingBarangayCount > 0)
-                                <span
-                                    class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                                <span class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
                                     {{ $pendingBarangayCount }}
+                                </span>
+                            @endif
+                        </a>
+
+                        <!-- Incident Reports Link -->
+                        <a href="{{ route('barangay.incident_reports.index') }}"
+                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('barangay.incident_reports.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span>Incident Reports</span>
+                            @php
+                                $pendingIncidentReportsCount = \App\Models\IncidentReport::where('status', 'pending')->count();
+                            @endphp
+                            @if($pendingIncidentReportsCount > 0)
+                                <span class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                                    {{ $pendingIncidentReportsCount }}
                                 </span>
                             @endif
                         </a>
@@ -166,9 +200,41 @@
                 <a href="{{ route('purok_leader.residents') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('purok_leader.residents') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
                     <span class="text-center">Purok Residents</span>
                 </a>
+                <a href="{{ route('purok_leader.purok_change_requests') }}" class="flex justify-between items-center px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('purok_leader.purok_change_requests') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
+                    <span>Purok Change Requests</span>
+                    @php
+                        $pendingChangeRequestsCount = \App\Models\PurokChangeRequest::where('current_purok_id', auth()->user()->purok_id)
+                            ->where('status', 'pending')
+                            ->count();
+                    @endphp
+                    @if($pendingChangeRequestsCount > 0)
+                        <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                            {{ $pendingChangeRequestsCount }}
+                        </span>
+                    @endif
+                </a>
             @endif
 
             @auth
+                @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin']))
+                    <!-- Mobile: Barangay Incident Reports -->
+                    <a href="{{ route('barangay.incident_reports.index') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('barangay.incident_reports.*') ? 'bg-green-50 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-50 hover:text-green-800' }} transition-colors flex items-center">
+                        <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>Incident Reports</span>
+                        @php
+                            $pendingIncidentReportsCount = \App\Models\IncidentReport::where('status', 'pending')->count();
+                        @endphp
+                        @if($pendingIncidentReportsCount > 0)
+                            <span class="ml-1.5 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                                {{ $pendingIncidentReportsCount }}
+                            </span>
+                        @endif
+                    </a>
+                @endif
+                
                 @if(auth()->user()->role === 'purok_leader' || auth()->user()->role === 'admin')
                     @php
                         $pendingPurokCount = \App\Models\Request::where('status', 'pending')->count();
@@ -185,11 +251,11 @@
                     </a>
                 @endif
 
-                @if(auth()->user()->role === 'barangay_official' || auth()->user()->role === 'admin')
+                @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin']) || auth()->user()->role === 'admin')
                     @php
                         $pendingBarangayCount = \App\Models\Request::where('status', 'purok_approved')->count();
                     @endphp
-                    <a href="{{ route('requests.pending-barangay') }}"
+                    <a href="{{ route('barangay.approvals.index') }}"
                         class="flex justify-between items-center px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('requests.pending-barangay') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
                         <span>Barangay Approvals</span>
                         @if($pendingBarangayCount > 0)

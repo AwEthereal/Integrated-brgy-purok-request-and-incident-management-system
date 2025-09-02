@@ -249,7 +249,7 @@
                                             'cancelled' => 'Cancelled'
                                         ][$request->status] ?? ucfirst($request->status);
                                     @endphp
-                                    <span class="px-3 py-1 text-sm font-medium rounded-full {{ $color }}">
+                                    <span class="px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap {{ $color }}">
                                         {{ $statusLabel }}
                                     </span>
                                 </td>

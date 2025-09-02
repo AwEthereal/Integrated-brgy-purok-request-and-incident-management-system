@@ -19,14 +19,14 @@ try {
     console.warn('No .env file found or error reading .env file');
 }
 
-// Define Reverb environment variables
+// Define Reverb environment variables with defaults
 const reverbEnvVars = {
-    VITE_REVERB_APP_ID: env.REVERB_APP_ID || 'kalawag_brgy_system',
-    VITE_REVERB_APP_KEY: env.REVERB_APP_KEY || 'kalawag_brgy_key',
-    VITE_REVERB_APP_SECRET: env.REVERB_APP_SECRET || 'kalawag_brgy_secret',
-    VITE_REVERB_HOST: env.REVERB_HOST || '127.0.0.1',
-    VITE_REVERB_PORT: env.REVERB_PORT || '8080',
-    VITE_REVERB_SCHEME: env.REVERB_SCHEME || 'http',
+    VITE_REVERB_APP_ID: process.env.REVERB_APP_ID || 'kalawag_brgy_system',
+    VITE_REVERB_APP_KEY: process.env.REVERB_APP_KEY || 'kalawag_brgy_key',
+    VITE_REVERB_APP_SECRET: process.env.REVERB_APP_SECRET || 'kalawag_brgy_secret',
+    VITE_REVERB_HOST: process.env.REVERB_HOST || '127.0.0.1',
+    VITE_REVERB_PORT: process.env.REVERB_PORT || '8080',
+    VITE_REVERB_SCHEME: process.env.REVERB_SCHEME || 'http',
 };
 
 console.log('Vite Config - Environment Variables:', reverbEnvVars);
@@ -49,13 +49,7 @@ export default defineConfig({
         },
     },
     define: {
-        'process.env': {
-            ...reverbEnvVars,
-            VITE_REVERB_APP_KEY: JSON.stringify(process.env.VITE_REVERB_APP_KEY || 'kalawag_brgy_key'),
-            VITE_REVERB_HOST: JSON.stringify(process.env.VITE_REVERB_HOST || '127.0.0.1'),
-            VITE_REVERB_PORT: JSON.stringify(process.env.VITE_REVERB_PORT || '8080'),
-            VITE_REVERB_SCHEME: JSON.stringify(process.env.VITE_REVERB_SCHEME || 'http'),
-        },
+        'process.env': reverbEnvVars
     },
     server: {
         hmr: {
@@ -65,7 +59,7 @@ export default defineConfig({
     },
     build: {
         rollupOptions: {
-            external: ['pusher-js'],
+            external: [],
         },
     },
 });

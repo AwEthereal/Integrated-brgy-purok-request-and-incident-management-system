@@ -51,7 +51,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-500">Date of Birth</p>
-                            <p class="text-gray-900">{{ auth()->user()->birth_date ? auth()->user()->birth_date->format('F d, Y') : 'Not set' }}</p>
+                            <p class="text-gray-900">{{ auth()->user()->birth_date ? \Carbon\Carbon::parse(auth()->user()->birth_date)->format('F d, Y') : 'Not set' }}</p>
                         </div>
                         <div class="md:col-span-2">
                             <p class="text-sm font-medium text-gray-500">Address</p>
@@ -195,18 +195,25 @@
                     </div>
 
                     <div class="md:col-span-2">
-                        <label for="purpose" class="block text-sm font-medium text-gray-700">Purpose <span
-                                class="text-red-500">*</span></label>
-                        <input type="text" name="purpose" id="purpose" value="{{ old('purpose') }}" required
+                        <div class="flex justify-between items-baseline">
+                            <label for="purpose" class="block text-sm font-medium text-gray-700">Purpose <span class="text-red-500">*</span></label>
+                            <span id="purpose-counter" class="text-xs text-gray-500">0/50</span>
+                        </div>
+                        <input type="text" name="purpose" id="purpose" value="{{ old('purpose') }}" required maxlength="50"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="e.g., Employment, Government Transaction, Bank Requirement, etc.">
+                            placeholder="e.g., Employment, Government Transaction, Bank Requirement, etc."
+                            oninput="document.getElementById('purpose-counter').textContent = this.value.length + '/50';">
                     </div>
 
                     <div class="md:col-span-2">
-                        <label for="remarks" class="block text-sm font-medium text-gray-700">Additional Notes</label>
-                        <textarea name="remarks" id="remarks" rows="3"
+                        <div class="flex justify-between items-baseline">
+                            <label for="remarks" class="block text-sm font-medium text-gray-700">Additional Notes (Optional)</label>
+                            <span id="remarks-counter" class="text-xs text-gray-500">{{ strlen(old('remarks', '')) }}/100</span>
+                        </div>
+                        <textarea name="remarks" id="remarks" rows="3" maxlength="100"
                             class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="Any additional information or special requests">{{ old('remarks') }}</textarea>
+                            placeholder="Any additional information or special requests"
+                            oninput="document.getElementById('remarks-counter').textContent = this.value.length + '/100';">{{ old('remarks') }}</textarea>
                     </div>
                 </div>
             </div>
@@ -288,72 +295,111 @@
                 // Ensure form has the correct enctype
                 form.setAttribute('enctype', 'multipart/form-data');
                 
-                // Prevent form from submitting if photos are missing
-                form.addEventListener('submit', function(e) {
+                // Handle form submission
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
                     console.log('Form submission intercepted');
                     
                     // Get the hidden inputs
                     const frontPhoto = document.getElementById('front_id_photo_data');
-                    const backPhoto = document.getElementById('back_id_photo_data');
+                    let backPhoto = document.getElementById('back_id_photo_data');
+                    const submitBtn = form.querySelector('button[type="submit"]');
                     
-                    // Debug: Log the current state
-                    console.log('Front photo data exists:', !!frontPhoto);
-                    console.log('Back photo data exists:', !!backPhoto);
+                    // Disable submit button to prevent double submission
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
                     
-                    if (frontPhoto) {
-                        console.log('Front photo data length:', frontPhoto.value.length);
-                    }
-                    
-                    if (backPhoto) {
-                        console.log('Back photo data length:', backPhoto?.value?.length || 0);
-                    }
-                    
-                    // Check front photo
-                    if (!frontPhoto || !frontPhoto.value) {
-                        console.error('Front photo is missing');
-                        e.preventDefault();
-                        alert('Please take or upload a photo of the front of your ID');
-                        return false;
-                    }
-                    
-                    // Check back photo
-                    if (!backPhoto || !backPhoto.value) {
-                        console.error('Back photo is missing');
+                    try {
+                        // Debug: Log the current state
+                        console.log('Front photo data exists:', !!frontPhoto);
+                        console.log('Back photo data exists:', !!backPhoto);
                         
-                        // Try to recover from camera handler
-                        if (window.backCamera?.idPhotoData?.value) {
-                            console.log('Attempting to recover back photo data from camera handler...');
-                            
-                            // Update the hidden input
-                            if (!backPhoto) {
-                                const newInput = document.createElement('input');
-                                newInput.type = 'hidden';
-                                newInput.id = 'back_id_photo_data';
-                                newInput.name = 'back_id_photo_data';
-                                form.appendChild(newInput);
-                                backPhoto = newInput;
-                            }
-                            
-                            backPhoto.value = window.backCamera.idPhotoData.value;
-                            console.log('Updated back photo data from camera handler');
-                            
-                            // Verify the value was set
-                            if (backPhoto.value) {
-                                console.log('Back photo data recovered successfully');
-                                return true; // Allow form submission to proceed
+                        if (frontPhoto) {
+                            console.log('Front photo data length:', frontPhoto.value.length);
+                        }
+                        
+                        if (backPhoto) {
+                            console.log('Back photo data length:', backPhoto?.value?.length || 0);
+                        }
+                        
+                        // Check front photo
+                        if (!frontPhoto || !frontPhoto.value) {
+                            throw new Error('Please take or upload a photo of the front of your ID');
+                        }
+                        
+                        // Check back photo
+                        if (!backPhoto || !backPhoto.value) {
+                            // Try to recover from camera handler
+                            if (window.backCamera?.idPhotoData?.value) {
+                                console.log('Attempting to recover back photo data from camera handler...');
+                                
+                                // Create the back photo input if it doesn't exist
+                                if (!backPhoto) {
+                                    const newInput = document.createElement('input');
+                                    newInput.type = 'hidden';
+                                    newInput.id = 'back_id_photo_data';
+                                    newInput.name = 'back_id_photo_data';
+                                    form.appendChild(newInput);
+                                    backPhoto = newInput;
+                                }
+                                
+                                backPhoto.value = window.backCamera.idPhotoData.value;
+                                console.log('Updated back photo data from camera handler');
+                                
+                                // Verify the value was set
+                                if (!backPhoto.value) {
+                                    throw new Error('Please take or upload a photo of the back of your ID');
+                                }
+                            } else {
+                                throw new Error('Please take or upload a photo of the back of your ID');
                             }
                         }
                         
-                        e.preventDefault();
-                        alert('Please take or upload a photo of the back of your ID');
-                        return false;
+                        console.log('Both photos are present, submitting form...');
+                        
+                        // Create FormData object from the form
+                        const formData = new FormData(form);
+                        
+                        // Submit the form via AJAX
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (!response.ok) {
+                            // Handle validation errors
+                            if (response.status === 422) {
+                                const errors = data.errors;
+                                let errorMessage = 'Please fix the following errors:\n\n';
+                                Object.values(errors).forEach(error => {
+                                    errorMessage += `• ${error[0]}\n`;
+                                });
+                                throw new Error(errorMessage);
+                            } else {
+                                throw new Error(data.message || 'An error occurred while submitting the form');
+                            }
+                        }
+                        
+                        // If successful, redirect to dashboard with success message
+                        window.location.href = data.redirect || '{{ route("dashboard") }}';
+                        
+                    } catch (error) {
+                        console.error('Form submission error:', error);
+                        alert(error.message || 'An error occurred while submitting the form. Please try again.');
+                    } finally {
+                        // Re-enable submit button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
                     }
-                    
-                    console.log('=== FORM SUBMISSION PROCEEDING ===');
-                    return true;
                 });
-                
-                console.log('Form submission handler attached');
             });
             
             // Expose debug function to window

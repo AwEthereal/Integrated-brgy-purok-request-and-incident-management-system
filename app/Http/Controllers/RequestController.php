@@ -22,7 +22,16 @@ class RequestController extends Controller
                 return $query->where('form_type', $formType);
             })
             ->when(request('status'), function($query, $status) {
-                return $query->where('status', $status);
+                // Handle all possible status values
+                if ($status === 'completed') {
+                    return $query->where('status', 'completed');
+                } elseif ($status === 'rejected') {
+                    return $query->where('status', 'rejected');
+                } elseif ($status === 'approved') {
+                    return $query->whereIn('status', ['purok_approved', 'barangay_approved']);
+                } else {
+                    return $query->where('status', $status);
+                }
             })
             ->latest()
             ->paginate(10)
@@ -45,7 +54,16 @@ class RequestController extends Controller
                 return $query->where('form_type', $formType);
             })
             ->when(request('status'), function($query, $status) {
-                return $query->where('status', $status);
+                // Handle all possible status values
+                if ($status === 'completed') {
+                    return $query->where('status', 'completed');
+                } elseif ($status === 'rejected') {
+                    return $query->where('status', 'rejected');
+                } elseif ($status === 'approved') {
+                    return $query->whereIn('status', ['purok_approved', 'barangay_approved']);
+                } else {
+                    return $query->where('status', $status);
+                }
             })
             ->latest()
             ->paginate(10)
@@ -97,54 +115,74 @@ class RequestController extends Controller
     // Save a new request
     public function store(HttpRequest $request)
     {
-        $validated = $request->validate([
-            'form_type' => 'required|string|max:255|in:barangay_clearance,business_clearance,certificate_of_residency,certificate_of_indigency,other',
-            'purpose' => 'required|string|max:255',
-            'remarks' => 'nullable|string|max:1000',
-            'other_purpose' => 'required_if:form_type,other|string|max:255',
-            'front_id_photo_data' => 'required|string',
-            'back_id_photo_data' => 'required|string',
-        ]);
-
-        // Get the authenticated user
-        $user = auth()->user();
-
-        // Function to save ID photo
-        function saveIdPhoto($imageData, $user, $suffix = 'front') {
-            if (!$imageData) return null;
-            
-            // Check if the image data is a base64 string
-            if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
-                $imageData = substr($imageData, strpos($imageData, ',') + 1);
-                $imageType = strtolower($matches[1]);
-                
-                // Validate image type
-                if (!in_array($imageType, ['jpeg', 'jpg', 'png'])) {
-                    throw new \Exception('Invalid image format. Only JPG and PNG are allowed.');
-                }
-                
-                // Decode the base64 data
-                $decodedImage = base64_decode($imageData);
-                
-                // Generate a unique filename
-                $filename = 'id_' . $user->id . '_' . $suffix . '_' . time() . '.' . $imageType;
-                
-                // Use Laravel's storage system
-                $path = 'ids/' . $filename;
-                \Storage::disk('public')->put($path, $decodedImage);
-                
-                // Return the relative path without 'public/'
-                return 'storage/' . $path;
-            }
-            return null;
-        }
-
         try {
+            $validated = $request->validate([
+                'form_type' => 'required|string|in:barangay_clearance,business_clearance,certificate_of_residency,certificate_of_indigency,other',
+                'purpose' => 'required|string|max:50',
+                'remarks' => 'nullable|string|max:100',
+                'other_purpose' => 'required_if:form_type,other|string|max:255',
+                'front_id_photo_data' => 'required|string',
+                'back_id_photo_data' => 'required|string',
+            ], [
+                'purpose.max' => 'The purpose must not exceed 50 characters.',
+                'remarks.max' => 'Additional notes must not exceed 100 characters.',
+                'front_id_photo_data.required' => 'Please upload a photo of the front of your ID.',
+                'back_id_photo_data.required' => 'Please upload a photo of the back of your ID.',
+            ]);
+
+            // Get the authenticated user
+            $user = auth()->user();
+
+            // Function to save ID photo
+            function saveIdPhoto($imageData, $user, $suffix = 'front') {
+                if (!$imageData) return null;
+                
+                // Check if the image data is a base64 string
+                if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
+                    $imageData = substr($imageData, strpos($imageData, ',') + 1);
+                    $imageType = strtolower($matches[1]);
+                    
+                    // Validate image type
+                    if (!in_array($imageType, ['jpeg', 'jpg', 'png'])) {
+                        throw new \Exception('Invalid image format. Only JPG and PNG are allowed.');
+                    }
+                    
+                    // Decode the base64 data
+                    $decodedImage = base64_decode($imageData);
+                    
+                    // Generate a unique filename
+                    $filename = 'id_' . $user->id . '_' . $suffix . '_' . time() . '.' . $imageType;
+                    
+                    // Create the directory if it doesn't exist
+                    if (!file_exists(public_path('storage/ids'))) {
+                        mkdir(public_path('storage/ids'), 0755, true);
+                    }
+                    
+                    // Use Laravel's storage system
+                    $path = 'ids/' . $filename;
+                    \Storage::disk('public')->put($path, $decodedImage);
+                    
+                    // Return the relative path without 'public/'
+                    return 'storage/' . $path;
+                }
+                return null;
+            }
+
             // Save front ID photo
             $frontIdPath = saveIdPhoto($request->front_id_photo_data, $user, 'front');
+            if (!$frontIdPath) {
+                throw new \Exception('Failed to save front ID photo. Please try again.');
+            }
             
             // Save back ID photo
             $backIdPath = saveIdPhoto($request->back_id_photo_data, $user, 'back');
+            if (!$backIdPath) {
+                // Clean up front photo if back photo fails
+                if (file_exists(public_path($frontIdPath))) {
+                    unlink(public_path($frontIdPath));
+                }
+                throw new \Exception('Failed to save back ID photo. Please try again.');
+            }
             
             // Prepare request data with user's information
             $requestData = [
@@ -176,8 +214,36 @@ class RequestController extends Controller
             // Broadcast the event
             event(new NewRequestCreated($user->purok_id, $pendingCount));
             
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Your request has been submitted successfully!',
+                    'redirect' => route('dashboard')
+                ]);
+            }
+            
             return redirect()->route('dashboard')
                 ->with('success', 'Your request has been submitted successfully!');
+                
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Clean up any uploaded files if there was a validation error
+            if (isset($frontIdPath) && file_exists(public_path($frontIdPath))) {
+                unlink(public_path($frontIdPath));
+            }
+            if (isset($backIdPath) && file_exists(public_path($backIdPath))) {
+                unlink(public_path($backIdPath));
+            }
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            
+            return back()->withErrors($e->errors())->withInput();
                 
         } catch (\Exception $e) {
             // Clean up any uploaded files if there was an error
@@ -186,6 +252,13 @@ class RequestController extends Controller
             }
             if (isset($backIdPath) && file_exists(public_path($backIdPath))) {
                 unlink(public_path($backIdPath));
+            }
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error processing your request: ' . $e->getMessage()
+                ], 500);
             }
             
             return back()->with('error', 'Error processing your request: ' . $e->getMessage())
@@ -304,9 +377,12 @@ class RequestController extends Controller
         $validated = $httpRequest->validate([
             // Request details only
             'form_type' => 'required|string|max:255|in:barangay_clearance,barangay_id,business_clearance,certificate_of_residency,certificate_of_indigency,other',
-            'purpose' => 'required|string|max:255',
-            'remarks' => 'nullable|string',
+            'purpose' => 'required|string|max:50',
+            'remarks' => 'nullable|string|max:100',
             'purok_id' => 'sometimes|exists:puroks,id',
+        ], [
+            'purpose.max' => 'The purpose must not exceed 50 characters.',
+            'remarks.max' => 'Additional notes must not exceed 100 characters.',
         ]);
         
         // Get the authenticated user
@@ -357,9 +433,9 @@ class RequestController extends Controller
      *
      * @param  \App\Models\Request  $request
      * @param  \Illuminate\Http\Request  $httpRequest
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function updatePrivateNotes(RequestModel $request, HttpRequest $httpRequest)
+    public function updatePrivateNotes(RequestModel $request, HttpRequest $httpRequest): \Illuminate\Http\JsonResponse
     {
         $this->authorize('updatePrivateNotes', $request);
 

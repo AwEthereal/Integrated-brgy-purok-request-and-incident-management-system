@@ -8,6 +8,38 @@ use App\Models\Purok;
 
 class IncidentReport extends Model
 {
+    // Status constants for database storage
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_IN_PROGRESS = 'in_progress';
+    public const STATUS_RESOLVED = 'resolved';
+    public const STATUS_INVALID = 'invalid';
+    
+    /**
+     * Get all available statuses
+     */
+    public static function getStatuses()
+    {
+        return [
+            self::STATUS_PENDING => 'Pending',
+            self::STATUS_IN_PROGRESS => 'In Progress',
+            self::STATUS_RESOLVED => 'Resolved',
+            self::STATUS_INVALID => 'Invalid Report'
+        ];
+    }
+    
+    /**
+     * Get the display status for resident view
+     * Shows 'Pending' if not yet viewed, otherwise shows the actual status
+     */
+    public function getDisplayStatusForResident()
+    {
+        if ($this->status === self::STATUS_PENDING && !$this->viewed_at) {
+            return 'Pending';
+        }
+        
+        return self::getStatuses()[$this->status] ?? ucfirst(str_replace('_', ' ', $this->status));
+    }
+    
     protected $fillable = [
         'user_id',
         'purok_id',
@@ -23,6 +55,11 @@ class IncidentReport extends Model
         'feedback_comment',
         'is_anonymous',
         'feedback_submitted_at',
+        'approved_by',
+        'approved_at',
+        'rejected_by',
+        'rejected_at',
+        'rejection_reason',
         // CSM Feedback Fields
         'sqd0_rating',
         'sqd1_rating',
@@ -35,7 +72,7 @@ class IncidentReport extends Model
         'sqd8_rating',
         'comments',
     ];
-
+    
     public const TYPES = [
         'crime' => 'Crime',
         'accident' => 'Accident',
@@ -53,6 +90,8 @@ class IncidentReport extends Model
         'incident_type' => 'string',
         'is_anonymous' => 'boolean',
         'feedback_submitted_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'rejected_at' => 'datetime',
         'sqd0_rating' => 'integer',
         'sqd1_rating' => 'integer',
         'sqd2_rating' => 'integer',

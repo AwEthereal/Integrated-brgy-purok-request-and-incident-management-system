@@ -5,17 +5,20 @@ return [
 
     'servers' => [
         'reverb' => [
-            'host' => '0.0.0.0',
-            'port' => 8080,
-            'path' => '',
-            'hostname' => '127.0.0.1',
+            'host' => env('REVERB_HOST', '0.0.0.0'),
+            'port' => env('REVERB_PORT', 8080),
+            'hostname' => env('REVERB_HOSTNAME', '127.0.0.1'),
+            'path' => '/ws',
             'options' => [
                 'tls' => [
                     'verify_peer' => false,
                     'verify_peer_name' => false,
-                ],
+                    'allow_self_signed' => true
+                ]
             ],
             'max_request_size' => 10000,
+            'max_connections' => 1000,
+            'pulse_ingest_interval' => 15,
             'scaling' => [
                 'enabled' => false,
                 'channel' => 'reverb',
@@ -29,8 +32,6 @@ return [
                     'timeout' => env('REDIS_TIMEOUT', 60),
                 ],
             ],
-            'pulse_ingest_interval' => 15,
-            'telescope_ingest_interval' => 15,
         ],
     ],
 
@@ -46,6 +47,18 @@ return [
                     'port' => 8080,
                     'scheme' => 'http',
                     'useTLS' => false,
+                ],
+                'cors' => [
+                    'allow_origins' => [
+                        'http://localhost:8000',
+                        'http://192.168.1.233:8000',
+                        'http://localhost:5173',
+                        'http://192.168.1.233:5173'
+                    ],
+                    'allow_headers' => ['*'],
+                    'allow_methods' => ['GET', 'POST', 'OPTIONS'],
+                    'allow_credentials' => true,
+                    'max_age' => 0,
                 ],
                 'allowed_origins' => ['*'],
                 'ping_interval' => 60,

@@ -94,7 +94,13 @@ if (!function_exists('formatStatus')) {
         <!-- Header with Buttons -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <div class="flex items-center gap-4">
-                <h1 class="text-2xl font-semibold text-black dark:text-black">Dashboard</h1>
+                <h1 class="text-2xl font-semibold text-black dark:text-black">
+                    @if(auth()->user()->purok)
+                        Purok {{ auth()->user()->purok->name }}
+                    @else
+                        No Purok Assigned
+                    @endif
+                </h1>
                 @if(auth()->user()->role === 'resident')
                     @if(auth()->user()->is_approved)
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">

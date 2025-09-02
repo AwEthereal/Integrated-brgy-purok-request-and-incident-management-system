@@ -18,6 +18,94 @@ class DashboardController extends Controller
             \Log::error('No authenticated user found in dashboard');
             return redirect()->route('login');
         }
+
+        // Check if user has required role
+        $allowedRoles = ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin', 'resident'];
+        if (!in_array($user->role, $allowedRoles)) {
+            \Log::warning('Unauthorized access attempt to dashboard', [
+                'user_id' => $user->id,
+                'role' => $user->role,
+                'allowed_roles' => $allowedRoles
+            ]);
+            
+            if ($user->role === 'purok_leader' || $user->role === 'purok_president') {
+                return redirect()->route('purok_leader.dashboard');
+            }
+            
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Unauthorized.'], 403);
+            }
+            
+            return redirect('/')->with('error', 'You do not have permission to access this page.');
+        }
+
+        // Redirect barangay officials to their dedicated dashboard
+        if (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin'])) {
+            // Get all puroks
+            $puroks = \App\Models\Purok::orderBy('name')->get();
+            $selectedPurok = $request->query('purok');
+
+            // Requests for all puroks (or filter by selected purok)
+            $requestsQuery = ServiceRequest::with(['user', 'purok'])
+                ->where('status', 'purok_approved');
+            if ($selectedPurok) {
+                $requestsQuery->where('purok_id', $selectedPurok);
+            }
+            $requests = $requestsQuery->orderBy('created_at', 'desc')->get();
+
+            // Incident reports for all puroks (or filter by selected purok)
+            $incidentsQuery = \App\Models\IncidentReport::with(['user', 'purok']);
+            if ($selectedPurok) {
+                $incidentsQuery->where('purok_id', $selectedPurok);
+            }
+            $incidents = $incidentsQuery->orderBy('created_at', 'desc')->get();
+            
+            // Get the current tab from the request
+            $currentTab = $request->query('tab', 'pending');
+            $statusFilter = $request->query('status');
+            
+            // Query for pending requests (purok_approved only)
+            $pendingRequestsQuery = ServiceRequest::with(['user', 'purok'])
+                ->where('status', 'purok_approved');
+                
+            // Query for completed/rejected requests
+            $completedRequestsQuery = ServiceRequest::with(['user', 'purok', 'barangayApprover'])
+                ->whereIn('status', ['barangay_approved', 'rejected']);
+            
+            // Apply purok filter if selected
+            if ($selectedPurok) {
+                $pendingRequestsQuery->where('purok_id', $selectedPurok);
+                $completedRequestsQuery->where('purok_id', $selectedPurok);
+            }
+            
+            // Apply status filter for completed/rejected tab
+            if ($statusFilter) {
+                if ($statusFilter === 'completed') {
+                    $completedRequestsQuery->where('status', 'barangay_approved');
+                } elseif ($statusFilter === 'rejected') {
+                    $completedRequestsQuery->where('status', 'rejected');
+                }
+            }
+            
+            // Get paginated results
+            $page = $request->query('page', 1);
+            $pendingRequests = $pendingRequestsQuery->orderBy('created_at', 'desc')->get();
+            $completedRequests = $completedRequestsQuery->orderBy('updated_at', 'desc')
+                ->paginate(10, ['*'], 'page', $page)
+                ->withQueryString();
+
+            // Get the current tab from the request
+            $currentTab = $request->query('tab', 'pending');
+            
+            return view('barangay_official.dashboard', [
+                'pendingRequests' => $pendingRequests,
+                'incidents' => $incidents,
+                'puroks' => $puroks,
+                'selectedPurok' => $selectedPurok,
+                'completedRequests' => $completedRequests,
+                'currentTab' => $currentTab
+            ]);
+        }
         
         $userId = $user->id;
         \Log::info('Starting dashboard for user ID: ' . $userId);
@@ -73,13 +161,14 @@ class DashboardController extends Controller
             ]);
 
             // Get recent requests
-            $recentRequests = \App\Models\Request::where('user_id', $userId)
-                ->latest()
-                ->limit(5)
+            $recentRequests = ServiceRequest::with(['user', 'purok'])
+                ->where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->take(5)
                 ->get(['id', 'purpose', 'status', 'created_at']);
                 
             // Get completed requests
-            $completedRequests = \App\Models\Request::where('user_id', $userId)
+            $completedRequests = ServiceRequest::where('user_id', $userId)
                 ->whereIn('status', ['Completed', 'Rejected'])
                 ->latest()
                 ->limit(5)
@@ -157,9 +246,11 @@ class DashboardController extends Controller
                 $resolvedCount = $totalResolved;
                 
                 if ($showFeedbackPrompt) {
-                    $request->session()->flash('show_feedback_prompt', true);
-                    $request->session()->flash('resolved_count', $resolvedCount);
-                    $request->session()->put('recently_shown_feedback_prompt', true);
+                    session([
+                        'show_feedback_prompt' => true,
+                        'resolved_count' => $resolvedCount,
+                        'recently_shown_feedback_prompt' => true
+                    ]);
                 }
             }
 

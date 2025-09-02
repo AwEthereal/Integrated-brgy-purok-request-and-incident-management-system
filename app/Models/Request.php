@@ -52,6 +52,8 @@ class Request extends Model
         'purok_approved_by',
         'barangay_approved_at',
         'barangay_approved_by',
+        'barangay_rejected_at',
+        'barangay_rejected_by',
         'document_generated_at',
     ];
 
@@ -64,6 +66,7 @@ class Request extends Model
         'birth_date' => 'date',
         'purok_approved_at' => 'datetime',
         'barangay_approved_at' => 'datetime',
+        'barangay_rejected_at' => 'datetime',
         'document_generated_at' => 'datetime',
         'rejected_at' => 'datetime',
     ];
@@ -99,6 +102,32 @@ class Request extends Model
         return $this->belongsTo(Purok::class);
     }
     
+    public function purokLeader()
+    {
+        // First try to get the purok approver if set
+        if ($this->purok_approved_by) {
+            return $this->belongsTo(User::class, 'purok_approved_by')
+                ->withDefault(function () {
+                    return new User([
+                        'name' => 'Unknown Approver',
+                        'role' => 'unknown',
+                        'purok_id' => $this->purok_id
+                    ]);
+                });
+        }
+        
+        // If no purok approver is set, try to find the purok leader for this purok
+        return $this->belongsTo(User::class, 'purok_id', 'purok_id')
+            ->whereIn('role', ['purok_leader', 'purok_president'])
+            ->withDefault(function () {
+                return new User([
+                    'name' => 'No Purok Leader Assigned',
+                    'role' => 'unknown',
+                    'purok_id' => $this->purok_id
+                ]);
+            });
+    }
+    
     public function feedback()
     {
         return $this->hasOne(\App\Models\Feedback::class, 'request_id');
@@ -106,17 +135,38 @@ class Request extends Model
 
     public function purokApprover()
     {
-        return $this->belongsTo(User::class, 'purok_approved_by');
+        return $this->belongsTo(User::class, 'purok_approved_by')
+            ->withDefault(function () {
+                return new User([
+                    'name' => 'Not Yet Approved',
+                    'role' => 'unknown',
+                    'purok_id' => $this->purok_id
+                ]);
+            });
     }
 
     public function barangayApprover()
     {
-        return $this->belongsTo(User::class, 'barangay_approved_by');
+        return $this->belongsTo(User::class, 'barangay_approved_by')
+            ->withDefault(function () {
+                return new User([
+                    'name' => 'Not Yet Approved',
+                    'role' => 'unknown',
+                    'purok_id' => null
+                ]);
+            });
     }
     
     public function rejectedBy()
     {
-        return $this->belongsTo(User::class, 'rejected_by');
+        return $this->belongsTo(User::class, 'rejected_by')
+            ->withDefault(function () {
+                return new User([
+                    'name' => 'Not Rejected',
+                    'role' => 'unknown',
+                    'purok_id' => null
+                ]);
+            });
     }
 
     public function scopePendingPurokApproval($query)
