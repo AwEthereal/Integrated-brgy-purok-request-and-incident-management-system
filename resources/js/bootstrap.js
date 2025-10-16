@@ -37,10 +37,6 @@ const initializeEcho = () => {
             // Explicitly set the auth endpoint and disable Pusher's default
             authEndpoint: '/broadcasting/auth',
             disableStats: true,
-            enabledTransports: ['ws', 'wss'],
-            wsHost: window.location.hostname,
-            wsPort: 6001,
-            wssPort: 6001,
             
             // Authentication configuration
             auth: {

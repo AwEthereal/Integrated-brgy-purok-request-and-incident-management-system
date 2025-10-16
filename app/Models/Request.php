@@ -55,6 +55,7 @@ class Request extends Model
         'barangay_rejected_at',
         'barangay_rejected_by',
         'document_generated_at',
+        'last_viewed_at',
     ];
 
     /**
@@ -69,6 +70,7 @@ class Request extends Model
         'barangay_rejected_at' => 'datetime',
         'document_generated_at' => 'datetime',
         'rejected_at' => 'datetime',
+        'last_viewed_at' => 'datetime',
     ];
 
     /**

@@ -7,9 +7,11 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "barryvdh/laravel-dompdf": "^3.1",
         "laravel/framework": "^11.0",
         "laravel/reverb": "^1.5",
-        "laravel/tinker": "*"
+        "laravel/tinker": "*",
+        "spatie/laravel-permission": "^6.21"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^3.5",

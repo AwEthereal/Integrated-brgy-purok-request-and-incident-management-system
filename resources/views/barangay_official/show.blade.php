@@ -24,8 +24,14 @@
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
         <!-- Header -->
         <div class="px-4 py-5 sm:px-6 bg-gray-50">
-            <h1 class="text-lg leading-6 font-medium text-gray-900">Request Details</h1>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">Review the request details before taking action</p>
+            <div class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-lg leading-6 font-medium text-gray-900">Request Details</h1>
+                    <p class="mt-1 max-w-2xl text-sm text-gray-500">
+                        ID: <span class="font-mono">{{ str_pad($request->id, 2, '0', STR_PAD_LEFT) }}</span>
+                    </p>
+                </div>
+            </div>
         </div>
 
         <!-- Request Information -->
@@ -113,7 +119,7 @@
 
         <!-- Action Buttons -->
         <div class="px-4 py-4 bg-gray-50 text-right sm:px-6 space-x-3">
-            <a href="{{ route('barangay.approvals.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <a href="{{ route('barangay.approvals.index', ['status' => 'completed']) }}" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                 <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                     <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
@@ -156,6 +162,11 @@
         </div>
     </div>
 </div>
+
+<!-- Hidden Reject Form -->
+<form id="rejectForm" action="{{ route('barangay.approvals.reject', $request->id) }}" method="POST" style="display: none;">
+    @csrf
+</form>
 
 <!-- Reject Modal -->
 <div id="rejectModal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">

@@ -61,7 +61,8 @@ class Kernel extends HttpKernel
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'purok_president_only' => \App\Http\Middleware\PurokLeaderMiddleware::class,
         'barangay_official' => \App\Http\Middleware\BarangayOfficialMiddleware::class,
-        'check_role' => \App\Http\Middleware\CheckRole::class,
+        'checkrole' => \App\Http\Middleware\CheckRole::class,
         'resident_approved' => \App\Http\Middleware\CheckResidentApproved::class,
+        'role' => \App\Http\Middleware\RoleMiddleware::class,
     ];
 }

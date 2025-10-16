@@ -1,5 +1,7 @@
 @extends('layouts.guest')
 
+@yield('title', 'Forgot Password')
+
 @section('content')
     <div class="flex justify-center -mt-4 mb-4">
         <img src="{{ asset('images/Kal2Logo.png') }}" alt="Logo" class="h-20 w-20 rounded-full bg-white p-1 shadow">

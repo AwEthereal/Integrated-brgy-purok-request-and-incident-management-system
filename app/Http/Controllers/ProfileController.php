@@ -4,11 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\PurokChangeRequest;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\{Request, RedirectResponse};
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\View\View;
 use Illuminate\Validation\Rules\Password;
@@ -201,48 +200,20 @@ class ProfileController extends Controller
         return Redirect::to('/');
     }
     
-    /**
-     * Show the password update form.
-     */
-    public function editPassword(): View
-    {
-        return view('profile.update-password');
-    }
-    
-    /**
-     * Update the user's password.
-     */
-    public function updatePassword(Request $request)
-    {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-        ]);        
-        
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
-        
-        return back()->with('status', 'password-updated')
-                     ->with('success', 'Password updated successfully!');
-    }
     
     /**
      * Delete the user's account (for rejected users).
      */
     public function destroyAccount(Request $request): RedirectResponse
     {
-        $user = $request->user();
-        
-        // Only allow deletion for rejected accounts
-        if (!$user->rejected_at) {
-            return redirect()->back()
-                ->with('error', 'This action is only allowed for rejected accounts.');
-        }
-        
         try {
-            // Log out the user
-            Auth::logout();
+            $user = $request->user();
+            
+            // Only allow deletion for rejected accounts
+            if (!$user->rejected_at) {
+                return redirect()->back()
+                    ->with('error', 'This action is only allowed for rejected accounts.');
+            }
             
             // Delete the user
             $user->delete();

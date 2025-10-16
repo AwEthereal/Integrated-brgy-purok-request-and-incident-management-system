@@ -40,7 +40,10 @@ class RequestStatusUpdated implements ShouldBroadcastNow
      */
     public function broadcastOn()
     {
-        return new PrivateChannel('purok.' . $this->purokId);
+        return [
+            new PrivateChannel('purok.' . $this->purokId),
+            new PrivateChannel('App.Models.User.' . $this->request->user_id)
+        ];
     }
 
     /**
@@ -60,9 +63,19 @@ class RequestStatusUpdated implements ShouldBroadcastNow
      */
     public function broadcastWith()
     {
+        $statusMessages = [
+            'purok_approved' => 'Your request has been approved by the Purok Leader',
+            'barangay_approved' => 'Your request has been approved by the Barangay. Document is ready for pickup!',
+            'rejected' => 'Your request has been rejected',
+            'completed' => 'Your request has been marked as completed'
+        ];
+        
         return [
             'request_id' => $this->request->id,
             'status' => $this->status,
+            'message' => $statusMessages[$this->status] ?? 'Your request status has been updated',
+            'purpose' => $this->request->purpose,
+            'form_type' => $this->request->form_type,
             'updated_at' => $this->request->updated_at->toDateTimeString(),
         ];
     }

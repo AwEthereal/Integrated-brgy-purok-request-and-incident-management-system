@@ -33,13 +33,49 @@ class BarangayApprovalController extends Controller
                 $requestsQuery->where('purok_id', $selectedPurok);
             }
             
-            // Get the requests and filter them based on the user's permissions
-            $user = auth()->user();
-            $requests = $requestsQuery->orderBy('created_at', 'desc')
-                ->get()
-                ->filter(function($request) use ($user) {
-                    return $user->can('view', $request);
-                });
+            // Apply status filter if provided
+            $status = $request->query('status');
+            $showHistory = $status === 'completed';
+            
+            if ($showHistory) {
+                // Apply status filter if provided
+                $validStatuses = ['purok_approved', 'barangay_approved', 'in_progress', 'completed', 'rejected'];
+                if ($request->has('request_status') && in_array($request->query('request_status'), $validStatuses)) {
+                    $requestsQuery->where('status', $request->query('request_status'));
+                } else {
+                    $requestsQuery->whereIn('status', ['barangay_approved', 'rejected']);
+                }
+                
+                // Add search functionality for history
+                if ($request->has('search')) {
+                    $search = $request->query('search');
+                    $requestsQuery->where(function($query) use ($search) {
+                        $query->where('id', 'like', "%{$search}%")
+                              ->orWhere('purpose', 'like', "%{$search}%")
+                              ->orWhere('status', 'like', "%{$search}%")
+                              ->orWhereHas('user', function($q) use ($search) {
+                                  $q->where('first_name', 'like', "%{$search}%")
+                                    ->orWhere('last_name', 'like', "%{$search}%");
+                              });
+                    });
+                }
+                
+                // Get the requests with pagination for history
+                $requests = $requestsQuery->orderBy('updated_at', 'desc')
+                    ->paginate(10)
+                    ->withQueryString();
+            } else {
+                // Default to showing pending approvals
+                $requestsQuery->where('status', 'purok_approved');
+                
+                // Get pending requests without pagination (for the approval list)
+                $user = auth()->user();
+                $requests = $requestsQuery->orderBy('created_at', 'desc')
+                    ->get()
+                    ->filter(function($request) use ($user) {
+                        return $user->can('view', $request);
+                    });
+            }
             
             \Log::debug('BarangayApprovalController@index - Data loaded', [
                 'requests_count' => $requests->count(),
@@ -185,8 +221,11 @@ class BarangayApprovalController extends Controller
         $request->barangay_approved_at = now();
         $request->barangay_approved_by = Auth::id();
         $request->save();
-        // Optionally notify resident and purok leader here
-        return redirect()->route('barangay.approvals.index')->with('success', 'Request approved.');
+        
+        // Send email notification to resident
+        $request->user->notify(new \App\Notifications\RequestApprovedNotification($request, 'barangay'));
+        
+        return redirect()->route('barangay.approvals.index')->with('success', 'Request approved and notification sent to resident.');
     }
 
     // Reject a request
@@ -201,8 +240,13 @@ class BarangayApprovalController extends Controller
         $request->barangay_rejected_at = now();
         $request->barangay_rejected_by = Auth::id();
         $request->rejection_reason = $httpRequest->input('rejection_reason');
+        $request->rejected_at = now();
+        $request->rejected_by = Auth::id();
         $request->save();
-        // Optionally notify resident and purok leader here
-        return redirect()->route('barangay.approvals.index')->with('success', 'Request rejected.');
+        
+        // Send email notification to resident
+        $request->user->notify(new \App\Notifications\RequestRejectedNotification($request, 'barangay'));
+        
+        return redirect()->route('barangay.approvals.index')->with('success', 'Request rejected and notification sent to resident.');
     }
 }

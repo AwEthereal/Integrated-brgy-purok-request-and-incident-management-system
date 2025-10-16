@@ -1,7 +1,75 @@
 @extends('layouts.app')
 
 @push('styles')
-
+<style>
+    /* Photo Carousel Styles */
+    .photo-carousel {
+        position: relative;
+    }
+    
+    .photo-slide {
+        display: none;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+    
+    .photo-slide.active {
+        display: block;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .photo-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+    
+    .photo-nav-btn:hover {
+        background: rgba(0, 0, 0, 0.7);
+        transform: translateY(-50%) scale(1.1);
+    }
+    
+    .photo-nav-prev {
+        left: 16px;
+    }
+    
+    .photo-nav-next {
+        right: 16px;
+    }
+    
+    .photo-thumbnail {
+        flex-shrink: 0;
+        border: 3px solid transparent;
+        border-radius: 0.375rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    
+    .photo-thumbnail:hover {
+        border-color: #3b82f6;
+        transform: scale(1.05);
+    }
+    
+    .photo-thumbnail.active {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+    }
+    
+    .photo-thumbnail img {
+        display: block;
+    }
+</style>
 @endpush
 
 @section('content')
@@ -12,8 +80,9 @@
                 <div class="flex flex-col space-y-4 mb-6">
                     <div class="flex justify-between items-start">
                         <div>
-                            <h2 class="text-2xl font-semibold text-gray-800">Incident Report #{{ $report->id }}</h2>
+                            <h2 class="text-2xl font-semibold text-gray-800">Incident Report</h2>
                             <p class="text-sm text-gray-500 mt-1">
+                                ID: <span class="font-mono">{{ str_pad($report->id, 2, '0', STR_PAD_LEFT) }}</span> • 
                                 Reported on {{ $report->created_at->format('F j, Y \a\t h:i A') }}
                             </p>
                         </div>
@@ -99,14 +168,76 @@
                         </dl>
                     </div>
 
-                    @if($report->photo_path)
+                    @if($report->photo_path || $report->photo_paths)
                         <div>
-                            <h3 class="text-lg font-medium text-gray-900 mb-2">Photo Evidence</h3>
-                            <div class="border rounded-md overflow-hidden">
-                                <img src="{{ asset('storage/' . $report->photo_path) }}" 
-                                     alt="Incident photo" 
-                                     class="w-full h-auto">
-                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">
+                                Photo Evidence 
+                                @if($report->photo_paths && count($report->photo_paths) > 1)
+                                    <span class="text-sm text-gray-500">({{ count($report->photo_paths) }} photos)</span>
+                                @endif
+                            </h3>
+                            
+                            @php
+                                $photos = $report->photo_paths ?? ($report->photo_path ? [$report->photo_path] : []);
+                            @endphp
+                            
+                            @if(count($photos) === 1)
+                                <!-- Single Photo -->
+                                <div class="border rounded-md overflow-hidden shadow-sm">
+                                    <img src="{{ asset('storage/' . $photos[0]) }}" 
+                                         alt="Incident photo" 
+                                         class="w-full h-auto cursor-pointer hover:opacity-90 transition"
+                                         onclick="openPhotoModal(0)">
+                                </div>
+                            @else
+                                <!-- Multiple Photos - Card Deck Style -->
+                                <div class="relative">
+                                    <!-- Photo Carousel -->
+                                    <div class="photo-carousel mb-4">
+                                        <div class="relative h-80 bg-gray-100 rounded-lg overflow-hidden">
+                                            @foreach($photos as $index => $photo)
+                                                <div class="photo-slide {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}">
+                                                    <img src="{{ asset('storage/' . $photo) }}" 
+                                                         alt="Incident photo {{ $index + 1 }}" 
+                                                         class="w-full h-full object-contain">
+                                                </div>
+                                            @endforeach
+                                            
+                                            <!-- Navigation Arrows -->
+                                            @if(count($photos) > 1)
+                                                <button onclick="previousPhoto()" class="photo-nav-btn photo-nav-prev">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                                    </svg>
+                                                </button>
+                                                <button onclick="nextPhoto()" class="photo-nav-btn photo-nav-next">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                    </svg>
+                                                </button>
+                                            @endif
+                                            
+                                            <!-- Photo Counter -->
+                                            <div class="absolute bottom-4 right-4 bg-black bg-opacity-60 text-white px-3 py-1 rounded-full text-sm">
+                                                <span id="current-photo">1</span> / {{ count($photos) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Thumbnail Strip -->
+                                    <div class="flex gap-2 overflow-x-auto pb-2">
+                                        @foreach($photos as $index => $photo)
+                                            <button onclick="goToPhoto({{ $index }})" 
+                                                    class="photo-thumbnail {{ $index === 0 ? 'active' : '' }}" 
+                                                    data-index="{{ $index }}">
+                                                <img src="{{ asset('storage/' . $photo) }}" 
+                                                     alt="Thumbnail {{ $index + 1 }}" 
+                                                     class="w-20 h-20 object-cover rounded-md">
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -232,3 +363,95 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+    let currentPhotoIndex = 0;
+    const totalPhotos = document.querySelectorAll('.photo-slide').length;
+    
+    function goToPhoto(index) {
+        // Hide all slides
+        document.querySelectorAll('.photo-slide').forEach(slide => {
+            slide.classList.remove('active');
+        });
+        
+        // Remove active class from all thumbnails
+        document.querySelectorAll('.photo-thumbnail').forEach(thumb => {
+            thumb.classList.remove('active');
+        });
+        
+        // Show selected slide
+        const selectedSlide = document.querySelector(`.photo-slide[data-index="${index}"]`);
+        if (selectedSlide) {
+            selectedSlide.classList.add('active');
+        }
+        
+        // Highlight selected thumbnail
+        const selectedThumb = document.querySelector(`.photo-thumbnail[data-index="${index}"]`);
+        if (selectedThumb) {
+            selectedThumb.classList.add('active');
+            // Scroll thumbnail into view
+            selectedThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+        
+        // Update counter
+        currentPhotoIndex = index;
+        const counterElement = document.getElementById('current-photo');
+        if (counterElement) {
+            counterElement.textContent = index + 1;
+        }
+    }
+    
+    function nextPhoto() {
+        const nextIndex = (currentPhotoIndex + 1) % totalPhotos;
+        goToPhoto(nextIndex);
+    }
+    
+    function previousPhoto() {
+        const prevIndex = (currentPhotoIndex - 1 + totalPhotos) % totalPhotos;
+        goToPhoto(prevIndex);
+    }
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (totalPhotos > 1) {
+            if (e.key === 'ArrowLeft') {
+                previousPhoto();
+            } else if (e.key === 'ArrowRight') {
+                nextPhoto();
+            }
+        }
+    });
+    
+    // Touch/swipe support for mobile
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    const carousel = document.querySelector('.photo-carousel');
+    if (carousel) {
+        carousel.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        carousel.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+    }
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartX - touchEndX;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0) {
+                // Swiped left - next photo
+                nextPhoto();
+            } else {
+                // Swiped right - previous photo
+                previousPhoto();
+            }
+        }
+    }
+</script>
+@endpush

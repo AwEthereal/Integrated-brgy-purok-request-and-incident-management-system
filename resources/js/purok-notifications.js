@@ -77,6 +77,32 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             document.title = document.title.replace(/\(\d+\)\s*/, '');
         }
+        
+        // Update yellow dot in navigation
+        updateNavigationDot(count);
+    }
+    
+    // Function to update navigation yellow dot
+    function updateNavigationDot(count) {
+        const dashboardLink = document.querySelector('a[href*="purok_leader.dashboard"]');
+        if (!dashboardLink) return;
+        
+        // Remove existing dot
+        const existingDot = dashboardLink.querySelector('.bg-yellow-500');
+        if (existingDot && existingDot.parentElement) {
+            existingDot.parentElement.remove();
+        }
+        
+        // Add new dot if there are pending requests and not on dashboard
+        if (count > 0 && !window.location.pathname.includes('dashboard')) {
+            const dot = document.createElement('span');
+            dot.className = 'ml-2 relative inline-flex';
+            dot.innerHTML = `
+                <span class="absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75 animate-ping"></span>
+                <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-yellow-500"></span>
+            `;
+            dashboardLink.appendChild(dot);
+        }
     }
 
     // Function to setup the WebSocket connection

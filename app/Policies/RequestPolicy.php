@@ -160,7 +160,8 @@ class RequestPolicy
      */
     public function delete(User $user, Request $request): bool
     {
-        return $user->id === $request->user_id;
+        // Only the requester can delete their own request if it's pending or rejected
+        return $user->id === $request->user_id && in_array($request->status, ['pending', 'rejected']);
     }
 
     /**

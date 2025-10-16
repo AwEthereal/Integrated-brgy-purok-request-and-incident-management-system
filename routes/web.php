@@ -1,6 +1,20 @@
 <?php
 
 use App\Http\Controllers\Auth\VerifyEmailController;
+
+// Simple test route
+Route::get('/test-page', function() {
+    return 'Test page is working';
+});
+
+// Simple test route
+Route::get('/test-route', function() {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Test route is working',
+        'user' => auth()->check() ? auth()->user()->only('id', 'name', 'email', 'role', 'is_approved') : 'Not authenticated'
+    ]);
+});
 use App\Http\Middleware\PurokLeaderMiddleware;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Admin\UserManagementController;
@@ -8,7 +22,6 @@ use App\Http\Controllers\RequestController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\IncidentReportController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Middleware\CheckRole;
 use App\Http\Controllers\GeocodingController;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Route;
@@ -72,6 +85,14 @@ Route::get('/test-feedback-prompt', function (HttpRequest $request) {
 Route::get('/check-auth', function () {
     return auth()->check() ? 'Logged in' : 'Not logged in';
 });
+
+// Test incident reports route
+Route::get('/test-incident-reports', function () {
+    return 'Test incident reports route is working';
+})->name('test.incident_reports');
+
+// Direct test for myReports method
+Route::get('/test-my-reports', [IncidentReportController::class, 'myReports']);
 
 // Debug route to check user role and permissions
 Route::get('/debug/user', function () {
@@ -188,19 +209,35 @@ Route::middleware(['auth'])->group(function () {
 
 // Routes that require an approved resident account
 Route::middleware(['auth', \App\Http\Middleware\CheckResidentApproved::class])->group(function () {
-    // Requests
-    Route::resource('requests', RequestController::class);
+    // Requests - with rate limiting on creation
+    Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
+    Route::get('/requests/create', [RequestController::class, 'create'])->name('requests.create');
+    Route::post('/requests', [RequestController::class, 'store'])
+        ->middleware('throttle:5,60') // 5 requests per hour
+        ->name('requests.store');
+    Route::get('/requests/{request}', [RequestController::class, 'show'])->name('requests.show');
+    Route::get('/requests/{request}/edit', [RequestController::class, 'edit'])->name('requests.edit');
+    Route::put('/requests/{request}', [RequestController::class, 'update'])->name('requests.update');
+    Route::delete('/requests/{request}', [RequestController::class, 'destroy'])->name('requests.destroy');
     Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('requests.my_requests');
     
-    // Incident Reports
-    Route::post('/incident-reports', [IncidentReportController::class, 'store'])->name('incident_reports.store');
-    Route::get('/incident-reports', [IncidentReportController::class, 'index'])->name('incident_reports.index');
-    Route::get('/incident-reports/my-reports', [IncidentReportController::class, 'myReports'])->name('incident_reports.my_reports');
-    Route::get('/incident-reports/create', [IncidentReportController::class, 'create'])->name('incident_reports.create');
-    Route::get('/incident-reports/{incidentReport}', [IncidentReportController::class, 'show'])->name('incident_reports.show');
-    
     // Other routes that require an approved account
-    Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
+    Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])
+        ->middleware('throttle:10,60') // 10 feedback submissions per hour
+        ->name('feedback.store');
+});
+
+// Incident Reports - Accessible to all authenticated users
+Route::middleware('auth')->group(function () {
+    Route::prefix('incident-reports')->name('incident_reports.')->group(function() {
+        Route::get('/', [IncidentReportController::class, 'index'])->name('index');
+        Route::get('/my_reports', [IncidentReportController::class, 'myReports'])->name('my_reports');
+        Route::get('/create', [IncidentReportController::class, 'create'])->name('create');
+        Route::post('/', [IncidentReportController::class, 'store'])
+            ->middleware('throttle:10,60') // 10 incident reports per hour
+            ->name('store');
+        Route::get('/{id}', [IncidentReportController::class, 'show'])->name('show');
+    });
 });
 
 // Public routes that don't require approval but need authentication
@@ -212,8 +249,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password.edit');
-    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
+    
+    // Password update routes
+    Route::get('/profile/password', [ProfileController::class, 'edit'])->name('profile.password.edit');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     
     // Feedback routes
     Route::get('/feedback/{type}/{id}', [\App\Http\Controllers\FeedbackController::class, 'showFeedbackForm'])
@@ -316,52 +355,70 @@ Route::get('/debug/user-info', function () {
     ];
 })->middleware('auth');
 
-// Debug route to check logs
 Route::get('/debug/logs', function () {
     if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'purok_leader', 'purok_president'])) {
         abort(403, 'Unauthorized.');
     }
-    
-    $logFile = storage_path('logs/laravel.log');
-    if (!file_exists($logFile)) {
-        return 'No log file found at: ' . $logFile;
-    }
-    
-    return '<pre>' . file_get_contents($logFile) . '</pre>';
-})->middleware('auth');
+});
 
+// Report routes - Accessible to authorized roles only
+Route::prefix('reports')->middleware(['auth', 'verified'])->group(function () {
+    // Preview reports
+    Route::get('/residents', [\App\Http\Controllers\ReportController::class, 'residents'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.residents');
+        
+    Route::get('/purok-leaders', [\App\Http\Controllers\ReportController::class, 'purokLeaders'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.purok-leaders');
+        
+    Route::get('/purok-clearance', [\App\Http\Controllers\ReportController::class, 'purokClearance'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,purok_president,admin')
+        ->name('reports.purok-clearance');
+        
+    Route::get('/incident-reports', [\App\Http\Controllers\ReportController::class, 'incidentReports'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.incident-reports');
+    
+    // Download reports
+    Route::post('/download/residents', [\App\Http\Controllers\ReportController::class, 'downloadResidents'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.download.residents');
+        
+    Route::post('/download/purok-leaders', [\App\Http\Controllers\ReportController::class, 'downloadPurokLeaders'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.download.purok-leaders');
+        
+    Route::post('/download/purok-clearance', [\App\Http\Controllers\ReportController::class, 'downloadPurokClearance'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,purok_president,admin')
+        ->name('reports.download.purok-clearance');
+        
+    Route::post('/download/incident-reports', [\App\Http\Controllers\ReportController::class, 'downloadIncidentReports'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.download.incident-reports');
+});
+
+// Consolidated auth routes
 Route::middleware('auth')->group(function () {
-    // Profile routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // Password update routes
-    Route::get('/profile/password', [ProfileController::class, 'editPassword'])->name('profile.password.edit');
-    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
-
     // Purok Leader Routes
     Route::middleware(['can:viewPendingPurok,App\Models\Request', PurokLeaderMiddleware::class])->group(function () {
         Route::get('/requests/pending/purok', [RequestController::class, 'pendingPurok'])->name('requests.pending-purok');
         Route::post('/requests/{request}/approve-purok', [RequestController::class, 'approvePurok'])->name('requests.approve-purok');
         Route::put('/requests/{request}/update-private-notes', [RequestController::class, 'updatePrivateNotes'])->name('requests.update-private-notes');
     });
-    
+
     // Reject route for both purok leaders and barangay officials
     Route::post('/requests/{request}/reject', [RequestController::class, 'reject'])
-        ->middleware('auth')
         ->name('requests.reject');
 
     // Barangay Official Routes - Request Related
     Route::middleware('can:viewPendingBarangay,App\Models\Request')->group(function () {
-        // Request-related routes
         Route::get('/requests/pending/barangay', [RequestController::class, 'pendingBarangay'])->name('requests.pending-barangay');
         Route::post('/requests/{request}/approve-barangay', [RequestController::class, 'approveBarangay'])->name('requests.approve-barangay');
         Route::post('/requests/{request}/complete', [RequestController::class, 'complete'])->name('requests.complete');
     });
-    
+
     // Incident Report Routes for Barangay Officials
-    // Authorization is handled in the controller methods
     Route::prefix('barangay/incident-reports')->name('barangay.incident_reports.')->group(function () {
         Route::get('/', [IncidentReportController::class, 'pendingApproval'])->name('index');
         Route::post('/{incidentReport}/approve', [IncidentReportController::class, 'approve'])->name('approve');
@@ -369,24 +426,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/{incidentReport}/in-progress', [IncidentReportController::class, 'markInProgress'])->name('in_progress');
         Route::post('/{incidentReport}/resolve', [IncidentReportController::class, 'markResolved'])->name('resolve');
     });
-    Route::put('/incident-reports/{id}', [IncidentReportController::class, 'update'])->name('incident_reports.update');
+    // This route is already using {id} which matches the controller method
     Route::get('/reverse-geocode', [GeocodingController::class, 'reverse']);
-    // In routes/web.php inside 'auth' middleware group
-    Route::get('/incident-reports/create', [IncidentReportController::class, 'create'])->name('incident_reports.create');
-
-    // Resident’s own reports
-    Route::get('/my-incident-reports', [IncidentReportController::class, 'myReports'])->name('incident_reports.my_reports');
-    
-    // Feedback routes
-    Route::get('/feedback', [\App\Http\Controllers\FeedbackController::class, 'showFeedbackForm'])
-        ->name('feedback.form');
-        
-    // Request routes
-    Route::resource('requests', RequestController::class)->only(['index', 'create', 'store', 'show']);
-        
-    Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])
-        ->name('feedback.store');
-        
     Route::post('/feedback/skip', [\App\Http\Controllers\FeedbackController::class, 'skip'])
         ->name('feedback.skip');
 });

@@ -1,5 +1,7 @@
 @extends('layouts.guest')
 
+@section('title', 'Register')
+
 @section('content')
     <div class="text-center mb-4">
         <img src="{{ asset('images/Kal2Logo.png') }}" alt="Logo" class="h-20 w-20 rounded-full bg-white p-1 shadow-md mx-auto">

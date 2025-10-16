@@ -7,55 +7,74 @@
 @section('content')
     <!-- Add purok ID for real-time notifications -->
     <meta name="purok-id" content="{{ auth()->user()->purok_id }}">
-    <div class="container mx-auto px-4 py-8">
-        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
-            <div>
-                <h1 class="text-2xl font-bold purok-leader-dashboard">Purok President Dashboard</h1>
-                <p class="text-gray-600">Managing: <span class="font-medium">{{ $purokName }}</span></p>
-            </div>
-            <div class="flex items-center space-x-4">
-                <!-- Pending Requests Badge -->
-                <div class="relative">
-                    <a href="{{ route('purok_leader.dashboard', ['status' => 'pending']) }}" class="flex items-center space-x-1 px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium hover:bg-red-200 transition-colors">
-                        <span>Pending Requests</span>
-                        <span class="pending-requests-badge flex items-center justify-center h-5 w-5 bg-red-600 text-white text-xs rounded-full">
-                            {{ \App\Models\Request::where('purok_id', auth()->user()->purok_id)->where('status', 'pending')->count() }}
-                        </span>
-                    </a>
+    
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white py-8 px-4 sm:px-6 lg:px-8 rounded-lg shadow-lg mb-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2 flex items-center purok-leader-dashboard">
+                        <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                        </svg>
+                        Purok President Dashboard
+                    </h1>
+                    <p class="text-purple-100 mt-2">Welcome back! Managing <span class="font-semibold">{{ $purokName }}</span></p>
                 </div>
-
-                @php
-                    $roleLabels = [
-                        'purok_leader' => 'Purok President',
-                        'purok_president' => 'Purok President',
-                        'admin' => 'Admin',
-                        'barangay_kagawad' => 'Barangay Official',
-                        'barangay_captain' => 'Barangay Captain',
-                        'secretary' => 'Secretary',
-                        'sk_chairman' => 'SK Chairman',
-                    ];
-
-                    $userRole = auth()->user()->role ?? 'unknown';
-                    $displayRole = $roleLabels[$userRole] ?? ucfirst(str_replace('_', ' ', $userRole));
-                @endphp
-
-                <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                    Purok ID: {{ auth()->user()->purok_id }}
-                </span>
-                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                    Role: {{ $displayRole }}
-                </span>
+                <div class="grid grid-cols-2 gap-4 w-full md:w-auto">
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4 text-center">
+                        <p class="text-2xl font-bold">{{ $pendingCount }}</p>
+                        <p class="text-sm">Pending Requests</p>
+                    </div>
+                    <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4 text-center">
+                        <p class="text-2xl font-bold">{{ $stats['residents_count'] }}</p>
+                        <p class="text-sm">Total Residents</p>
+                    </div>
+                </div>
             </div>
+        </div>
+    </div>
 
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Role Badges -->
+        <div class="flex flex-wrap items-center gap-2 mb-6">
+
+            @php
+                $roleLabels = [
+                    'purok_leader' => 'Purok President',
+                    'purok_president' => 'Purok President',
+                    'admin' => 'Admin',
+                    'barangay_kagawad' => 'Barangay Official',
+                    'barangay_captain' => 'Barangay Captain',
+                    'secretary' => 'Secretary',
+                    'sk_chairman' => 'SK Chairman',
+                ];
+
+                $userRole = auth()->user()->role ?? 'unknown';
+                $displayRole = $roleLabels[$userRole] ?? format_label($userRole);
+            @endphp
+
+            <span class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                </svg>
+                Purok ID: {{ auth()->user()->purok_id }}
+            </span>
+            <span class="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+                {{ $displayRole }}
+            </span>
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <!-- Total Requests Card -->
             <a href="{{ route('purok_leader.dashboard') }}"
-                class="block bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-200 {{ !isset($activeFilter) ? 'ring-2 ring-blue-500' : '' }}">
+                class="block bg-white rounded-xl shadow-sm hover:shadow-lg p-6 transition-all duration-200 border-2 {{ !isset($activeFilter) ? 'border-blue-500 bg-blue-50' : 'border-transparent' }}">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                    <div class="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -63,17 +82,25 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-gray-500 text-sm font-medium">Total Requests</h3>
-                        <p class="text-2xl font-semibold text-gray-900">{{ $stats['total_requests'] }}</p>
+                        <h3 class="text-gray-600 text-xs font-medium uppercase tracking-wide">Total Requests</h3>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['total_requests'] }}</p>
                     </div>
                 </div>
             </a>
 
             <!-- Pending Requests Card -->
             <a href="{{ route('purok_leader.dashboard', ['filter' => 'status', 'value' => 'pending']) }}"
-                class="pending-requests-card block bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-200 {{ isset($activeFilter) && $activeFilter['type'] == 'status' && $activeFilter['value'] == 'pending' ? 'ring-2 ring-yellow-500' : '' }}">
+                class="pending-requests-card block bg-white rounded-xl shadow-sm hover:shadow-lg p-6 transition-all duration-200 border-2 {{ isset($activeFilter) && $activeFilter['type'] == 'status' && $activeFilter['value'] == 'pending' ? 'border-yellow-500 bg-yellow-50' : 'border-transparent' }} relative overflow-hidden">
+                @if($pendingCount > 0)
+                    <div class="absolute top-2 right-2">
+                        <span class="flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
+                        </span>
+                    </div>
+                @endif
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                    <div class="p-3 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 text-white shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -81,8 +108,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-gray-500 text-sm font-medium">Pending Requests</h3>
-                        <p class="text-2xl font-semibold text-gray-900">
+                        <h3 class="text-gray-600 text-xs font-medium uppercase tracking-wide">Pending</h3>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">
                             <span class="pending-requests-badge">{{ $pendingCount }}</span>
                         </p>
                     </div>
@@ -91,26 +118,26 @@
 
             <!-- Approved Requests Card -->
             <a href="{{ route('purok_leader.dashboard', ['filter' => 'status', 'value' => 'approved']) }}"
-                class="block bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-200 {{ isset($activeFilter) && $activeFilter['type'] == 'status' && $activeFilter['value'] == 'approved' ? 'ring-2 ring-green-500' : '' }}">
+                class="block bg-white rounded-xl shadow-sm hover:shadow-lg p-6 transition-all duration-200 border-2 {{ isset($activeFilter) && $activeFilter['type'] == 'status' && $activeFilter['value'] == 'approved' ? 'border-green-500 bg-green-50' : 'border-transparent' }}">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                    <div class="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-gray-500 text-sm font-medium">Approved</h3>
-                        <p class="text-2xl font-semibold text-gray-900">{{ $stats['approved_requests'] }}</p>
+                        <h3 class="text-gray-600 text-xs font-medium uppercase tracking-wide">Approved</h3>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['approved_requests'] }}</p>
                     </div>
                 </div>
             </a>
 
             <!-- Rejected Requests Card -->
             <a href="{{ route('purok_leader.dashboard', ['filter' => 'status', 'value' => 'rejected']) }}"
-                class="block bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-200 {{ isset($activeFilter) && $activeFilter['type'] == 'status' && $activeFilter['value'] == 'rejected' ? 'ring-2 ring-red-500' : '' }}">
+                class="block bg-white rounded-xl shadow-sm hover:shadow-lg p-6 transition-all duration-200 border-2 {{ isset($activeFilter) && $activeFilter['type'] == 'status' && $activeFilter['value'] == 'rejected' ? 'border-red-500 bg-red-50' : 'border-transparent' }}">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                    <div class="p-3 rounded-xl bg-gradient-to-br from-red-500 to-red-600 text-white shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -118,26 +145,42 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-gray-500 text-sm font-medium">Rejected</h3>
-                        <p class="text-2xl font-semibold text-gray-900">{{ $stats['rejected_requests'] }}</p>
+                        <h3 class="text-gray-600 text-xs font-medium uppercase tracking-wide">Rejected</h3>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['rejected_requests'] }}</p>
                     </div>
                 </div>
             </a>
 
             <!-- Total Residents Card -->
             <a href="{{ route('purok_leader.residents') }}"
-                class="block bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow duration-200">
+                class="block bg-white rounded-xl shadow-sm hover:shadow-lg p-6 transition-all duration-200 border-2 border-transparent relative">
                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-purple-100 text-purple-600">
+                    <div class="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-md relative">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
+                        @if($stats['pending_residents'] > 0)
+                            <span class="absolute -top-1 -right-1 flex h-5 w-5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-5 w-5 bg-red-500 items-center justify-center">
+                                    <span class="text-white text-xs font-bold">{{ $stats['pending_residents'] }}</span>
+                                </span>
+                            </span>
+                        @endif
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-gray-500 text-sm font-medium">Total Residents</h3>
-                        <p class="text-2xl font-semibold text-gray-900">{{ $stats['residents_count'] }}</p>
+                        <h3 class="text-gray-600 text-xs font-medium uppercase tracking-wide">Residents</h3>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['residents_count'] }}</p>
+                        @if($stats['pending_residents'] > 0)
+                            <p class="text-xs text-red-600 font-semibold mt-1 flex items-center">
+                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ $stats['pending_residents'] }} pending
+                            </p>
+                        @endif
                     </div>
                 </div>
             </a>
@@ -160,7 +203,7 @@
                                                 @elseif($activeFilter['value'] == 'approved') bg-green-100 text-green-800
                                                 @elseif($activeFilter['value'] == 'rejected') bg-red-100 text-red-800
                                                 @else bg-gray-100 text-gray-800 @endif">
-                        {{ str_replace('_', ' ', ucfirst($activeFilter['value'])) }} Requests
+                        {{ format_label($activeFilter['value']) }} Requests
                     </span>
                 @elseif($activeFilter['type'] == 'resident')
                     @php
@@ -180,63 +223,95 @@
             </div>
         @endif
 
-        <div class="mb-8 bg-white shadow rounded-lg overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-medium text-gray-900">
-                    @if(isset($activeFilter))
-                        @if($activeFilter['type'] == 'status')
-                            {{ str_replace('_', ' ', ucfirst($activeFilter['value'])) }} Requests
-                        @elseif($activeFilter['type'] == 'resident')
-                            {{ $resident ? $resident->name . "'s" : 'Resident' }} Requests
+        <div class="mb-8 bg-white shadow-lg rounded-xl overflow-hidden border border-gray-200">
+            <div class="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-5">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <h2 class="text-xl font-semibold text-white flex items-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                        </svg>
+                        @if(isset($activeFilter))
+                            @if($activeFilter['type'] == 'status')
+                                {{ format_label($activeFilter['value']) }} Requests
+                            @elseif($activeFilter['type'] == 'resident')
+                                {{ $resident ? $resident->name . "'s" : 'Resident' }} Requests
+                            @endif
+                        @else
+                            Purok Clearance Requests
                         @endif
-                    @else
-                        Purok Clearance Requests
-                    @endif
-                    <span class="text-sm text-gray-500 font-normal ml-2">({{ $requests->total() }} total)</span>
-                </h2>
+                        @if(count($requests) > 0)
+                            <span class="ml-3 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white bg-opacity-20 text-white">
+                                {{ count($requests) }} {{ Str::plural('request', count($requests)) }}
+                            </span>
+                        @endif
+                    </h2>
+                </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Request ID</th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Date Requested</th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Resident Name</th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Address</th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Purpose</th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Status</th>
-                            <th scope="col"
-                                class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Request ID
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date Requested
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Resident Name
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Address
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Purpose
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
                         </tr>
-
                     </thead>
-                    <tbody>
+                    <tbody class="bg-white divide-y divide-gray-200">
                         @forelse ($requests as $request)
-                            <tr>
-                                <td class="px-4 py-2 text-center"># {{ $request->id }}</td>
-                                <td class="px-4 py-2 text-center">{{ $request->created_at->format('F j, Y') }}</td>
-                                <td class="px-4 py-2 text-center">{{ $request->user->name ?? 'N/A' }}</td>
-                                <td class="px-4 py-2 text-center">{{ $request->user->address ?? 'N/A' }}</td>
-                                <td class="px-4 py-2 text-center">{{ $request->purpose }}</td>
-                                <td class="px-4 py-2 text-center">
+                            @php
+                                // Show dot if request needs purok leader's action (status = pending)
+                                $needsAction = $request->status === 'pending';
+                            @endphp
+                            <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <div class="flex items-center gap-2">
+                                        @if($needsAction)
+                                            {{-- Yellow dot indicator for requests needing action --}}
+                                            <span class="relative inline-flex flex-shrink-0">
+                                                <span class="absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75 animate-ping"></span>
+                                                <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-yellow-500"></span>
+                                            </span>
+                                        @endif
+                                        <span>#{{ $request->id }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    {{ $request->created_at->format('F j, Y') }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-900">
+                                    {{ $request->user->name ?? 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-700">
+                                    {{ $request->user->address ?? 'N/A' }}
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-700">
+                                    {{ $request->purpose }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     @php
                                         $statusColors = [
                                             'pending' => 'bg-yellow-100 text-yellow-800',
                                             'purok_approved' => 'bg-blue-100 text-blue-800',
-                                            'completed' => 'bg-green-100 text-green-800',
+                                            'barangay_approved' => 'bg-green-100 text-green-800',
+                                            'completed' => 'bg-purple-100 text-purple-800',
                                             'rejected' => 'bg-red-100 text-red-800',
                                             'cancelled' => 'bg-gray-100 text-gray-800'
                                         ];
@@ -244,34 +319,37 @@
                                         $statusLabel = [
                                             'pending' => 'Pending',
                                             'purok_approved' => 'Purok Approved',
+                                            'barangay_approved' => 'Barangay Approved',
                                             'completed' => 'Completed',
                                             'rejected' => 'Rejected',
                                             'cancelled' => 'Cancelled'
-                                        ][$request->status] ?? ucfirst($request->status);
+                                        ][$request->status] ?? format_label($request->status);
                                     @endphp
-                                    <span class="px-3 py-1 text-sm font-medium rounded-full whitespace-nowrap {{ $color }}">
+                                    <span class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full {{ $color }}">
                                         {{ $statusLabel }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-2 text-center">
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <a href="{{ route('requests.show', $request) }}"
-                                        class="inline-flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
-                                            </path>
+                                        class="inline-flex items-center justify-center p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-150"
+                                        title="View Details">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                         </svg>
-                                        View Details
                                     </a>
                                 </td>
                             </tr>
-
                         @empty
                             <tr>
-                                <td colspan="5" class="px-4 py-2 text-center text-gray-500">No clearance requests found.
+                                <td colspan="7" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center justify-center text-gray-400">
+                                        <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        <p class="text-lg font-medium text-gray-500">No clearance requests found</p>
+                                        <p class="text-sm text-gray-400 mt-1">Requests will appear here when residents submit them</p>
+                                    </div>
                                 </td>
                             </tr>
                         @endforelse

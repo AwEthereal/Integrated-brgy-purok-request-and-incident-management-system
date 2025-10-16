@@ -4,12 +4,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const video = document.getElementById('camera-feed');
     const canvas = document.getElementById('snapshot');
     const photoInput = document.getElementById('photo_data');
-    const photoPreview = document.getElementById('photo-preview');
+    const photosInput = document.getElementById('photos_data');
+    const photosGallery = document.getElementById('photos-gallery');
+    const photoCount = document.getElementById('photo-count');
     const photoStatus = document.getElementById('photo-status');
     const takePhotoBtn = document.getElementById('photoButton');
     const flipCameraBtn = document.getElementById('flipButton');
     const fileInput = document.getElementById('photo');
     const reEnableBtn = document.getElementById('reEnableBtn');
+    
+    // Photos array
+    let capturedPhotos = [];
     
     // Location elements (only use what we need)
     const locationInput = document.getElementById('location');
@@ -86,18 +91,26 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // File input handling with data attribute
         document.addEventListener('change', function(e) {
-            if (e.target.matches('input[data-action="disable-camera"]')) {
-                if (e.target.files && e.target.files[0]) {
+            if (e.target.matches('input[data-action="upload-photos"]')) {
+                if (e.target.files && e.target.files.length > 0) {
+                    // Check total photos limit
+                    const remainingSlots = 6 - capturedPhotos.length;
+                    if (e.target.files.length > remainingSlots) {
+                        alert(`You can only add ${remainingSlots} more photo(s). Maximum 6 photos allowed.`);
+                        e.target.value = ''; // Clear the file input
+                        return;
+                    }
+                    
                     disableCamera();
                     
-                    // Display the selected image
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        photoPreview.src = e.target.result;
-                        photoPreview.classList.remove('hidden');
-                        photoInput.value = e.target.result;
-                    };
-                    reader.readAsDataURL(e.target.files[0]);
+                    // Process multiple uploaded files
+                    Array.from(e.target.files).forEach((file, index) => {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            addPhotoToGallery(event.target.result, index);
+                        };
+                        reader.readAsDataURL(file);
+                    });
                 }
             }
         });
@@ -282,6 +295,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function takePhoto() {
         console.log('Taking photo...');
         
+        // Check photo limit
+        if (capturedPhotos.length >= 6) {
+            alert('Maximum 6 photos allowed. Please delete a photo to add more.');
+            return;
+        }
+        
         try {
             if (!video.videoWidth || !video.videoHeight) {
                 throw new Error('Video not ready');
@@ -310,27 +329,118 @@ document.addEventListener('DOMContentLoaded', function() {
             // Convert to base64
             const photoDataUrl = canvas.toDataURL('image/jpeg', 0.8);
             
-            // Update hidden input
-            photoInput.value = photoDataUrl;
+            // Add to photos array
+            addPhotoToGallery(photoDataUrl, capturedPhotos.length);
             
-            // Show preview
-            photoPreview.src = photoDataUrl;
-            photoPreview.style.transform = useFrontCamera ? 'scaleX(-1)' : 'scaleX(1)';
-            photoPreview.classList.remove('hidden');
-            
-            // Show status
-            if (photoStatus) {
-                photoStatus.textContent = 'Photo captured successfully!';
-                photoStatus.classList.remove('hidden');
+            // Update hidden input with first photo (for backward compatibility)
+            if (capturedPhotos.length === 1) {
+                photoInput.value = photoDataUrl;
             }
             
-            console.log('Photo captured successfully');
+            console.log('Photo captured successfully. Total photos:', capturedPhotos.length);
             
         } catch (error) {
             console.error('Error taking photo:', error);
             if (photoStatus) {
                 photoStatus.textContent = 'Error: ' + error.message;
                 photoStatus.classList.remove('hidden');
+            }
+        }
+    }
+    
+    function addPhotoToGallery(photoDataUrl, index) {
+        // Add to array
+        capturedPhotos.push(photoDataUrl);
+        
+        // Update photos_data hidden input
+        if (photosInput) {
+            photosInput.value = JSON.stringify(capturedPhotos);
+        }
+        
+        // Create thumbnail
+        const photoWrapper = document.createElement('div');
+        photoWrapper.className = 'relative group';
+        photoWrapper.dataset.index = capturedPhotos.length - 1;
+        
+        const img = document.createElement('img');
+        img.src = photoDataUrl;
+        img.className = 'w-full h-24 object-cover rounded-md border border-gray-300';
+        img.alt = `Photo ${capturedPhotos.length}`;
+        
+        // Delete button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity';
+        deleteBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+        deleteBtn.onclick = function() {
+            removePhoto(capturedPhotos.length - 1);
+        };
+        
+        photoWrapper.appendChild(img);
+        photoWrapper.appendChild(deleteBtn);
+        
+        // Show gallery
+        if (photosGallery) {
+            photosGallery.classList.remove('hidden');
+            photosGallery.appendChild(photoWrapper);
+        }
+        
+        // Update counter
+        updatePhotoCount();
+    }
+    
+    function removePhoto(index) {
+        // Remove from array
+        capturedPhotos.splice(index, 1);
+        
+        // Update hidden input
+        if (photosInput) {
+            photosInput.value = JSON.stringify(capturedPhotos);
+        }
+        
+        // Rebuild gallery
+        if (photosGallery) {
+            photosGallery.innerHTML = '';
+            capturedPhotos.forEach((photo, idx) => {
+                const photoWrapper = document.createElement('div');
+                photoWrapper.className = 'relative group';
+                
+                const img = document.createElement('img');
+                img.src = photo;
+                img.className = 'w-full h-24 object-cover rounded-md border border-gray-300';
+                img.alt = `Photo ${idx + 1}`;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.type = 'button';
+                deleteBtn.className = 'absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity';
+                deleteBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+                deleteBtn.onclick = function() {
+                    removePhoto(idx);
+                };
+                
+                photoWrapper.appendChild(img);
+                photoWrapper.appendChild(deleteBtn);
+                photosGallery.appendChild(photoWrapper);
+            });
+            
+            if (capturedPhotos.length === 0) {
+                photosGallery.classList.add('hidden');
+            }
+        }
+        
+        // Update counter
+        updatePhotoCount();
+    }
+    
+    function updatePhotoCount() {
+        if (photoCount) {
+            photoCount.textContent = capturedPhotos.length;
+        }
+        if (photoStatus) {
+            if (capturedPhotos.length > 0) {
+                photoStatus.classList.remove('hidden');
+            } else {
+                photoStatus.classList.add('hidden');
             }
         }
     }
@@ -473,9 +583,72 @@ document.addEventListener('DOMContentLoaded', function() {
             marker.setLatLng(latLng);
             console.log('[DEBUG] Marker position updated');
         } else {
-            marker = L.marker(latLng).addTo(map);
-            console.log('[DEBUG] Marker created');
+            // Create draggable marker
+            marker = L.marker(latLng, {
+                draggable: true,
+                title: 'Drag me to adjust location'
+            }).addTo(map);
+            console.log('[DEBUG] Draggable marker created');
+            
+            // Add drag event listener
+            marker.on('dragend', function(event) {
+                const position = marker.getLatLng();
+                const newLat = position.lat.toFixed(6);
+                const newLng = position.lng.toFixed(6);
+                console.log('[DEBUG] Marker dragged to:', newLat, newLng);
+                
+                // Update inputs
+                if (latitudeInput) latitudeInput.value = newLat;
+                if (longitudeInput) longitudeInput.value = newLng;
+                
+                // Get new address
+                showLocationStatus('Updating location...', false);
+                getAddressFromCoordinates(newLat, newLng);
+            });
         }
+        
+        // Add click event to map to place marker
+        map.off('click'); // Remove previous listener
+        map.on('click', function(e) {
+            const clickedLat = e.latlng.lat.toFixed(6);
+            const clickedLng = e.latlng.lng.toFixed(6);
+            console.log('[DEBUG] Map clicked at:', clickedLat, clickedLng);
+            
+            // Move marker to clicked position
+            if (marker) {
+                marker.setLatLng(e.latlng);
+            } else {
+                marker = L.marker(e.latlng, {
+                    draggable: true,
+                    title: 'Drag me to adjust location'
+                }).addTo(map);
+                
+                // Add drag event listener
+                marker.on('dragend', function(event) {
+                    const position = marker.getLatLng();
+                    const newLat = position.lat.toFixed(6);
+                    const newLng = position.lng.toFixed(6);
+                    console.log('[DEBUG] Marker dragged to:', newLat, newLng);
+                    
+                    // Update inputs
+                    if (latitudeInput) latitudeInput.value = newLat;
+                    if (longitudeInput) longitudeInput.value = newLng;
+                    
+                    // Get new address
+                    showLocationStatus('Updating location...', false);
+                    getAddressFromCoordinates(newLat, newLng);
+                });
+            }
+            
+            // Update inputs
+            if (latitudeInput) latitudeInput.value = clickedLat;
+            if (longitudeInput) longitudeInput.value = clickedLng;
+            
+            // Get address for clicked location
+            showLocationStatus('Getting location details...', false);
+            getAddressFromCoordinates(clickedLat, clickedLng);
+        });
+        
         map.setView(latLng, 15);
         // Always show the map container
         forceShowMapContainer();

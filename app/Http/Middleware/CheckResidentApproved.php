@@ -18,6 +18,11 @@ class CheckResidentApproved
     {
         $user = Auth::user();
         
+        // If user is not authenticated, redirect to login
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
         // Skip middleware for non-resident users or already approved residents
         if ($user->role !== 'resident' || $user->is_approved) {
             return $next($request);
@@ -32,8 +37,17 @@ class CheckResidentApproved
             return $next($request);
         }
         
-        // If account is not approved, redirect to dashboard with error
-        if ($request->route()->getName() !== 'dashboard') {
+        // If account is not approved, only allow access to specific routes
+        $allowedRoutes = [
+            'dashboard', 
+            'incident_reports.my_reports', 
+            'incident_reports.show',
+            'incident_reports.index',
+            'incident_reports.create',
+            'incident_reports.store'
+        ];
+        
+        if (!in_array($request->route()->getName(), $allowedRoutes)) {
             return redirect()->route('dashboard')
                 ->with('error', 'Your account is pending approval. Please wait for the purok leader to approve your account.');
         }

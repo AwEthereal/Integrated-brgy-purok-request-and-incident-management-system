@@ -1,5 +1,7 @@
 @extends('layouts.guest')
 
+@yield('title', 'Verify Email')
+
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {

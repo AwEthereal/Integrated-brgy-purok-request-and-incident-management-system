@@ -7,8 +7,8 @@ use App\Models\IncidentReport;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\StoreFeedbackRequest;
 use App\Models\Purok;
-use App\Models\IncidentReport as IncidentReportModel;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class IncidentReportController extends Controller
@@ -17,77 +17,246 @@ class IncidentReportController extends Controller
     // Resident submits incident report
     public function store(Request $request)
     {
+        // Check if user has reached the pending incident report limit
+        $user = auth()->user();
+        $pendingCount = IncidentReport::where('user_id', $user->id)
+            ->whereIn('status', ['pending', 'in_progress'])
+            ->count();
+        
+        if ($pendingCount >= 10) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You have reached the maximum limit of 10 pending incident reports. Please wait for your existing reports to be processed before submitting a new one.'
+                ], 429);
+            }
+            
+            return back()->withErrors([
+                'limit' => 'You have reached the maximum limit of 10 pending incident reports. Please wait for your existing reports to be processed before submitting a new one.'
+            ])->withInput();
+        }
+        
         $request->validate([
-            'incident_type' => 'required|in:' . implode(',', array_keys(\App\Models\IncidentReport::TYPES)),
+            'incident_type' => 'required|in:' . implode(',', array_keys(IncidentReport::TYPES)),
             'description' => 'required|string',
-            'photo_data' => 'nullable|string', // base64 string
-            'photo' => 'nullable|image|max:2048', // fallback file upload
+            'photo_data' => 'nullable|string', // base64 string (first photo for backward compatibility)
+            'photos_data' => 'nullable|string', // JSON array of base64 strings
+            'photos' => 'nullable|array', // fallback file upload
+            'photos.*' => 'nullable|image|max:2048',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'location' => 'nullable|string'
         ]);
 
     $photoPath = null;
+    $photoPaths = [];
 
-    if ($request->filled('photo_data')) {
-        // Extract base64 string from data URL
+    // Handle multiple photos from camera (photos_data)
+    if ($request->filled('photos_data')) {
+        try {
+            $photosArray = json_decode($request->photos_data, true);
+            if (is_array($photosArray)) {
+                foreach ($photosArray as $index => $photoData) {
+                    if (preg_match('/^data:image\/(\w+);base64,/', $photoData, $type)) {
+                        $data = substr($photoData, strpos($photoData, ',') + 1);
+                        $type = strtolower($type[1]);
+
+                        if (!in_array($type, ['jpg', 'jpeg', 'png', 'gif'])) {
+                            continue;
+                        }
+
+                        $data = base64_decode($data);
+                        if ($data === false) {
+                            continue;
+                        }
+
+                        $fileName = 'incident_' . time() . '_' . $index . '.' . $type;
+                        $path = 'incident_photos/' . $fileName;
+                        Storage::disk('public')->put($path, $data);
+                        $photoPaths[] = $path;
+                        
+                        // Set first photo as main photo for backward compatibility
+                        if ($index === 0) {
+                            $photoPath = $path;
+                        }
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Error processing multiple photos: ' . $e->getMessage());
+        }
+    }
+    
+    // Fallback to single photo_data
+    if (empty($photoPaths) && $request->filled('photo_data')) {
         $data = $request->photo_data;
         if (preg_match('/^data:image\/(\w+);base64,/', $data, $type)) {
             $data = substr($data, strpos($data, ',') + 1);
-            $type = strtolower($type[1]); // jpg, png, gif
+            $type = strtolower($type[1]);
 
             if (!in_array($type, ['jpg', 'jpeg', 'png', 'gif'])) {
                 return back()->withErrors(['photo_data' => 'Invalid image type']);
             }
 
             $data = base64_decode($data);
-
             if ($data === false) {
                 return back()->withErrors(['photo_data' => 'Base64 decode failed']);
             }
-        } else {
-            return back()->withErrors(['photo_data' => 'Invalid image data']);
+
+            $fileName = 'incident_' . time() . '.' . $type;
+            $photoPath = 'incident_photos/' . $fileName;
+            Storage::disk('public')->put($photoPath, $data);
+            $photoPaths[] = $photoPath;
         }
-
-        $fileName = 'incident_' . time() . '.' . $type;
-        $photoPath = 'incident_photos/' . $fileName;
-
-        Storage::disk('public')->put($photoPath, $data);
-    } elseif ($request->hasFile('photo')) {
-        $photoPath = $request->file('photo')->store('incident_photos', 'public');
+    }
+    
+    // Handle file uploads
+    if ($request->hasFile('photos')) {
+        foreach ($request->file('photos') as $index => $photo) {
+            $path = $photo->store('incident_photos', 'public');
+            $photoPaths[] = $path;
+            
+            if ($index === 0 && empty($photoPath)) {
+                $photoPath = $path;
+            }
+        }
     }
 
-    $incident = IncidentReport::create([
-        'user_id' => auth()->id(),
-        'purok_id' => auth()->user()->purok_id ?? null,
-        'incident_type' => $request->incident_type,
-        'description' => $request->description,
-        'photo_path' => $photoPath,
-        'latitude' => $request->latitude,
-        'longitude' => $request->longitude,
-        'location' => $request->location,
-        'status' => IncidentReportModel::STATUS_PENDING,
-    ]);
+    try {
+        $incident = new IncidentReport();
+        $incident->user_id = auth()->id();
+        $incident->purok_id = auth()->user()->purok_id ?? null;
+        $incident->incident_type = $request->incident_type;
+        $incident->description = $request->description;
+        $incident->photo_path = $photoPath;
+        $incident->photo_paths = !empty($photoPaths) ? $photoPaths : null;
+        $incident->latitude = $request->latitude;
+        $incident->longitude = $request->longitude;
+        $incident->location = $request->location;
+        $incident->status = IncidentReport::STATUS_PENDING;
+        $incident->save();
 
-    return redirect()->route('incident_reports.show', $incident->id)
-        ->with('success', 'Incident report submitted successfully!');
+        // Get the count of pending incidents for barangay officials
+        $pendingCount = IncidentReport::whereIn('status', ['pending', 'in_progress'])->count();
+        
+        // Broadcast the event to barangay officials
+        event(new \App\Events\NewIncidentReported($incident, $pendingCount));
+
+        return redirect()->route('incident_reports.show', $incident->id)
+            ->with('success', 'Incident report submitted successfully!');
+    } catch (\Exception $e) {
+        // Log the error
+        Log::error('Error creating incident report: ' . $e->getMessage());
+        
+        // If there was an error, delete the uploaded photo if it exists
+        if (isset($photoPath) && Storage::disk('public')->exists($photoPath)) {
+            Storage::disk('public')->delete($photoPath);
+        }
+        
+        return back()->withInput()
+            ->withErrors(['error' => 'Failed to create incident report. Please try again.']);
+    }
 }
 
 
+    /**
+     * Show the form for creating a new incident report.
+     *
+     * @return \Illuminate\View\View
+     */
+    /**
+     * Show the form for creating a new incident report.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        $incidentTypes = IncidentReport::TYPES;
+        $puroks = Purok::orderBy('name')->get();
+        
+        // Return the correct view path for creating incident reports
+        return view('incidents.create', compact('incidentTypes', 'puroks'));
+    }
 
-    // Staff views all reports
+    /**
+     * Display a listing of the incident reports.
+     *
+     * @return \Illuminate\View\View
+     */
     public function index()
     {
         $reports = IncidentReport::with(['user', 'purok'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(15);
+            
+        $pendingCount = IncidentReport::where('status', 'pending')->count();
 
-        return view('admin.incidents.pending', compact('reports'));
+        return view('admin.incidents.pending', compact('reports', 'pendingCount'));
+    }
+    
+    /**
+     * Display incident reports for barangay officials with filtering
+     *
+     * @return \Illuminate\View\View
+     */
+    public function pendingApproval(Request $request)
+    {
+        $status = $request->get('status', 'pending');
+        
+        $query = IncidentReport::with(['user', 'purok']);
+        
+        // Filter by status
+        if ($status === 'pending') {
+            $query->where('status', 'pending');
+        } elseif ($status === 'completed') {
+            // Apply specific status filter if provided
+            $validStatuses = ['in_progress', 'resolved', 'rejected', 'invalid'];
+            if ($request->has('incident_status') && in_array($request->query('incident_status'), $validStatuses)) {
+                $query->where('status', $request->query('incident_status'));
+            } else {
+                // Include both 'resolved' and 'approved' for backward compatibility
+                $query->whereIn('status', ['in_progress', 'resolved', 'approved', 'rejected', 'invalid']);
+            }
+        }
+        
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Incident type filter
+        if ($request->filled('incident_type')) {
+            $query->where('incident_type', $request->incident_type);
+        }
+        
+        // Purok filter
+        if ($request->filled('purok')) {
+            $query->where('purok_id', $request->purok);
+        }
+        
+        $reports = $query->orderBy('created_at', 'desc')->paginate(15)->appends($request->query());
+        $pendingCount = IncidentReport::where('status', 'pending')->count();
+
+        return view('admin.incidents.pending', compact('reports', 'pendingCount'));
     }
     
     // Resident views their own incident reports
     public function myReports()
     {
+        \Log::info('myReports method called', [
+            'user_id' => auth()->id(),
+            'url' => request()->fullUrl(),
+            'ip' => request()->ip()
+        ]);
+
         $reports = IncidentReport::where('user_id', auth()->id())
             ->when(request('type'), function($query, $type) {
                 return $query->where('incident_type', $type);
@@ -100,7 +269,7 @@ class IncidentReportController extends Controller
             ->paginate(10)
             ->appends(request()->query());
             
-        return view('incident-reports.my-reports', compact('reports'));
+        return view('incident_reports/my-reports', compact('reports'));
     }
 
     // Staff views a specific report
@@ -133,12 +302,19 @@ class IncidentReportController extends Controller
         ]);
 
         $report = IncidentReport::findOrFail($id);
+        $oldStatus = $report->status;
+        
         $report->update([
             'status' => $request->status,
             'staff_notes' => $request->staff_notes,
         ]);
 
-        return back()->with('success', 'Report updated.');
+        // Send email notification if status changed
+        if ($oldStatus !== $request->status) {
+            $report->user->notify(new \App\Notifications\IncidentReportStatusNotification($report, $oldStatus, $request->status));
+        }
+
+        return back()->with('success', 'Report updated and notification sent to resident.');
     }
 
     /**
@@ -146,7 +322,8 @@ class IncidentReportController extends Controller
      */
     public function storeFeedback(StoreFeedbackRequest $request, IncidentReport $incident_report)
     {
-        // The request is already validated by StoreFeedbackRequest
+        $this->authorize('provideFeedback', $incident_report);
+        
         $incident_report->update([
             // SQD Ratings
             'sqd0_rating' => $request->sqd0_rating,
@@ -158,31 +335,12 @@ class IncidentReportController extends Controller
             'sqd6_rating' => $request->sqd6_rating,
             'sqd7_rating' => $request->sqd7_rating,
             'sqd8_rating' => $request->sqd8_rating,
-            'comments' => $request->comments,
-            'is_anonymous' => $request->is_anonymous ?? false,
-            'feedback_submitted_at' => now(),
+            'sqd9_rating' => $request->sqd9_rating,
+            'feedback_comment' => $request->feedback_comment,
+            'feedback_submitted_at' => now()
         ]);
-
-        return redirect()->route('incident_reports.show', $incident_report)
-            ->with('success', 'Thank you for your feedback! Your responses have been recorded.');
-    }
-
-    public function create()
-    {
-        return view('incidents.create');
-    }
-
-    /**
-     * Show pending incident reports for barangay officials
-     */
-    public function pendingApproval()
-    {
-        $reports = IncidentReport::where('status', IncidentReportModel::STATUS_PENDING)
-            ->with(['user', 'purok'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-            
-        return view('admin.incidents.pending', compact('reports'));
+        
+        return back()->with('success', 'Thank you for your feedback!');
     }
     
     /**
@@ -192,10 +350,14 @@ class IncidentReportController extends Controller
     {
         $this->authorize('update', $incidentReport);
         
+        $oldStatus = $incidentReport->status;
         $incidentReport->update([
-            'status' => IncidentReportModel::STATUS_IN_PROGRESS,
+            'status' => IncidentReport::STATUS_IN_PROGRESS,
             'staff_notes' => $incidentReport->staff_notes . "\n\nMarked as In Progress by " . auth()->user()->name . " on " . now()->toDateTimeString(),
         ]);
+
+        // Send notification to resident
+        $incidentReport->user->notify(new \App\Notifications\IncidentReportStatusNotification($incidentReport, $oldStatus, IncidentReport::STATUS_IN_PROGRESS));
 
         return back()->with('success', 'Incident report marked as In Progress');
     }
@@ -207,12 +369,16 @@ class IncidentReportController extends Controller
     {
         $this->authorize('update', $incidentReport);
         
+        $oldStatus = $incidentReport->status;
         $incidentReport->update([
-            'status' => IncidentReportModel::STATUS_RESOLVED,
+            'status' => IncidentReport::STATUS_RESOLVED,
             'resolved_at' => now(),
             'resolved_by' => auth()->id(),
             'staff_notes' => $incidentReport->staff_notes . "\n\nMarked as Resolved by " . auth()->user()->name . " on " . now()->toDateTimeString(),
         ]);
+
+        // Send notification to resident
+        $incidentReport->user->notify(new \App\Notifications\IncidentReportStatusNotification($incidentReport, $oldStatus, IncidentReport::STATUS_RESOLVED));
 
         return back()->with('success', 'Incident report marked as Resolved');
     }
@@ -225,12 +391,13 @@ class IncidentReportController extends Controller
         $this->authorize('approve', $incidentReport);
         
         $incidentReport->update([
-            'status' => IncidentReportModel::STATUS_RESOLVED,
+            'status' => IncidentReport::STATUS_APPROVED,
             'approved_by' => auth()->id(),
             'approved_at' => now(),
+            'rejection_reason' => null,
             'rejected_by' => null,
             'rejected_at' => null,
-            'rejection_reason' => null
+            'staff_notes' => ($incidentReport->staff_notes ?? '') . "\n\nApproved by " . auth()->user()->name . " on " . now()->toDateTimeString(),
         ]);
 
         return back()->with('success', 'Incident report approved successfully');
@@ -244,11 +411,12 @@ class IncidentReportController extends Controller
         $this->authorize('reject', $incidentReport);
         
         $validated = $request->validate([
-            'rejection_reason' => 'required|string|max:500'
+            'rejection_reason' => 'required|string|max:500',
+            'additional_notes' => 'nullable|string|max:1000'
         ]);
 
         $incidentReport->update([
-            'status' => IncidentReportModel::STATUS_INVALID,
+            'status' => IncidentReport::STATUS_REJECTED,
             'rejection_reason' => $validated['rejection_reason'],
             'rejected_by' => auth()->id(),
             'rejected_at' => now(),

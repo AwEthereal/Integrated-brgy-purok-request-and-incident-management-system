@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\IncidentReport;
+use App\Models\Purok;
 use App\Models\Request as ServiceRequest;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
@@ -39,71 +41,49 @@ class DashboardController extends Controller
             return redirect('/')->with('error', 'You do not have permission to access this page.');
         }
 
+        // Redirect admin to admin dashboard
+        if ($user->role === 'admin') {
+            return app(\App\Http\Controllers\Admin\AdminDashboardController::class)->index();
+        }
+
         // Redirect barangay officials to their dedicated dashboard
-        if (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin'])) {
+        if (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman'])) {
             // Get all puroks
             $puroks = \App\Models\Purok::orderBy('name')->get();
             $selectedPurok = $request->query('purok');
 
-            // Requests for all puroks (or filter by selected purok)
-            $requestsQuery = ServiceRequest::with(['user', 'purok'])
-                ->where('status', 'purok_approved');
-            if ($selectedPurok) {
-                $requestsQuery->where('purok_id', $selectedPurok);
-            }
-            $requests = $requestsQuery->orderBy('created_at', 'desc')->get();
-
-            // Incident reports for all puroks (or filter by selected purok)
-            $incidentsQuery = \App\Models\IncidentReport::with(['user', 'purok']);
+            // Get active incidents (pending or in_progress)
+            $incidentsQuery = \App\Models\IncidentReport::with(['user', 'purok'])
+                ->whereIn('status', ['pending', 'in_progress']);
+                
             if ($selectedPurok) {
                 $incidentsQuery->where('purok_id', $selectedPurok);
             }
-            $incidents = $incidentsQuery->orderBy('created_at', 'desc')->get();
             
-            // Get the current tab from the request
-            $currentTab = $request->query('tab', 'pending');
-            $statusFilter = $request->query('status');
+            $incidents = $incidentsQuery->orderByRaw(
+                "CASE 
+                    WHEN status = 'pending' THEN 1 
+                    WHEN status = 'in_progress' THEN 2 
+                    ELSE 3 
+                END"
+            )->orderBy('created_at', 'desc')
+            ->get();
             
-            // Query for pending requests (purok_approved only)
+            // Get pending service requests (purok_approved only)
             $pendingRequestsQuery = ServiceRequest::with(['user', 'purok'])
                 ->where('status', 'purok_approved');
-                
-            // Query for completed/rejected requests
-            $completedRequestsQuery = ServiceRequest::with(['user', 'purok', 'barangayApprover'])
-                ->whereIn('status', ['barangay_approved', 'rejected']);
             
-            // Apply purok filter if selected
             if ($selectedPurok) {
                 $pendingRequestsQuery->where('purok_id', $selectedPurok);
-                $completedRequestsQuery->where('purok_id', $selectedPurok);
             }
             
-            // Apply status filter for completed/rejected tab
-            if ($statusFilter) {
-                if ($statusFilter === 'completed') {
-                    $completedRequestsQuery->where('status', 'barangay_approved');
-                } elseif ($statusFilter === 'rejected') {
-                    $completedRequestsQuery->where('status', 'rejected');
-                }
-            }
-            
-            // Get paginated results
-            $page = $request->query('page', 1);
             $pendingRequests = $pendingRequestsQuery->orderBy('created_at', 'desc')->get();
-            $completedRequests = $completedRequestsQuery->orderBy('updated_at', 'desc')
-                ->paginate(10, ['*'], 'page', $page)
-                ->withQueryString();
-
-            // Get the current tab from the request
-            $currentTab = $request->query('tab', 'pending');
             
             return view('barangay_official.dashboard', [
                 'pendingRequests' => $pendingRequests,
                 'incidents' => $incidents,
                 'puroks' => $puroks,
-                'selectedPurok' => $selectedPurok,
-                'completedRequests' => $completedRequests,
-                'currentTab' => $currentTab
+                'selectedPurok' => $selectedPurok
             ]);
         }
         
@@ -127,7 +107,6 @@ class DashboardController extends Controller
         \Log::info('Session data: ' . json_encode($request->session()->all()));
         
         try {
-
             // Debug: Log user info
             \Log::info('Dashboard accessed by user:', [
                 'user_id' => $userId,
@@ -149,7 +128,7 @@ class DashboardController extends Controller
                 ->count();
                 
             $completedRequestsCount = \App\Models\Request::where('user_id', $userId)
-                ->whereIn('status', ['Completed', 'Rejected'])
+                ->where('status', 'barangay_approved')
                 ->count();
 
             // Debug: Log counts
@@ -165,7 +144,7 @@ class DashboardController extends Controller
                 ->where('user_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->take(5)
-                ->get(['id', 'purpose', 'status', 'created_at']);
+                ->get(['id', 'purpose', 'status', 'created_at', 'updated_at', 'last_viewed_at']);
                 
             // Get completed requests
             $completedRequests = ServiceRequest::where('user_id', $userId)
@@ -186,17 +165,47 @@ class DashboardController extends Controller
                 $request->formatted_status = $this->formatStatus($request->status);
             });
             
-            // Get recent incident reports
-            $recentIncidents = IncidentReport::where('user_id', $userId)
+            // Get pending reports (both requests and incidents)
+            $pendingReports = collect();
+            
+            // Get pending service requests
+            $pendingServiceRequests = ServiceRequest::where('user_id', $userId)
+                ->where('status', 'pending')
+                ->with('purok')
                 ->latest()
                 ->limit(5)
-                ->get(['id', 'incident_type', 'status', 'created_at', 'description']);
+                ->get(['id', 'purpose as description', 'status', 'created_at', 'purok_id']);
                 
-            // Format incident statuses and add title from incident_type
-            $recentIncidents->each(function($incident) {
-                $incident->formatted_status = $this->formatStatus($incident->status);
-                $incident->title = $incident->incident_type;
+            // Add type and format status for service requests
+            $pendingServiceRequests->each(function($request) {
+                $request->type = 'request';
+                $request->formatted_status = $this->formatStatus($request->status);
+                $request->title = 'Request: ' . $request->description;
             });
+            
+            // Get pending incident reports
+            $pendingIncidents = IncidentReport::where('user_id', $userId)
+                ->where('status', 'pending')
+                ->with('purok')
+                ->latest()
+                ->limit(5)
+                ->get(['id', 'incident_type', 'status', 'created_at', 'description', 'purok_id']);
+                
+            // Add type and format status for incidents
+            $pendingIncidents->each(function($incident) {
+                $incident->type = 'incident';
+                $incident->formatted_status = $this->formatStatus($incident->status);
+                $incident->title = 'Incident: ' . ($incident->incident_type ?? 'Report');
+            });
+            
+            // Combine and sort all pending reports by creation date
+            $pendingReports = $pendingServiceRequests->merge($pendingIncidents)
+                ->sortByDesc('created_at')
+                ->take(5);
+                
+            // For backward compatibility
+            $recentIncidents = collect();
+            $pendingIncidents = collect();
             
             // Get recent activity (combined requests and incidents)
             $recentActivity = collect()
@@ -208,7 +217,8 @@ class DashboardController extends Controller
                         'status' => $request->status,
                         'formatted_status' => $request->formatted_status,
                         'created_at' => $request->created_at,
-                        'updated_at' => $request->updated_at
+                        'updated_at' => $request->updated_at,
+                        'last_viewed_at' => $request->last_viewed_at ?? null
                     ];
                 }))
                 ->merge($recentIncidents->map(function($incident) {
@@ -296,31 +306,22 @@ class DashboardController extends Controller
                 'recentRequests' => $recentRequests,
                 'completedRequests' => $completedRequests,
                 'recentIncidents' => $recentIncidents,
+                'pendingIncidents' => $pendingIncidents,
+                'pendingReports' => $pendingReports, // Add this line
                 'recentActivity' => $recentActivity,
                 'showFeedbackPrompt' => $showFeedbackPrompt,
-                'resolvedCount' => $resolvedCount,
-                'user' => $user, // Pass the user object to the view
+                'resolvedCount' => $resolvedCount
             ]);
-
         } catch (\Exception $e) {
-            \Log::error('Dashboard error: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            // Log the error
+            \Log::error('Error loading dashboard data: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'exception' => $e
+            ]);
             
-            // Try to get user again in case of error
-            $user = $user ?? $request->user();
-            
-            // Return a simple error response first
-            if (!headers_sent()) {
-                return response()->view('errors.500', [
-                    'message' => 'An error occurred while loading the dashboard. Please try again later.',
-                    'error' => $e->getMessage(),
-                    'exception' => $e,
-                    'user' => $user
-                ], 500);
-            } else {
-                // If headers already sent, return a simple error message
-                die('An error occurred while loading the dashboard. Please try again later.');
-            }
+            // Return to dashboard with error message
+            return redirect()->route('dashboard')
+                ->with('error', 'An error occurred while loading dashboard data. Please try again.');
         }
     }
     

@@ -13,6 +13,8 @@ class IncidentReport extends Model
     public const STATUS_IN_PROGRESS = 'in_progress';
     public const STATUS_RESOLVED = 'resolved';
     public const STATUS_INVALID = 'invalid';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_REJECTED = 'rejected';
     
     /**
      * Get all available statuses
@@ -23,6 +25,8 @@ class IncidentReport extends Model
             self::STATUS_PENDING => 'Pending',
             self::STATUS_IN_PROGRESS => 'In Progress',
             self::STATUS_RESOLVED => 'Resolved',
+            self::STATUS_APPROVED => 'Resolved', // Display as "Resolved" for consistency
+            self::STATUS_REJECTED => 'Rejected',
             self::STATUS_INVALID => 'Invalid Report'
         ];
     }
@@ -46,6 +50,7 @@ class IncidentReport extends Model
         'incident_type',
         'description',
         'photo_path',
+        'photo_paths',
         'latitude',
         'longitude',
         'location',
@@ -88,6 +93,7 @@ class IncidentReport extends Model
 
     protected $casts = [
         'incident_type' => 'string',
+        'photo_paths' => 'array',
         'is_anonymous' => 'boolean',
         'feedback_submitted_at' => 'datetime',
         'approved_at' => 'datetime',

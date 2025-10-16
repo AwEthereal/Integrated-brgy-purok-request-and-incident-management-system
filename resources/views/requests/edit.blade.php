@@ -223,87 +223,11 @@
                 <!-- Form Actions -->
                 <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 mt-6 sm:mt-8">
                     <a href="{{ route('requests.show', $request) }}" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 text-center">
-                        Back to List
+                        Cancel
                     </a>
-                    @if($request->status == 'pending' && auth()->user()->hasRole('barangay_official'))
-                        <button type="button" onclick="document.getElementById('approveModal').classList.remove('hidden')" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                            Approve Request
-                        </button>
-                        <button type="button" onclick="document.getElementById('rejectModal').classList.remove('hidden')" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                            <svg class="-ml-1 mr-2 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                            Reject Request
-                        </button>
-                    @else
-                        <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            Update Request
-                        </button>
-                    @endif
-                </div>
-
-                <!-- Approve Modal -->
-                <div id="approveModal" class="modal">
-                    <div class="modal-content">
-                        <div class="flex justify-between items-start">
-                            <h3 class="text-lg font-medium text-gray-900">Approve Request</h3>
-                            <span class="close" onclick="document.getElementById('approveModal').classList.add('hidden')">&times;</span>
-                        </div>
-                        <div class="mt-4">
-                            <p class="text-sm text-gray-600">Are you sure you want to approve this request? This action cannot be undone.</p>
-                            <div class="mt-6 flex justify-end space-x-3">
-                                <button type="button" onclick="document.getElementById('approveModal').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                    Cancel
-                                </button>
-                                <form action="{{ route('requests.approve', $request) }}" method="POST" class="inline">
-                                    @csrf
-                                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        Confirm Approval
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reject Modal -->
-                <div id="rejectModal" class="modal">
-                    <div class="modal-content">
-                        <div class="flex justify-between items-start">
-                            <h3 class="text-lg font-medium text-gray-900">Reject Request</h3>
-                            <span class="close" onclick="document.getElementById('rejectModal').classList.add('hidden')">&times;</span>
-                        </div>
-                        <form action="{{ route('requests.reject', $request) }}" method="POST">
-                            @csrf
-                            <div class="mt-4">
-                                <p class="text-sm text-gray-600 mb-4">Please provide a reason for rejecting this request. This will be sent to the requester.</p>
-                                <div class="mb-4">
-                                    <label for="rejection_reason" class="block text-sm font-medium text-gray-700 mb-1">Reason for Rejection <span class="text-red-500">*</span></label>
-                                    <textarea id="rejection_reason" name="rejection_reason" rows="3" 
-                                        class="shadow-sm focus:ring-blue-500 focus:border-blue-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md p-2"
-                                        placeholder="Please provide a reason for rejecting this request..."
-                                        required></textarea>
-                                </div>
-                                <div class="mt-6 flex justify-end space-x-3">
-                                    <button type="button" onclick="document.getElementById('rejectModal').classList.add('hidden')" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                        Cancel
-                                    </button>
-                                    <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                        </svg>
-                                        Confirm Rejection
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+                    <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        Update Request
+                    </button>
                 </div>
             </form>
         </div>
@@ -324,25 +248,6 @@
         let value = e.target.value.replace(/\D/g, '');
         value = value.substring(0, 4);
         e.target.value = value;
-    });
-
-    // Close modals when clicking outside
-    window.onclick = function(event) {
-        const modals = ['approveModal', 'rejectModal'];
-        modals.forEach(modalId => {
-            const modal = document.getElementById(modalId);
-            if (event.target === modal) {
-                modal.classList.add('hidden');
-            }
-        });
-    }
-
-    // Close modals with Escape key
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            document.getElementById('approveModal')?.classList.add('hidden');
-            document.getElementById('rejectModal')?.classList.add('hidden');
-        }
     });
 </script>
 @endpush

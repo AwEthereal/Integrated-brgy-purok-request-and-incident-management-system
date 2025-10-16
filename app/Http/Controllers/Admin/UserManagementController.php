@@ -18,23 +18,36 @@ class UserManagementController extends Controller
     // Show edit form for a user
     public function edit(User $user)
     {
-        // List possible roles here
-        $roles = ['admin', 'purok_leader', 'barangay_official', 'resident'];
+        // List all possible roles from the database ENUM
+        $roles = [
+            'resident' => 'Resident',
+            'purok_president' => 'Purok President',
+            'barangay_kagawad' => 'Barangay Kagawad',
+            'barangay_captain' => 'Barangay Captain',
+            'secretary' => 'Secretary',
+            'sk_chairman' => 'SK Chairman',
+            'admin' => 'Admin'
+        ];
         return view('admin.users.edit', compact('user', 'roles'));
     }
 
     // Update user role
     public function update(Request $request, User $user)
     {
-        $request->validate([
-            'role' => 'required|in:admin,purok_leader,barangay_official,resident',
-            'is_approved' => 'required|boolean',
+        $validated = $request->validate([
+            'role' => 'required|string|in:resident,purok_leader,purok_president,barangay_kagawad,barangay_captain,secretary,sk_chairman,admin',
+            'is_approved' => 'nullable|boolean',
         ]);
 
-        $user->role = $request->role;
-        $user->is_approved = $request->is_approved;
-        $user->save();
+        // Use DB query builder to ensure proper quoting
+        \DB::table('users')
+            ->where('id', $user->id)
+            ->update([
+                'role' => $validated['role'],
+                'is_approved' => $validated['is_approved'] ?? 0,
+                'updated_at' => now(),
+            ]);
 
-        return redirect()->route('admin.users.index')->with('success', 'User updated.');
+        return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 }

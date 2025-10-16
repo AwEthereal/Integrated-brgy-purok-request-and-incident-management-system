@@ -16,8 +16,10 @@
 
     <!-- User Meta Tags -->
     @auth
-        <meta name="user-role" content="{{ auth()->user()->role }}">
-        <meta name="purok-id" content="{{ auth()->user()->purok_id }}">
+        @if(auth()->check() && auth()->user())
+            <meta name="user-role" content="{{ auth()->user()->role }}">
+            <meta name="purok-id" content="{{ auth()->user()->purok_id }}">
+        @endif
     @endauth
     
     <!-- Pusher JS (CDN) -->
@@ -35,7 +37,7 @@
     
     <!-- Notification Sound Script -->
     @auth
-        @if(in_array(auth()->user()->role, ['purok_leader', 'purok_president']))
+        @if(auth()->check() && auth()->user() && in_array(auth()->user()->role, ['purok_leader', 'purok_president']))
             <script>
                 window.Laravel = {!! json_encode([
                     'user' => [

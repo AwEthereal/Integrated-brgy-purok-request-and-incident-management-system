@@ -12,9 +12,9 @@
                 if ($isPurokLeader) {
                     $backRoute = 'purok_leader.dashboard';
                 } elseif ($isBarangayOfficial) {
-                    $backRoute = 'barangay_official.dashboard';
+                    $backRoute = 'dashboard'; // Barangay officials use regular dashboard
                 } elseif (auth()->user()->role === 'admin') {
-                    $backRoute = 'admin.dashboard';
+                    $backRoute = 'dashboard'; // Admin also uses regular dashboard
                 }
             @endphp
             <a href="{{ route($backRoute) }}" class="text-blue-600 hover:text-blue-800 flex items-center">
@@ -289,7 +289,7 @@
                         </div>
                         <div>
                             <p class="text-sm text-gray-500">Form Type</p>
-                            <p class="font-medium">{{ str_replace('_', ' ', ucfirst($request->form_type)) }}</p>
+                            <p class="font-medium">{{ format_label($request->form_type) }}</p>
                         </div>
                         <div>
                             <p class="text-sm text-gray-500">Purok</p>
@@ -392,7 +392,7 @@
                         @php
                             $isPurokLeader = in_array(auth()->user()->role, ['purok_leader', 'purok_president']);
                             $isAdmin = auth()->user()->role === 'admin';
-                            $isBarangayOfficial = auth()->user()->role === 'barangay_official';
+                            $isBarangayOfficial = in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman']);
                             $isPurokLeaderForThisRequest = $isPurokLeader &&
                                 ($request->purok_id == auth()->user()->purok_id || $isAdmin);
                         @endphp
@@ -411,8 +411,8 @@
                         @elseif($request->status === 'purok_approved' && ($isBarangayOfficial || $isAdmin))
                             @if($isBarangayOfficial || $isAdmin)
                                 <button onclick="openApproveModal({{ $request->id }})"
-                                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                                    Approve Barangay Clearance
+                                    class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+                                    Approve Request
                                 </button>
                                 <button onclick="openRejectModal({{ $request->id }})"
                                     class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">

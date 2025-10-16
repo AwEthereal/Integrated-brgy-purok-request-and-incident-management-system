@@ -12,6 +12,19 @@
             </a>
         </div>
 
+        <!-- Rate Limit Information -->
+        <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded" role="alert">
+            <div class="flex items-start">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <div>
+                    <p class="font-semibold">Request Limits</p>
+                    <p class="text-sm mt-1">You can submit up to <strong>5 requests per hour</strong> and have a maximum of <strong>5 pending requests</strong> at any time.</p>
+                </div>
+            </div>
+        </div>
+
         @if ($errors->any())
             <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded" role="alert">
                 <p class="font-bold">Please fix the following errors:</p>

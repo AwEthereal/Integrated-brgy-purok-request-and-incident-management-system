@@ -23,12 +23,8 @@ class RequestController extends Controller
             })
             ->when(request('status'), function($query, $status) {
                 // Handle all possible status values
-                if ($status === 'completed') {
-                    return $query->where('status', 'completed');
-                } elseif ($status === 'rejected') {
-                    return $query->where('status', 'rejected');
-                } elseif ($status === 'approved') {
-                    return $query->whereIn('status', ['purok_approved', 'barangay_approved']);
+                if ($status === 'approved') {
+                    return $query->where('status', 'purok_approved');
                 } else {
                     return $query->where('status', $status);
                 }
@@ -55,12 +51,8 @@ class RequestController extends Controller
             })
             ->when(request('status'), function($query, $status) {
                 // Handle all possible status values
-                if ($status === 'completed') {
-                    return $query->where('status', 'completed');
-                } elseif ($status === 'rejected') {
-                    return $query->where('status', 'rejected');
-                } elseif ($status === 'approved') {
-                    return $query->whereIn('status', ['purok_approved', 'barangay_approved']);
+                if ($status === 'approved') {
+                    return $query->where('status', 'purok_approved');
                 } else {
                     return $query->where('status', $status);
                 }
@@ -96,9 +88,17 @@ class RequestController extends Controller
             $requestModel->status = 'purok_approved';
             $requestModel->purok_approved_at = now();
             $requestModel->purok_approved_by = $user->id;
+            
+            // Send email notification to resident
+            $requestModel->user->notify(new \App\Notifications\RequestApprovedNotification($requestModel, 'purok'));
         } else {
             $requestModel->status = 'rejected';
             $requestModel->purok_notes = 'Request rejected by purok leader';
+            $requestModel->rejected_at = now();
+            $requestModel->rejected_by = $user->id;
+            
+            // Send email notification to resident
+            $requestModel->user->notify(new \App\Notifications\RequestRejectedNotification($requestModel, 'purok'));
         }
         
         $requestModel->save();
@@ -116,6 +116,25 @@ class RequestController extends Controller
     public function store(HttpRequest $request)
     {
         try {
+            // Check if user has reached the pending request limit
+            $user = auth()->user();
+            $pendingCount = RequestModel::where('user_id', $user->id)
+                ->whereIn('status', ['pending', 'purok_approved'])
+                ->count();
+            
+            if ($pendingCount >= 5) {
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You have reached the maximum limit of 5 pending requests. Please wait for your existing requests to be processed before submitting a new one.'
+                    ], 429);
+                }
+                
+                return back()->withErrors([
+                    'limit' => 'You have reached the maximum limit of 5 pending requests. Please wait for your existing requests to be processed before submitting a new one.'
+                ])->withInput();
+            }
+            
             $validated = $request->validate([
                 'form_type' => 'required|string|in:barangay_clearance,business_clearance,certificate_of_residency,certificate_of_indigency,other',
                 'purpose' => 'required|string|max:50',
@@ -267,71 +286,79 @@ class RequestController extends Controller
     }
 
     // Show a single request
-    public function show(RequestModel $requestModel)
+    public function show(RequestModel $request)
     {
         try {
             // Check if the user is authorized to view this request
-            if (!auth()->user()->can('view', $requestModel)) {
+            if (!auth()->user()->can('view', $request)) {
                 $errorMessage = 'You are not authorized to view this request.';
                 
                 // Provide more specific error message for purok leaders
                 if (in_array(auth()->user()->role, ['purok_leader', 'purok_president']) && 
-                    $requestModel->purok_id !== auth()->user()->purok_id) {
+                    $request->purok_id !== auth()->user()->purok_id) {
                     $errorMessage = 'You can only view requests from your own purok.';
                 }
                 
                 abort(403, $errorMessage);
             }
             
+            // Mark as viewed by the resident (owner) when they open the request
+            if (auth()->user()->id === $request->user_id) {
+                $request->timestamps = false; // Prevent updated_at from being modified
+                $request->last_viewed_at = now();
+                $request->save();
+                $request->timestamps = true; // Re-enable timestamps for future operations
+            }
+            
             // Load relationships for the view
-            $requestModel->load(['purok', 'purokApprover', 'barangayApprover']);
+            $request->load(['purok', 'purokApprover', 'barangayApprover']);
             
             // Calculate age from birth date if available
-            if ($requestModel->birth_date) {
-                $requestModel->age = now()->diffInYears($requestModel->birth_date);
+            if ($request->birth_date) {
+                $request->age = now()->diffInYears($request->birth_date);
             }
             
             // Ensure the file paths are correct and accessible
-            if ($requestModel->valid_id_front_path) {
+            if ($request->valid_id_front_path) {
                 // If the path is already a URL, use it as is
-                if (str_starts_with($requestModel->valid_id_front_path, 'http')) {
+                if (str_starts_with($request->valid_id_front_path, 'http')) {
                     // Do nothing, path is already a full URL
                 } 
                 // Check if the file exists in the public storage
-                $frontFilename = basename(str_replace('storage/ids/', '', $requestModel->valid_id_front_path));
+                $frontFilename = basename(str_replace('storage/ids/', '', $request->valid_id_front_path));
                 if (Storage::disk('public')->exists('ids/' . $frontFilename)) {
-                    $requestModel->valid_id_front_path = asset('storage/ids/' . $frontFilename);
+                    $request->valid_id_front_path = asset('storage/ids/' . $frontFilename);
                 }
                 // If the file exists in the private storage, generate a temporary URL
-                elseif (Storage::disk('local')->exists($requestModel->valid_id_front_path)) {
-                    $requestModel->valid_id_front_path = Storage::disk('local')->temporaryUrl(
-                        $requestModel->valid_id_front_path, 
+                elseif (Storage::disk('local')->exists($request->valid_id_front_path)) {
+                    $request->valid_id_front_path = Storage::disk('local')->temporaryUrl(
+                        $request->valid_id_front_path, 
                         now()->addMinutes(5)
                     );
                 }
             }
             
-            if ($requestModel->valid_id_back_path) {
+            if ($request->valid_id_back_path) {
                 // If the path is already a URL, use it as is
-                if (str_starts_with($requestModel->valid_id_back_path, 'http')) {
+                if (str_starts_with($request->valid_id_back_path, 'http')) {
                     // Do nothing, path is already a full URL
                 } 
                 // Check if the file exists in the public storage
-                $backFilename = basename(str_replace('storage/ids/', '', $requestModel->valid_id_back_path));
+                $backFilename = basename(str_replace('storage/ids/', '', $request->valid_id_back_path));
                 if (Storage::disk('public')->exists('ids/' . $backFilename)) {
-                    $requestModel->valid_id_back_path = asset('storage/ids/' . $backFilename);
+                    $request->valid_id_back_path = asset('storage/ids/' . $backFilename);
                 }
                 // If the file exists in the private storage, generate a temporary URL
-                elseif (Storage::disk('local')->exists($requestModel->valid_id_back_path)) {
-                    $requestModel->valid_id_back_path = Storage::disk('local')->temporaryUrl(
-                        $requestModel->valid_id_back_path, 
+                elseif (Storage::disk('local')->exists($request->valid_id_back_path)) {
+                    $request->valid_id_back_path = Storage::disk('local')->temporaryUrl(
+                        $request->valid_id_back_path, 
                         now()->addMinutes(5)
                     );
                 }
             }
             
             return view('requests.show', [
-                'request' => $requestModel,
+                'request' => $request,
                 'puroks' => \App\Models\Purok::all(),
             ]);
         } catch (\Exception $e) {
@@ -424,6 +451,12 @@ class RequestController extends Controller
             'purok_notes' => $data['purok_notes'] ?? null,
         ]);
 
+        // Send email notification to resident
+        $request->user->notify(new \App\Notifications\RequestApprovedNotification($request, 'purok'));
+
+        // Broadcast real-time notification to resident
+        event(new \App\Events\ResidentRequestUpdated($request, 'purok_approved'));
+
         return redirect()->route('requests.pending-purok')
             ->with('success', 'Purok clearance approved. The resident can now proceed to the barangay office.');
     }
@@ -469,6 +502,12 @@ class RequestController extends Controller
             'barangay_approved_by' => Auth::id(),
             'barangay_notes' => $data['barangay_notes'] ?? null,
         ]);
+
+        // Send email notification to resident
+        $request->user->notify(new \App\Notifications\RequestApprovedNotification($request, 'barangay'));
+
+        // Broadcast real-time notification to resident
+        event(new \App\Events\ResidentRequestUpdated($request, 'barangay_approved'));
 
         return redirect()->route('requests.pending-barangay')
             ->with('success', 'Barangay clearance approved. Document is ready for release.');
@@ -519,6 +558,13 @@ class RequestController extends Controller
         // Update the request
         $request->update($updates);
 
+        // Send email notification to resident
+        $approvalType = in_array($user->role, ['purok_leader', 'purok_president']) ? 'purok' : 'barangay';
+        $request->user->notify(new \App\Notifications\RequestRejectedNotification($request, $approvalType));
+
+        // Broadcast real-time notification to resident
+        event(new \App\Events\ResidentRequestUpdated($request, 'rejected', 'Your request has been rejected'));
+
         // Redirect based on user role
         if (in_array($user->role, ['purok_leader', 'purok_president'])) {
             return redirect()->route('purok_leader.dashboard')
@@ -541,16 +587,48 @@ class RequestController extends Controller
         return view('requests.pending-purok', compact('requests'));
     }
 
-    public function pendingBarangay()
+    public function pendingBarangay(HttpRequest $request)
     {
         $this->authorize('viewPendingBarangay', RequestModel::class);
         
-        $requests = RequestModel::where('status', 'purok_approved')
-            ->with(['user', 'purok', 'purokApprover'])
-            ->latest()
-            ->paginate(15);
+        $status = $request->get('status', 'pending');
+        
+        $query = RequestModel::with(['user', 'purok', 'purokApprover']);
+        
+        // Filter by status
+        if ($status === 'pending') {
+            $query->where('status', 'purok_approved');
+        } elseif ($status === 'completed') {
+            $query->whereIn('status', ['barangay_approved', 'completed', 'rejected']);
+        }
+        
+        // Search filter
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q) use ($search) {
+                      $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+        
+        // Form type filter
+        if ($request->filled('form_type')) {
+            $query->where('form_type', $request->form_type);
+        }
+        
+        // Purok filter
+        if ($request->filled('purok')) {
+            $query->where('purok_id', $request->purok);
+        }
+        
+        $requests = $query->latest()->paginate(15)->appends($request->query());
+        $pendingCount = RequestModel::where('status', 'purok_approved')->count();
 
-        return view('requests.pending-barangay', compact('requests'));
+        return view('requests.pending-barangay', compact('requests', 'pendingCount'));
     }
 
     // Delete a request
@@ -558,8 +636,22 @@ class RequestController extends Controller
     {
         $this->authorize('delete', $request);
 
+        // Only allow deletion if request is pending or rejected
+        if (!in_array($request->status, ['pending', 'rejected'])) {
+            return redirect()->route('requests.show', $request)
+                ->with('error', 'You can only delete requests that are pending or rejected.');
+        }
+
+        // Delete associated ID photos if they exist
+        if ($request->valid_id_front_path && file_exists(public_path($request->valid_id_front_path))) {
+            unlink(public_path($request->valid_id_front_path));
+        }
+        if ($request->valid_id_back_path && file_exists(public_path($request->valid_id_back_path))) {
+            unlink(public_path($request->valid_id_back_path));
+        }
+
         $request->delete();
 
-        return redirect()->route('requests.index')->with('success', 'Request deleted.');
+        return redirect()->route('requests.index')->with('success', 'Request deleted successfully.');
     }
 }

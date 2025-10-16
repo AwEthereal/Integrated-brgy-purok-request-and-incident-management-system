@@ -38,7 +38,8 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/js/incident-report.js',
-                'resources/js/purok-notifications.js'
+                'resources/js/purok-notifications.js',
+                'resources/js/resident-notifications.js'
             ],
             refresh: true,
         }),

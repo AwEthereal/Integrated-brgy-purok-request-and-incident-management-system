@@ -14,29 +14,54 @@ use Illuminate\Support\Facades\Log;
 class PurokLeaderController extends Controller
 {
     /**
-     * Show the purok leader dashboard with pending purok change requests
+     * Show the purok leader dashboard with purok change requests
      * where the current user is the future purok leader
      */
     public function purokChangeRequests()
     {
         $user = Auth::user();
+        $status = request()->input('status', 'pending');
         
-        // Get pending purok change requests where the current user is the future purok leader
-        $changeRequests = PurokChangeRequest::with([
+        // Get purok change requests where the current user is the future purok leader
+        $query = PurokChangeRequest::with([
             'user' => function($query) {
                 $query->select('id', 'name', 'email', 'contact_number', 'address');
             },
             'currentPurok',
-            'requestedPurok'
+            'requestedPurok',
+            'processedBy'
         ])
-        ->where('requested_purok_id', $user->purok_id)
-        ->where('status', 'pending')
-        ->latest()
-        ->paginate(10);
+        ->where('requested_purok_id', $user->purok_id);
+        
+        // Apply status filter
+        if (in_array($status, ['pending', 'approved', 'rejected'])) {
+            $query->where('status', $status);
+        } else {
+            $query->where('status', 'pending'); // Default to pending
+        }
+        
+        $changeRequests = $query->latest()->paginate(10);
+        
+        // Get counts for each status
+        $pendingCount = PurokChangeRequest::where('requested_purok_id', $user->purok_id)
+            ->where('status', 'pending')
+            ->count();
+            
+        $approvedCount = PurokChangeRequest::where('requested_purok_id', $user->purok_id)
+            ->where('status', 'approved')
+            ->count();
+            
+        $rejectedCount = PurokChangeRequest::where('requested_purok_id', $user->purok_id)
+            ->where('status', 'rejected')
+            ->count();
             
         return view('purok_leader.purok_change_requests', [
             'changeRequests' => $changeRequests,
-            'purokName' => $user->purok ? $user->purok->name : 'Unknown Purok'
+            'purokName' => $user->purok ? $user->purok->name : 'Unknown Purok',
+            'currentStatus' => $status,
+            'pendingCount' => $pendingCount,
+            'approvedCount' => $approvedCount,
+            'rejectedCount' => $rejectedCount
         ]);
     }
     
@@ -58,22 +83,20 @@ class PurokLeaderController extends Controller
             $user = $changeRequest->user;
             $oldPurokId = $user->purok_id;
             
-            // Cancel any pending requests from the old purok
-            $pendingRequests = RequestModel::where('user_id', $user->id)
-                ->where('purok_id', $oldPurokId)
-                ->whereIn('status', ['pending', 'purok_approved'])
+            // Cancel any other pending purok change requests for this user
+            $pendingPurokChangeRequests = PurokChangeRequest::where('user_id', $user->id)
+                ->where('id', '!=', $changeRequest->id)
+                ->where('status', 'pending')
                 ->get();
             
             $canceledCount = 0;
             
-            foreach ($pendingRequests as $request) {
-                // Update each request individually to avoid raw SQL issues
+            foreach ($pendingPurokChangeRequests as $request) {
                 $request->update([
                     'status' => 'rejected',
-                    'rejection_reason' => 'Automatically rejected due to purok change',
-                    'rejected_at' => now(),
-                    'rejected_by' => auth()->id(),
-                    'purok_notes' => trim(($request->purok_notes ?? '') . "\n[Auto-rejected due to purok change on " . now()->format('Y-m-d H:i:s') . ' - ' . $changeRequest->requestedPurok->name . ' purok]')
+                    'rejection_reason' => 'Automatically rejected - another purok change was approved',
+                    'processed_at' => now(),
+                    'processed_by' => auth()->id()
                 ]);
                 $canceledCount++;
             }
@@ -101,7 +124,7 @@ class PurokLeaderController extends Controller
                 $message .= ' Changing to a different purok has canceled all pending requests.';
             }
             
-            return back()->with('success', $message);
+            return redirect()->route('purok_leader.purok-change-requests', ['status' => 'approved'])->with('success', $message);
             
         } catch (\Exception $e) {
             DB::rollBack();
@@ -136,7 +159,7 @@ class PurokLeaderController extends Controller
             // Optionally, notify the user that their request was rejected
             // Notification::send($changeRequest->user, new PurokChangeRejected($changeRequest));
             
-            return back()->with('success', 'Purok change request has been rejected.');
+            return redirect()->route('purok_leader.purok-change-requests', ['status' => 'rejected'])->with('success', 'Purok change request has been rejected.');
             
         } catch (\Exception $e) {
             Log::error('Error rejecting purok change request: ' . $e->getMessage());
@@ -163,9 +186,11 @@ class PurokLeaderController extends Controller
         if ($filter && $filterValue) {
             switch ($filter) {
                 case 'status':
-                    if ($filterValue === 'approved') {
-                        $query->whereIn('status', ['purok_approved', 'completed']);
-                    } else if (in_array($filterValue, ['pending', 'rejected'])) {
+                    if ($filterValue === 'all') {
+                        // Show all requests (no status filter)
+                    } else if ($filterValue === 'approved') {
+                        $query->whereIn('status', ['purok_approved', 'barangay_approved']);
+                    } else if (in_array($filterValue, ['pending', 'rejected', 'cancelled', 'purok_approved', 'barangay_approved'])) {
                         $query->where('status', $filterValue);
                     }
                     break;
@@ -194,13 +219,23 @@ class PurokLeaderController extends Controller
                                         ->where('status', 'pending')
                                         ->count(),
             'approved_requests' => RequestModel::where('purok_id', $purokId)
-                                        ->whereIn('status', ['purok_approved', 'completed'])
+                                        ->whereIn('status', ['purok_approved', 'barangay_approved'])
+                                        ->count(),
+            'purok_approved_requests' => RequestModel::where('purok_id', $purokId)
+                                        ->where('status', 'purok_approved')
+                                        ->count(),
+            'barangay_approved_requests' => RequestModel::where('purok_id', $purokId)
+                                        ->where('status', 'barangay_approved')
                                         ->count(),
             'rejected_requests' => RequestModel::where('purok_id', $purokId)
                                         ->where('status', 'rejected')
                                         ->count(),
             'residents_count' => User::where('purok_id', $purokId)
                                 ->where('role', 'resident')
+                                ->count(),
+            'pending_residents' => User::where('purok_id', $purokId)
+                                ->where('role', 'resident')
+                                ->where('is_approved', false)
                                 ->count(),
         ];
 

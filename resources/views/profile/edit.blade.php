@@ -33,22 +33,20 @@
                                 <p class="text-sm text-gray-500">{{ $user->email }}</p>
                             </div>
                         </div>
-                        <a href="{{ route('profile.password.edit') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
-                            <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
-                            Change Password
-                        </a>
+                        <div class="ml-auto">
+                            <a href="{{ route('profile.password.edit') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
+                                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 10.5V7a4.5 4.5 0 10-9 0v3.5M5.25 10.5h13.5a.75.75 0 01.75.75v6.75a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75v-6.75a.75.75 0 01.75-.75z" />
+                                </svg>
+                                Change Password
+                            </a>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Main Content Area -->
                 <div class="p-6">
                     <div>
-                        <h2 class="text-lg font-medium text-gray-900 mb-4">Profile Information</h2>
-                        <p class="text-sm text-gray-500 mb-6">Update your account's profile information and email address.</p>
-                        
-                        <!-- Status Messages -->
                         @if(session('status') === 'profile-updated')
                             <div class="bg-green-50 border-l-4 border-green-400 p-4 m-6 rounded">
                                 <div class="flex">
