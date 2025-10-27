@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Profile Settings')
+
 @section('content')
 <div class="py-8">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -16,29 +18,29 @@
         @if(isset($user))
             <div class="bg-white rounded-xl shadow overflow-hidden">
                 <!-- Content Header -->
-                <div class="px-6 py-5 border-b border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center">
+                <div class="px-4 sm:px-6 py-5 border-b border-gray-200">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-center w-full sm:w-auto">
                             @if($user->profile_photo_path)
-                                <img class="w-16 h-16 rounded-full object-cover mr-4" 
+                                <img class="w-16 h-16 rounded-full object-cover mr-4 flex-shrink-0" 
                                     src="{{ asset('storage/' . $user->profile_photo_path) }}" 
                                     alt="{{ $user->name }}">
                             @else
-                                <div class="w-16 h-16 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xl font-semibold mr-4">
+                                <div class="w-16 h-16 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600 text-xl font-semibold mr-4 flex-shrink-0">
                                     {{ strtoupper(substr($user->name, 0, 1)) }}
                                 </div>
                             @endif
-                            <div>
-                                <h3 class="text-lg font-medium text-gray-900">{{ $user->name }}</h3>
-                                <p class="text-sm text-gray-500">{{ $user->email }}</p>
+                            <div class="min-w-0 flex-1">
+                                <h3 class="text-lg font-medium text-gray-900 truncate">{{ $user->name }}</h3>
+                                <p class="text-sm text-gray-500 truncate">{{ $user->email }}</p>
                             </div>
                         </div>
-                        <div class="ml-auto">
-                            <a href="{{ route('profile.password.edit') }}" class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150">
-                                <svg class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <div class="w-full sm:w-auto sm:ml-auto">
+                            <a href="{{ route('profile.password.edit') }}" class="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-25 transition ease-in-out duration-150 min-h-[44px]">
+                                <svg class="h-4 w-4 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16.5 10.5V7a4.5 4.5 0 10-9 0v3.5M5.25 10.5h13.5a.75.75 0 01.75.75v6.75a.75.75 0 01-.75.75H5.25a.75.75 0 01-.75-.75v-6.75a.75.75 0 01.75-.75z" />
                                 </svg>
-                                Change Password
+                                <span class="whitespace-nowrap">Change Password</span>
                             </a>
                         </div>
                     </div>

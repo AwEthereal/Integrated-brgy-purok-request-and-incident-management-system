@@ -1,6 +1,6 @@
 @extends('layouts.guest')
 
-@yield('title', 'Forgot Password')
+@section('title', 'Forgot Password')
 
 @section('content')
     <div class="flex justify-center -mt-4 mb-4">

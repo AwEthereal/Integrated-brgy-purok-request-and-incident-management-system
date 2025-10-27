@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Update Password')
+
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {

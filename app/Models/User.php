@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\IncidentReport;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use Notifiable;
     
@@ -21,21 +22,29 @@ class User extends Authenticatable
         'first_name',
         'middle_name',
         'last_name',
+        'suffix',
         'email',
         'contact_number',
         'purok_id',
         'password',
         'role',
         'is_approved',
+        'is_dummy',
         'approved_at',
         'approved_by',
         'rejected_at',
         'rejected_by',
         'rejection_reason',
         'birth_date',
+        'date_of_birth',
+        'place_of_birth',
+        'sex',
         'gender',
         'civil_status',
+        'nationality',
         'occupation',
+        'house_number',
+        'street',
         'address'
     ];
 

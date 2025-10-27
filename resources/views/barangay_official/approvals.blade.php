@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Clearance Approvals')
+
 @php
     $status = request('status', 'pending');
     $isPendingView = $status !== 'completed';

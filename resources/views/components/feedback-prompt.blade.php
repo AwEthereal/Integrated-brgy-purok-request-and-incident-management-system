@@ -39,8 +39,8 @@
                     errors: {},
                     
                     init() {
-                        // Initialize ratings for each SQD
-                        @for($i = 0; $i < 5; $i++)
+                        // Initialize ratings for each SQD (9 questions)
+                        @for($i = 0; $i < 9; $i++)
                             this.ratings[{{ $i }}] = 0;
                         @endfor
                     },
@@ -49,9 +49,9 @@
                         this.isSubmitting = true;
                         this.errors = {};
                         
-                        // Validate ratings
+                        // Validate ratings (9 questions)
                         let isValid = true;
-                        for (let i = 0; i < 5; i++) {
+                        for (let i = 0; i < 9; i++) {
                             if (!this.ratings[i] || this.ratings[i] < 1 || this.ratings[i] > 5) {
                                 this.errors[`sqd${i}_rating`] = ['Please provide a rating.'];
                                 isValid = false;
@@ -82,7 +82,11 @@
                                     sqd1_rating: this.ratings[1],
                                     sqd2_rating: this.ratings[2],
                                     sqd3_rating: this.ratings[3],
-                                    sqd4_rating: this.ratings[4]
+                                    sqd4_rating: this.ratings[4],
+                                    sqd5_rating: this.ratings[5],
+                                    sqd6_rating: this.ratings[6],
+                                    sqd7_rating: this.ratings[7],
+                                    sqd8_rating: this.ratings[8]
                                 })
                             });
 
@@ -195,7 +199,11 @@
                                     'sqd1_rating' => 'I spent an acceptable amount of time for my transaction.',
                                     'sqd2_rating' => 'The office accurately informed me and followed the transaction\'s requirements and steps.',
                                     'sqd3_rating' => 'My online transaction (including steps and payment) was simple and convenient.',
-                                    'sqd4_rating' => 'I easily found information about my transaction from the office or its website.'
+                                    'sqd4_rating' => 'I easily found information about my transaction from the office or its website.',
+                                    'sqd5_rating' => 'I paid an acceptable amount of fees for my transaction.',
+                                    'sqd6_rating' => 'I am confident that my online transaction was secure.',
+                                    'sqd7_rating' => 'The office\'s online support was available, or (if asked questions) was quick to respond.',
+                                    'sqd8_rating' => 'I got what I needed from the government office.'
                                 ];
                                 
                                 $emojiData = [

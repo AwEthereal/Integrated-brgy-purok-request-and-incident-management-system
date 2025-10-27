@@ -31,12 +31,19 @@ const reverbEnvVars = {
 
 console.log('Vite Config - Environment Variables:', reverbEnvVars);
 
+// Determine host based on environment
+// Use VITE_DEV_SERVER_HOST from .env, or default to 127.0.0.1
+const devServerHost = env.VITE_DEV_SERVER_HOST || '127.0.0.1';
+
+console.log('Vite Dev Server Host:', devServerHost);
+
 export default defineConfig({
     plugins: [
         laravel({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/global-notifications.js',
                 'resources/js/incident-report.js',
                 'resources/js/purok-notifications.js',
                 'resources/js/resident-notifications.js'
@@ -53,9 +60,11 @@ export default defineConfig({
         'process.env': reverbEnvVars
     },
     server: {
+        host: devServerHost,
+        port: 5173,
         hmr: {
-            host: 'localhost',
             protocol: 'ws',
+            host: devServerHost,
         },
     },
     build: {

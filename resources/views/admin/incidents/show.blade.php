@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Incident Report Details')
+
 @php
     $user = auth()->user();
     $isAuthorized = in_array($user->role, ['barangay_kagawad', 'barangay_captain', 'admin']);
@@ -235,7 +237,8 @@
                             <!-- Single Photo -->
                             <img src="{{ asset('storage/' . $photos[0]) }}" 
                                  alt="Incident photo" 
-                                 class="mt-2 rounded-lg shadow-sm max-h-64 object-cover">
+                                 class="mt-2 rounded-lg shadow-sm max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                                 onclick="openPhotoLightbox(0)">
                         @else
                             <!-- Multiple Photos - Carousel -->
                             <div class="relative mt-2">
@@ -245,7 +248,8 @@
                                             <div class="photo-slide {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}">
                                                 <img src="{{ asset('storage/' . $photo) }}" 
                                                      alt="Incident photo {{ $index + 1 }}" 
-                                                     class="w-full h-full object-contain">
+                                                     class="w-full h-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                                                     onclick="openPhotoLightbox({{ $index }})">
                                             </div>
                                         @endforeach
                                         
@@ -486,12 +490,51 @@
         </div>
     </div>
 </div>
+
+<!-- Photo Lightbox Modal -->
+<div id="photoLightbox" class="fixed inset-0 bg-black bg-opacity-95 z-50 hidden flex items-center justify-center p-4">
+    <div class="relative w-full h-full flex items-center justify-center">
+        <!-- Close Button -->
+        <button onclick="closePhotoLightbox()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-3 transition-all z-10">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+        
+        <!-- Photo Container -->
+        <div class="relative max-w-7xl max-h-full">
+            <img id="lightboxImage" src="" alt="Full size photo" class="max-w-full max-h-[90vh] object-contain">
+            
+            <!-- Navigation Arrows (for multiple photos) -->
+            @if(isset($photos) && count($photos) > 1)
+            <button onclick="lightboxPrevious()" class="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-3 transition-all">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+            </button>
+            <button onclick="lightboxNext()" class="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-3 transition-all">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </button>
+            @endif
+            
+            <!-- Photo Counter -->
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-full text-sm">
+                <span id="lightboxCounter">1 / 1</span>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
     let currentPhotoIndex = 0;
     const totalPhotos = document.querySelectorAll('.photo-slide').length;
+    
+    // Photo data for lightbox
+    const photoUrls = @json(isset($photos) ? array_map(fn($p) => asset('storage/' . $p), $photos) : []);
     
     function goToPhoto(index) {
         // Hide all slides
@@ -577,5 +620,61 @@
             }
         }
     }
+    
+    // Lightbox Functions
+    let lightboxPhotoIndex = 0;
+    
+    function openPhotoLightbox(index) {
+        lightboxPhotoIndex = index;
+        updateLightboxImage();
+        document.getElementById('photoLightbox').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closePhotoLightbox() {
+        document.getElementById('photoLightbox').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+    
+    function updateLightboxImage() {
+        const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxCounter = document.getElementById('lightboxCounter');
+        
+        if (photoUrls.length > 0) {
+            lightboxImage.src = photoUrls[lightboxPhotoIndex];
+            lightboxCounter.textContent = `${lightboxPhotoIndex + 1} / ${photoUrls.length}`;
+        }
+    }
+    
+    function lightboxNext() {
+        lightboxPhotoIndex = (lightboxPhotoIndex + 1) % photoUrls.length;
+        updateLightboxImage();
+    }
+    
+    function lightboxPrevious() {
+        lightboxPhotoIndex = (lightboxPhotoIndex - 1 + photoUrls.length) % photoUrls.length;
+        updateLightboxImage();
+    }
+    
+    // Keyboard navigation for lightbox
+    document.addEventListener('keydown', function(e) {
+        const lightbox = document.getElementById('photoLightbox');
+        if (!lightbox.classList.contains('hidden')) {
+            if (e.key === 'Escape') {
+                closePhotoLightbox();
+            } else if (e.key === 'ArrowLeft') {
+                lightboxPrevious();
+            } else if (e.key === 'ArrowRight') {
+                lightboxNext();
+            }
+        }
+    });
+    
+    // Close lightbox when clicking outside the image
+    document.getElementById('photoLightbox')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closePhotoLightbox();
+        }
+    });
 </script>
 @endpush

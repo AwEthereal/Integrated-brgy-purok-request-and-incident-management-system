@@ -4,15 +4,37 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Purok;
 use Illuminate\Http\Request;
 
 class UserManagementController extends Controller
 {
     // List users
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::paginate(15);
-        return view('admin.users.index', compact('users'));
+        $query = User::with('purok');
+        
+        // Filter by purok if selected
+        if ($request->filled('purok_id')) {
+            $query->where('purok_id', $request->purok_id);
+        }
+        
+        // Filter by role if needed
+        if ($request->filled('role')) {
+            $query->where('role', $request->role);
+        }
+        
+        $users = $query->orderBy('created_at', 'desc')->paginate(15);
+        $puroks = Purok::orderBy('name')->get();
+        
+        return view('admin.users.index', compact('users', 'puroks'));
+    }
+    
+    // Show user profile
+    public function show(User $user)
+    {
+        $user->load('purok');
+        return view('admin.users.show', compact('user'));
     }
 
     // Show edit form for a user

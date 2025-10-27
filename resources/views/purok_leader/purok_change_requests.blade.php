@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Purok Change Requests')
+
 @section('content')
     <!-- Hero Section -->
     <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white py-8 px-4 sm:px-6 lg:px-8 rounded-lg shadow-lg mb-8">

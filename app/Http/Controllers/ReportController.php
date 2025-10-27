@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Purok;
 use App\Models\Request as ResidentRequest;
 use App\Models\IncidentReport;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
@@ -15,14 +16,40 @@ class ReportController extends Controller
     /**
      * Show residents list preview
      */
-    public function residents()
+    public function residents(Request $request)
     {
-        $residents = User::where('role', 'resident')
-            ->with('purok')
-            ->orderBy('last_name')
-            ->get();
+        $query = User::where('role', 'resident')->with('purok');
         
-        return view('reports.preview.residents', compact('residents'));
+        // Filter by purok if selected
+        if ($request->filled('purok_id')) {
+            $query->where('purok_id', $request->purok_id);
+        }
+        
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('middle_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('contact_number', 'like', "%{$search}%");
+            });
+        }
+        
+        $residents = $query->orderBy('last_name')->get();
+        $puroks = Purok::orderBy('name')->get();
+        
+        return view('reports.preview.residents', compact('residents', 'puroks'));
+    }
+    
+    /**
+     * Show resident profile
+     */
+    public function showResident(User $user)
+    {
+        $user->load('purok');
+        return view('reports.show.resident', compact('user'));
     }
 
     /**
@@ -45,14 +72,40 @@ class ReportController extends Controller
     /**
      * Show purok leaders list preview
      */
-    public function purokLeaders()
+    public function purokLeaders(Request $request)
     {
-        $leaders = User::where('role', 'purok_president')
-            ->with('purok')
-            ->orderBy('last_name')
-            ->get();
+        $query = User::where('role', 'purok_president')->with('purok');
+        
+        // Filter by purok if selected
+        if ($request->filled('purok_id')) {
+            $query->where('purok_id', $request->purok_id);
+        }
+        
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name', 'like', "%{$search}%")
+                  ->orWhere('middle_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('contact_number', 'like', "%{$search}%");
+            });
+        }
+        
+        $leaders = $query->orderBy('last_name')->get();
+        $puroks = Purok::orderBy('name')->get();
 
-        return view('reports.preview.purok-leaders', compact('leaders'));
+        return view('reports.preview.purok-leaders', compact('leaders', 'puroks'));
+    }
+    
+    /**
+     * Show purok leader profile
+     */
+    public function showLeader(User $user)
+    {
+        $user->load('purok');
+        return view('reports.show.leader', compact('user'));
     }
 
     /**

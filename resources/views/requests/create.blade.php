@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'New Clearance Request')
+
 @section('content')
     <div class="container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
@@ -116,23 +118,23 @@
                             </svg>
                             <span class="truncate">Take Photo</span>
                         </button>
-                        <button type="button" id="front_switch_camera" class="flex-1 sm:flex-none bg-white py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden items-center justify-center">
+                        <button type="button" id="front_switch_camera" class="flex-1 sm:flex-none bg-white py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden flex items-center justify-center">
                             <svg class="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                             </svg>
                             <span class="truncate">Switch</span>
                         </button>
-                        <button type="button" id="front_capture_btn" class="flex-1 sm:flex-none bg-indigo-600 py-2 px-3 sm:px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden items-center justify-center">
+                        <button type="button" id="front_capture_btn" class="flex-1 sm:flex-none bg-indigo-600 py-2 px-3 sm:px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden flex items-center justify-center">
                             <svg class="h-4 w-4 sm:h-5 sm:w-5 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                             </svg>
                             <span class="truncate">Capture</span>
                         </button>
-                        <button type="button" id="front_retake_btn" class="flex-1 sm:flex-none bg-white py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden items-center justify-center">
+                        <button type="button" id="front_retake_btn" class="flex-1 sm:flex-none bg-white py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden flex items-center justify-center">
                             <svg class="h-4 w-4 sm:h-5 sm:w-5 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
-                            Retake
+                            <span class="truncate">Retake</span>
                         </button>
                     </div>
                 </div>
@@ -168,19 +170,19 @@
                             </svg>
                             <span class="truncate">Take Photo</span>
                         </button>
-                        <button type="button" id="back_switch_camera" class="flex-1 sm:flex-none bg-white py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden items-center justify-center">
+                        <button type="button" id="back_switch_camera" class="flex-1 sm:flex-none bg-white py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden flex items-center justify-center">
                             <svg class="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                             </svg>
                             <span class="truncate">Switch</span>
                         </button>
-                        <button type="button" id="back_capture_btn" class="flex-1 sm:flex-none bg-indigo-600 py-2 px-3 sm:px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden items-center justify-center">
+                        <button type="button" id="back_capture_btn" class="flex-1 sm:flex-none bg-indigo-600 py-2 px-3 sm:px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden flex items-center justify-center">
                             <svg class="h-4 w-4 sm:h-5 sm:w-5 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                             </svg>
                             <span class="truncate">Capture</span>
                         </button>
-                        <button type="button" id="back_retake_btn" class="flex-1 sm:flex-none bg-white py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden items-center justify-center">
+                        <button type="button" id="back_retake_btn" class="flex-1 sm:flex-none bg-white py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hidden flex items-center justify-center">
                             <svg class="h-4 w-4 sm:h-5 sm:w-5 mr-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
@@ -375,12 +377,14 @@
                         const formData = new FormData(form);
                         
                         // Submit the form via AJAX
+                        // Note: Do NOT set Content-Type header when using FormData - browser sets it automatically with boundary
                         const response = await fetch(form.action, {
                             method: 'POST',
                             headers: {
                                 'X-Requested-With': 'XMLHttpRequest',
                                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                                 'Accept': 'application/json'
+                                // DO NOT add 'Content-Type': 'multipart/form-data' - FormData handles this automatically
                             },
                             body: formData
                         });
@@ -406,7 +410,13 @@
                         
                     } catch (error) {
                         console.error('Form submission error:', error);
-                        alert(error.message || 'An error occurred while submitting the form. Please try again.');
+                        
+                        // Check if it's a network error
+                        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                            alert('Network error: Unable to connect to the server. Please check your internet connection and try again.');
+                        } else {
+                            alert(error.message || 'An error occurred while submitting the form. Please try again.');
+                        }
                     } finally {
                         // Re-enable submit button
                         submitBtn.disabled = false;

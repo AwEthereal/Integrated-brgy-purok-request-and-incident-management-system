@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Residents Report Preview')
+
 @section('content')
 <div class="py-6">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -24,29 +26,52 @@
                 </div>
 
                 <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900 border-l-4 border-blue-500 text-blue-700 dark:text-blue-200">
-                    <p class="text-sm">Select residents to print or click "Print All" to generate a report for all residents.</p>
+                    <p class="text-sm">Select residents to print or click "Print All" to generate a report for all residents. Click on any row to view full profile.</p>
                 </div>
 
-                <!-- Search Filter -->
-                <div class="mb-4">
-                    <div class="relative">
-                        <input type="text" 
-                               id="searchInput" 
-                               placeholder="Search by name, purok, address, contact..." 
-                               class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:text-white"
-                               onkeyup="filterTable()">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                            </svg>
+                <!-- Filters -->
+                <div class="mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <form method="GET" action="{{ route('reports.residents') }}" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <!-- Purok Filter -->
+                        <div>
+                            <label for="purok_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Filter by Purok
+                            </label>
+                            <select name="purok_id" id="purok_id" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-green-500 focus:ring-green-500">
+                                <option value="">All Puroks</option>
+                                @foreach($puroks as $purok)
+                                    <option value="{{ $purok->id }}" {{ request('purok_id') == $purok->id ? 'selected' : '' }}>
+                                        {{ $purok->name }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
-                        <button onclick="clearSearch()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    <p id="searchResults" class="mt-2 text-sm text-gray-600 dark:text-gray-400"></p>
+
+                        <!-- Search Filter -->
+                        <div>
+                            <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Search
+                            </label>
+                            <input type="text" 
+                                   name="search" 
+                                   id="search" 
+                                   value="{{ request('search') }}"
+                                   placeholder="Name, email, contact..." 
+                                   class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-green-500 focus:ring-green-500">
+                        </div>
+
+                        <!-- Filter Button -->
+                        <div class="flex items-end gap-2">
+                            <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-150">
+                                Apply Filters
+                            </button>
+                            @if(request()->hasAny(['purok_id', 'search']))
+                                <a href="{{ route('reports.residents') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-150">
+                                    Clear
+                                </a>
+                            @endif
+                        </div>
+                    </form>
                 </div>
 
                 <form id="printForm" action="{{ route('reports.download.residents') }}" method="POST">
@@ -68,8 +93,8 @@
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                 @forelse($residents as $resident)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors" onclick="window.location='{{ route('reports.residents.show', $resident->id) }}'">
+                                        <td class="px-6 py-4 whitespace-nowrap" onclick="event.stopPropagation()">
                                             <input type="checkbox" name="resident_ids[]" value="{{ $resident->id }}" class="resident-checkbox rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50">
                                         </td>
                                         <td class="px-6 py-4 text-sm">

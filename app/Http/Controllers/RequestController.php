@@ -4,11 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
 use App\Events\NewRequestCreated;
 use App\Models\Request as RequestModel;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Mail\PurokClearanceApproved;
+use App\Mail\PurokClearanceRejected;
+use App\Mail\PurokClearanceStatusUpdate;
 
 class RequestController extends Controller
 {
@@ -88,20 +92,24 @@ class RequestController extends Controller
             $requestModel->status = 'purok_approved';
             $requestModel->purok_approved_at = now();
             $requestModel->purok_approved_by = $user->id;
+            $requestModel->save();
             
             // Send email notification to resident
             $requestModel->user->notify(new \App\Notifications\RequestApprovedNotification($requestModel, 'purok'));
+            
+            // Broadcast to barangay officials about new pending request
+            $barangayRequestCount = RequestModel::where('status', 'purok_approved')->count();
+            event(new \App\Events\NewBarangayRequest($requestModel, $barangayRequestCount));
         } else {
             $requestModel->status = 'rejected';
             $requestModel->purok_notes = 'Request rejected by purok leader';
             $requestModel->rejected_at = now();
             $requestModel->rejected_by = $user->id;
+            $requestModel->save();
             
             // Send email notification to resident
             $requestModel->user->notify(new \App\Notifications\RequestRejectedNotification($requestModel, 'purok'));
         }
-        
-        $requestModel->save();
 
         return back()->with('success', 'Request has been ' . $validated['status'] . ' successfully.');
     }
@@ -453,9 +461,20 @@ class RequestController extends Controller
 
         // Send email notification to resident
         $request->user->notify(new \App\Notifications\RequestApprovedNotification($request, 'purok'));
+        
+        // Send email
+        try {
+            Mail::to($request->user->email)->send(new PurokClearanceApproved($request, auth()->user()->full_name));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send approval email: ' . $e->getMessage());
+        }
 
         // Broadcast real-time notification to resident
         event(new \App\Events\ResidentRequestUpdated($request, 'purok_approved'));
+        
+        // Broadcast to barangay officials about new pending request
+        $barangayRequestCount = \App\Models\Request::where('status', 'purok_approved')->count();
+        event(new \App\Events\NewBarangayRequest($request, $barangayRequestCount));
 
         return redirect()->route('requests.pending-purok')
             ->with('success', 'Purok clearance approved. The resident can now proceed to the barangay office.');
@@ -505,6 +524,13 @@ class RequestController extends Controller
 
         // Send email notification to resident
         $request->user->notify(new \App\Notifications\RequestApprovedNotification($request, 'barangay'));
+        
+        // Send email
+        try {
+            Mail::to($request->user->email)->send(new PurokClearanceApproved($request, auth()->user()->full_name));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send approval email: ' . $e->getMessage());
+        }
 
         // Broadcast real-time notification to resident
         event(new \App\Events\ResidentRequestUpdated($request, 'barangay_approved'));
@@ -561,6 +587,13 @@ class RequestController extends Controller
         // Send email notification to resident
         $approvalType = in_array($user->role, ['purok_leader', 'purok_president']) ? 'purok' : 'barangay';
         $request->user->notify(new \App\Notifications\RequestRejectedNotification($request, $approvalType));
+        
+        // Send rejection email
+        try {
+            Mail::to($request->user->email)->send(new PurokClearanceRejected($request, $user->full_name, $data['rejection_reason']));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send rejection email: ' . $e->getMessage());
+        }
 
         // Broadcast real-time notification to resident
         event(new \App\Events\ResidentRequestUpdated($request, 'rejected', 'Your request has been rejected'));

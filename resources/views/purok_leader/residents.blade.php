@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Manage Residents')
+
 @section('content')
     <!-- Hero Section -->
     <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white py-8 px-4 sm:px-6 lg:px-8 rounded-lg shadow-lg mb-8">
@@ -67,91 +69,79 @@
             </h2>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
                     <tr>
                         @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary']))
-                        <th scope="col" class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col" class="w-10 px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase">
                             <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                         </th>
                         @endif
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requests</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                        <th scope="col" class="w-20 px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase">Requests</th>
+                        <th scope="col" class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                        <th scope="col" class="w-24 px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($residents as $resident)
                         <tr class="hover:bg-gray-50" data-resident-id="{{ $resident->id }}">
                             @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary']))
-                            <td class="px-4 py-4 whitespace-nowrap text-center">
+                            <td class="px-2 py-3 text-center">
                                 <input type="checkbox" class="resident-checkbox rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50" value="{{ $resident->id }}">
                             </td>
                             @endif
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-3">
                                 <div class="flex items-center">
-                                    <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
-                                        <span class="text-white font-semibold text-sm">{{ substr($resident->first_name, 0, 1) }}{{ substr($resident->last_name, 0, 1) }}</span>
+                                    <div class="flex-shrink-0 h-8 w-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
+                                        <span class="text-white font-semibold text-xs">{{ substr($resident->first_name, 0, 1) }}{{ substr($resident->last_name, 0, 1) }}</span>
                                     </div>
-                                    <div class="ml-4">
-                                        <a href="{{ route('purok_leader.residents.show', $resident->id) }}" class="text-sm font-semibold text-gray-900 hover:text-purple-600 transition-colors">
+                                    <div class="ml-2 min-w-0">
+                                        <a href="{{ route('purok_leader.residents.show', $resident->id) }}" class="text-sm font-semibold text-gray-900 hover:text-purple-600 transition-colors block truncate">
                                             {{ $resident->full_name }}
                                         </a>
-                                        <div class="text-xs text-gray-500 mt-0.5">{{ $resident->address }}</div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                            <td class="px-3 py-3 text-sm text-gray-700">
                                 <div class="flex items-center">
-                                    <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-3 h-3 mr-1 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                                     </svg>
-                                    {{ $resident->contact_number ?? 'N/A' }}
+                                    <span class="truncate">{{ $resident->contact_number ?? 'N/A' }}</span>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-700">
-                                <div class="flex items-center">
-                                    <svg class="w-4 h-4 mr-1.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <td class="px-3 py-3 text-sm text-gray-700">
+                                <div class="flex items-center min-w-0">
+                                    <svg class="w-3 h-3 mr-1 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                     </svg>
-                                    {{ $resident->email }}
+                                    <span class="truncate">{{ $resident->email }}</span>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                <span class="inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                    </svg>
+                            <td class="px-2 py-3 text-center">
+                                <span class="inline-flex items-center justify-center w-8 h-8 text-xs font-bold rounded-full bg-blue-100 text-blue-800">
                                     {{ $resident->requests_count }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-3 py-3">
                                 @if($resident->is_approved)
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                                         Active
                                     </span>
-                                    <div class="text-xs text-gray-500 mt-1">
-                                        Approved on {{ $resident->approved_at?->format('M d, Y') }}
-                                    </div>
                                 @elseif($resident->rejected_at)
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
                                         Rejected
                                     </span>
-                                    @if($resident->rejection_reason)
-                                        <div class="text-xs text-gray-500 mt-1" title="{{ $resident->rejection_reason }}">
-                                            {{ Str::limit($resident->rejection_reason, 30) }}
-                                        </div>
-                                    @endif
                                 @else
                                     <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                        Pending Approval
+                                        Pending
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            <td class="px-2 py-3">
                                 <div class="flex items-center justify-end space-x-2">
                                     @if(!$resident->is_approved && !$resident->rejected_at)
                                         <form action="{{ route('purok_leader.residents.approve', $resident) }}" method="POST" class="inline-flex items-center" onsubmit="return confirm('Are you sure you want to approve this resident?');">

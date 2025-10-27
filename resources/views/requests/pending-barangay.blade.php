@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Pending Barangay Requests')
+
 @php
     $status = request('status', 'pending');
     $isPendingView = $status === 'pending';

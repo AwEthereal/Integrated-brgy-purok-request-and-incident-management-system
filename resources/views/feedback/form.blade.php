@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Submit Feedback')
+
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden">

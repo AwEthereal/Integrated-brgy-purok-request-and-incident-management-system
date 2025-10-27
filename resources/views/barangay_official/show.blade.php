@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Request Details')
+
 @push('styles')
 <style>
     .info-card {

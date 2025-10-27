@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Purok Dashboard')
+
 @section('content')
 <div class="container mx-auto py-8">
     <h1 class="text-2xl font-bold mb-6 text-green-700 flex items-center">

@@ -76,9 +76,15 @@ class IncidentReportStatusNotification extends Notification implements ShouldQue
         } elseif ($this->newStatus === 'rejected' || $this->newStatus === 'invalid') {
             $mailMessage->line('**Status Update:**')
                 ->line('After review, this report has been marked as invalid or rejected.');
+            
+            // Add rejection reason if available
+            if ($this->report->rejection_reason) {
+                $mailMessage->line('**Reason for Rejection:**')
+                    ->line($this->report->rejection_reason);
+            }
         }
 
-        // Add staff notes if available
+        // Add staff notes if available (for non-rejected statuses, or if there are additional notes)
         if ($this->report->staff_notes) {
             $mailMessage->line('**Additional Notes from Staff:**')
                 ->line($this->report->staff_notes);

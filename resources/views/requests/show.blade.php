@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Request Details')
+
 @section('content')
     <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-6">
@@ -251,19 +253,19 @@
                                 @if($request->valid_id_front_path)
                                     <div>
                                         <p class="text-sm font-medium text-gray-600 mb-2">Front of ID</p>
-                                        <a href="{{ asset($request->valid_id_front_path) }}" target="_blank" class="block">
+                                        <div class="cursor-pointer" onclick="openIdLightbox('{{ asset($request->valid_id_front_path) }}', 'Front of ID')">
                                             <img src="{{ asset($request->valid_id_front_path) }}" alt="Front of ID"
-                                                class="w-full h-48 object-contain border rounded-md">
-                                        </a>
+                                                class="w-full h-48 object-contain border rounded-md hover:opacity-90 transition-opacity">
+                                        </div>
                                     </div>
                                 @endif
                                 @if($request->valid_id_back_path)
                                     <div>
                                         <p class="text-sm font-medium text-gray-600 mb-2">Back of ID</p>
-                                        <a href="{{ asset($request->valid_id_back_path) }}" target="_blank" class="block">
+                                        <div class="cursor-pointer" onclick="openIdLightbox('{{ asset($request->valid_id_back_path) }}', 'Back of ID')">
                                             <img src="{{ asset($request->valid_id_back_path) }}" alt="Back of ID"
-                                                class="w-full h-48 object-contain border rounded-md">
-                                        </a>
+                                                class="w-full h-48 object-contain border rounded-md hover:opacity-90 transition-opacity">
+                                        </div>
                                     </div>
                                 @endif
                             </div>
@@ -590,8 +592,10 @@
                 </div>
             </div>
 
-            <!-- Feedback Section - Only shown to residents, not purok leaders -->
-            @if($request->status === 'completed' && !in_array(auth()->user()->role, ['purok_leader', 'purok_president']))
+            <!-- Feedback Section - Only shown to residents for approved/completed requests -->
+            @if(in_array($request->status, ['barangay_approved', 'completed']) && 
+                auth()->user()->role === 'resident' && 
+                $request->user_id === auth()->id())
                 @php
                     // Check if feedback already exists for this request
                     $hasFeedback = \App\Models\Feedback::where('request_id', $request->id)
@@ -601,6 +605,28 @@
 
                 <x-feedback-form type="request" :itemId="$request->id" :hasFeedback="$hasFeedback" />
             @endif
+            
+            <!-- ID Photo Lightbox Modal -->
+            <div id="idLightbox" class="fixed inset-0 bg-black bg-opacity-95 z-50 hidden flex items-center justify-center p-4">
+                <div class="relative w-full h-full flex items-center justify-center">
+                    <!-- Close Button -->
+                    <button onclick="closeIdLightbox()" class="absolute top-4 right-4 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-3 transition-all z-10">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- Photo Container -->
+                    <div class="relative max-w-7xl max-h-full">
+                        <div class="bg-white rounded-t-lg px-6 py-3">
+                            <h3 id="idLightboxTitle" class="text-lg font-semibold text-gray-800"></h3>
+                        </div>
+                        <div class="bg-white p-4">
+                            <img id="idLightboxImage" src="" alt="ID Photo" class="max-w-full max-h-[80vh] object-contain mx-auto">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             @push('scripts')
                 <script>
@@ -785,6 +811,41 @@
                             });
                         }
                     }
+                    
+                    // ID Photo Lightbox Functions
+                    function openIdLightbox(imageSrc, title) {
+                        const lightbox = document.getElementById('idLightbox');
+                        const lightboxImage = document.getElementById('idLightboxImage');
+                        const lightboxTitle = document.getElementById('idLightboxTitle');
+                        
+                        lightboxImage.src = imageSrc;
+                        lightboxTitle.textContent = title;
+                        lightbox.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden';
+                    }
+                    
+                    function closeIdLightbox() {
+                        const lightbox = document.getElementById('idLightbox');
+                        lightbox.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                    
+                    // Close lightbox on Escape key
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'Escape') {
+                            const lightbox = document.getElementById('idLightbox');
+                            if (lightbox && !lightbox.classList.contains('hidden')) {
+                                closeIdLightbox();
+                            }
+                        }
+                    });
+                    
+                    // Close lightbox when clicking outside the image
+                    document.getElementById('idLightbox')?.addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            closeIdLightbox();
+                        }
+                    });
                 </script>
             @endpush
 @endsection

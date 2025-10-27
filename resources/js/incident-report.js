@@ -13,14 +13,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('photo');
     const reEnableBtn = document.getElementById('reEnableBtn');
     
-    // Photos array
-    let capturedPhotos = [];
-    
-    // Location elements (only use what we need)
-    const locationInput = document.getElementById('location');
-    const latitudeInput = document.getElementById('latitude');
-    const longitudeInput = document.getElementById('longitude');
-    const locationStatus = document.getElementById('location-status');
+    // New camera interface elements
+    const cameraActivation = document.getElementById('camera-activation');
+    const cameraSection = document.getElementById('camera-section');
+    const photoCounter = document.getElementById('photo-counter');
+    const cameraThumbnails = document.getElementById('camera-thumbnails');
+    const cameraFlash = document.getElementById('camera-flash');
+    const torchButton = document.getElementById('torchButton');
+    const torchIcon = document.getElementById('torchIcon');
+    const doneButton = document.getElementById('doneButton');
     const locationPreview = document.getElementById('location-preview');
     const locationAddress = document.getElementById('location-address');
     const locationCoordinates = document.getElementById('location-coordinates');
@@ -50,13 +51,24 @@ document.addEventListener('DOMContentLoaded', function() {
     let cameraStream = null;
     let useFrontCamera = false;
     let locationWatchId = null;
+    let torchEnabled = false;
+    let currentTrack = null;
+    
+    // Photos array - stores captured photos
+    let capturedPhotos = [];
+    
+    // Location input references
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+    const locationInput = document.getElementById('location');
+    const locationStatus = document.getElementById('location-status');
 
     // Initialize
     init();
 
     function init() {
-        // Initialize camera
-        startCamera();
+        // Don't auto-start camera anymore
+        // startCamera();
         
         // Set up event listeners
         setupEventListeners();
@@ -66,15 +78,45 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function setupEventListeners() {
+        // Direct event listeners for critical buttons (backup)
+        if (takePhotoBtn) {
+            console.log('📸 Adding direct click listener to photo button');
+            takePhotoBtn.addEventListener('click', function(e) {
+                console.log('📸 PHOTO BUTTON CLICKED! (direct listener)');
+                e.preventDefault();
+                e.stopPropagation();
+                takePhoto();
+            });
+        }
+        
+        if (flipCameraBtn) {
+            flipCameraBtn.addEventListener('click', function(e) {
+                console.log('🔄 Flip button clicked');
+                e.preventDefault();
+                e.stopPropagation();
+                flipCamera();
+            });
+        }
+        
         // Use event delegation for all interactive elements
         document.addEventListener('click', function(e) {
             const target = e.target.closest('[data-action]');
             if (!target) return;
 
             const action = target.getAttribute('data-action');
+            console.log('🎯 Action triggered:', action);
             
             switch(action) {
+                case 'activate-camera':
+                    e.preventDefault();
+                    activateCamera();
+                    break;
+                case 'close-camera':
+                    e.preventDefault();
+                    closeCamera();
+                    break;
                 case 'take-photo':
+                    console.log('📸 PHOTO BUTTON CLICKED! (delegation)');
                     e.preventDefault();
                     takePhoto();
                     break;
@@ -85,6 +127,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 case 'enable-camera':
                     e.preventDefault();
                     enableCameraAgain();
+                    break;
+                case 'toggle-torch':
+                    e.preventDefault();
+                    toggleTorch();
+                    break;
+                case 'done-photos':
+                    console.log('✅ Done button clicked');
+                    e.preventDefault();
+                    closeCamera();
                     break;
             }
         });
@@ -229,10 +280,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Camera Functions
+    async function activateCamera() {
+        console.log('Activating camera...');
+        
+        // Hide activation button, show camera section
+        if (cameraActivation) cameraActivation.classList.add('hidden');
+        if (cameraSection) cameraSection.classList.remove('hidden');
+        
+        // Start the camera
+        await startCamera();
+    }
+    
+    function closeCamera() {
+        console.log('Closing camera...');
+        
+        // Stop camera stream
+        stopCamera();
+        
+        // Show activation button, hide camera section
+        if (cameraActivation) cameraActivation.classList.remove('hidden');
+        if (cameraSection) cameraSection.classList.add('hidden');
+    }
+    
     async function startCamera() {
         console.log('Starting camera...');
         
         try {
+            // Check if getUserMedia is available
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                throw new Error('Camera API not supported in this browser or requires HTTPS');
+            }
+            
             // Stop any existing stream
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
@@ -249,6 +327,22 @@ document.addEventListener('DOMContentLoaded', function() {
             
             cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
             video.srcObject = cameraStream;
+            
+            // Get video track for torch control
+            const videoTracks = cameraStream.getVideoTracks();
+            if (videoTracks.length > 0) {
+                currentTrack = videoTracks[0];
+                
+                // Check if torch is supported
+                const capabilities = currentTrack.getCapabilities();
+                if (capabilities.torch && torchButton) {
+                    torchButton.classList.remove('hidden');
+                    console.log('Torch is supported on this device');
+                } else if (torchButton) {
+                    torchButton.classList.add('hidden');
+                    console.log('Torch is not supported on this device');
+                }
+            }
 
             // Mirror the video preview for front camera
             if (useFrontCamera) {
@@ -273,10 +367,20 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error('Camera error:', error);
             alert('Could not access camera. Please check permissions and try again.');
+            // Close camera UI if failed
+            closeCamera();
         }
     }
 
     function stopCamera() {
+        // Turn off torch before stopping
+        if (torchEnabled && currentTrack) {
+            currentTrack.applyConstraints({
+                advanced: [{ torch: false }]
+            }).catch(err => console.log('Error turning off torch:', err));
+            torchEnabled = false;
+        }
+        
         if (cameraStream) {
             cameraStream.getTracks().forEach(track => track.stop());
             cameraStream = null;
@@ -284,10 +388,51 @@ document.addEventListener('DOMContentLoaded', function() {
         if (video) {
             video.srcObject = null;
         }
+        currentTrack = null;
+    }
+    
+    async function toggleTorch() {
+        if (!currentTrack) {
+            console.log('No camera track available');
+            return;
+        }
+        
+        try {
+            const capabilities = currentTrack.getCapabilities();
+            if (!capabilities.torch) {
+                console.log('Torch not supported');
+                return;
+            }
+            
+            torchEnabled = !torchEnabled;
+            
+            await currentTrack.applyConstraints({
+                advanced: [{ torch: torchEnabled }]
+            });
+            
+            // Update torch button appearance
+            if (torchButton) {
+                if (torchEnabled) {
+                    torchButton.classList.add('bg-yellow-500/50');
+                    torchButton.classList.remove('bg-white/20');
+                } else {
+                    torchButton.classList.remove('bg-yellow-500/50');
+                    torchButton.classList.add('bg-white/20');
+                }
+            }
+            
+            console.log('Torch toggled:', torchEnabled);
+        } catch (error) {
+            console.error('Error toggling torch:', error);
+        }
     }
 
     async function flipCamera() {
         console.log('Flipping camera...');
+        
+        // Reset torch when flipping
+        torchEnabled = false;
+        
         useFrontCamera = !useFrontCamera;
         await startCamera();
     }
@@ -304,6 +449,14 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             if (!video.videoWidth || !video.videoHeight) {
                 throw new Error('Video not ready');
+            }
+            
+            // Flash effect
+            if (cameraFlash) {
+                cameraFlash.style.opacity = '0.8';
+                setTimeout(() => {
+                    cameraFlash.style.opacity = '0';
+                }, 150);
             }
             
             // Set canvas size to match video
@@ -331,6 +484,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Add to photos array
             addPhotoToGallery(photoDataUrl, capturedPhotos.length);
+            
+            // Add thumbnail to camera view
+            addCameraThumbnail(photoDataUrl, capturedPhotos.length - 1);
+            
+            // Update photo counter
+            updatePhotoCounter();
             
             // Update hidden input with first photo (for backward compatibility)
             if (capturedPhotos.length === 1) {
@@ -366,6 +525,11 @@ document.addEventListener('DOMContentLoaded', function() {
         img.src = photoDataUrl;
         img.className = 'w-full h-24 object-cover rounded-md border border-gray-300';
         img.alt = `Photo ${capturedPhotos.length}`;
+        img.style.cursor = 'pointer';
+        img.onclick = function(e) {
+            e.stopPropagation();
+            openLightbox(capturedPhotos.length - 1);
+        };
         
         // Delete button
         const deleteBtn = document.createElement('button');
@@ -409,6 +573,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 img.src = photo;
                 img.className = 'w-full h-24 object-cover rounded-md border border-gray-300';
                 img.alt = `Photo ${idx + 1}`;
+                img.style.cursor = 'pointer';
+                img.onclick = function(e) {
+                    e.stopPropagation();
+                    openLightbox(idx);
+                };
                 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.type = 'button';
@@ -428,8 +597,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Update counter
+        // Rebuild camera thumbnails
+        if (cameraThumbnails) {
+            cameraThumbnails.innerHTML = '';
+            capturedPhotos.forEach((photo, idx) => {
+                addCameraThumbnail(photo, idx);
+            });
+        }
+        
+        // Update counters
         updatePhotoCount();
+        updatePhotoCounter();
     }
     
     function updatePhotoCount() {
@@ -443,6 +621,62 @@ document.addEventListener('DOMContentLoaded', function() {
                 photoStatus.classList.add('hidden');
             }
         }
+    }
+    
+    function updatePhotoCounter() {
+        if (photoCounter) {
+            photoCounter.textContent = `${capturedPhotos.length}/6`;
+        }
+        
+        // Show/hide done button based on photo count
+        if (doneButton) {
+            if (capturedPhotos.length > 0) {
+                doneButton.classList.remove('hidden');
+            } else {
+                doneButton.classList.add('hidden');
+            }
+        }
+    }
+    
+    function addCameraThumbnail(photoDataUrl, index) {
+        if (!cameraThumbnails) return;
+        
+        const thumbWrapper = document.createElement('div');
+        thumbWrapper.className = 'relative flex-shrink-0 animate-in';
+        thumbWrapper.dataset.index = index;
+        
+        const thumb = document.createElement('img');
+        thumb.src = photoDataUrl;
+        thumb.className = 'w-16 h-16 object-cover rounded-lg border-2 border-green-500 shadow-lg';
+        thumb.alt = `Photo ${index + 1}`;
+        thumb.style.cursor = 'pointer';
+        thumb.onclick = function(e) {
+            e.stopPropagation();
+            openLightbox(index);
+        };
+        
+        // Success checkmark overlay
+        const checkmark = document.createElement('div');
+        checkmark.className = 'absolute inset-0 bg-green-500/80 rounded-lg flex items-center justify-center';
+        checkmark.innerHTML = `
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+            </svg>
+        `;
+        
+        thumbWrapper.appendChild(thumb);
+        thumbWrapper.appendChild(checkmark);
+        cameraThumbnails.appendChild(thumbWrapper);
+        
+        // Remove checkmark after animation
+        setTimeout(() => {
+            checkmark.style.opacity = '0';
+            checkmark.style.transition = 'opacity 0.3s';
+            setTimeout(() => checkmark.remove(), 300);
+        }, 800);
+        
+        // Scroll to show latest thumbnail
+        cameraThumbnails.scrollLeft = cameraThumbnails.scrollWidth;
     }
 
     function disableCamera() {
@@ -540,12 +774,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Ensure map container is visible and sized before initializing map
             if (mapContainer) {
                 mapContainer.style.display = 'block';
-                mapContainer.style.height = '200px';
+                // Use 300px minimum height for better mobile visibility
+                mapContainer.style.height = '300px';
+                mapContainer.style.minHeight = '300px';
                 mapContainer.classList.remove('hidden');
             }
             if (mapElement) {
                 mapElement.style.height = '100%';
                 mapElement.style.width = '100%';
+                mapElement.style.minHeight = '300px';
             }
             // Now initialize the map
             map = L.map('map', {
@@ -796,5 +1033,110 @@ document.addEventListener('DOMContentLoaded', function() {
         
         console.log('Form validation result:', isValid);
         return isValid;
+    }
+    
+    // Lightbox functionality
+    let currentLightboxIndex = 0;
+    
+    window.openLightbox = function(index) {
+        const lightbox = document.getElementById('photoLightbox');
+        const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxCounter = document.getElementById('lightboxCounter');
+        
+        if (!lightbox || !lightboxImage) return;
+        
+        currentLightboxIndex = index;
+        
+        if (capturedPhotos.length > 0 && capturedPhotos[index]) {
+            lightboxImage.src = capturedPhotos[index];
+            lightboxCounter.textContent = `${index + 1} / ${capturedPhotos.length}`;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+    };
+    
+    window.closeLightbox = function() {
+        const lightbox = document.getElementById('photoLightbox');
+        if (lightbox) {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+    };
+    
+    window.changeLightboxPhoto = function(direction) {
+        if (capturedPhotos.length === 0) return;
+        
+        currentLightboxIndex += direction;
+        
+        // Wrap around
+        if (currentLightboxIndex < 0) {
+            currentLightboxIndex = capturedPhotos.length - 1;
+        } else if (currentLightboxIndex >= capturedPhotos.length) {
+            currentLightboxIndex = 0;
+        }
+        
+        const lightboxImage = document.getElementById('lightboxImage');
+        const lightboxCounter = document.getElementById('lightboxCounter');
+        
+        if (lightboxImage && capturedPhotos[currentLightboxIndex]) {
+            lightboxImage.src = capturedPhotos[currentLightboxIndex];
+        }
+        
+        if (lightboxCounter) {
+            lightboxCounter.textContent = `${currentLightboxIndex + 1} / ${capturedPhotos.length}`;
+        }
+    };
+    
+    // Close lightbox on Escape key
+    document.addEventListener('keydown', function(e) {
+        const lightbox = document.getElementById('photoLightbox');
+        if (lightbox && lightbox.classList.contains('active')) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            } else if (e.key === 'ArrowLeft') {
+                changeLightboxPhoto(-1);
+            } else if (e.key === 'ArrowRight') {
+                changeLightboxPhoto(1);
+            }
+        }
+    });
+    
+    // Close lightbox when clicking outside the image
+    document.addEventListener('click', function(e) {
+        const lightbox = document.getElementById('photoLightbox');
+        if (e.target === lightbox) {
+            closeLightbox();
+        }
+    });
+    
+    // Touch/swipe support for lightbox
+    let lightboxTouchStartX = 0;
+    let lightboxTouchEndX = 0;
+    
+    const lightboxElement = document.getElementById('photoLightbox');
+    if (lightboxElement) {
+        lightboxElement.addEventListener('touchstart', function(e) {
+            lightboxTouchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+        
+        lightboxElement.addEventListener('touchend', function(e) {
+            lightboxTouchEndX = e.changedTouches[0].screenX;
+            handleLightboxSwipe();
+        }, { passive: true });
+    }
+    
+    function handleLightboxSwipe() {
+        const swipeThreshold = 50;
+        const diff = lightboxTouchStartX - lightboxTouchEndX;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0) {
+                // Swiped left - next photo
+                changeLightboxPhoto(1);
+            } else {
+                // Swiped right - previous photo
+                changeLightboxPhoto(-1);
+            }
+        }
     }
 });

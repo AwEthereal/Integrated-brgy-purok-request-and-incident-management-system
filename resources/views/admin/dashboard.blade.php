@@ -1,12 +1,28 @@
 @extends('layouts.app')
 
+@section('title', 'Admin Dashboard')
+
+@push('styles')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@endpush
+
 @section('content')
 <div class="py-6">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Admin Dashboard</h1>
-            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">System overview and management</p>
+        <!-- Header with Back Button -->
+        <div class="bg-gray-800 dark:bg-gray-900 rounded-lg shadow-md p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Admin Dashboard</h1>
+                    <p class="mt-2 text-base text-gray-300 font-medium">System overview and analytics</p>
+                </div>
+                <a href="{{ route('dashboard') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md transition-colors duration-150">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Main
+                </a>
+            </div>
         </div>
 
         <!-- Statistics Cards -->
@@ -93,6 +109,61 @@
                             </dl>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- User Distribution Pie Chart -->
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    User Distribution by Role
+                </h2>
+                <div class="relative" style="height: 300px;">
+                    <canvas id="userDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Request Status Pie Chart -->
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    Request Status Distribution
+                </h2>
+                <div class="relative" style="height: 300px;">
+                    <canvas id="requestStatusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Incident Status Pie Chart -->
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    Incident Status Distribution
+                </h2>
+                <div class="relative" style="height: 300px;">
+                    <canvas id="incidentStatusChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Purok Population Chart -->
+            <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                    </svg>
+                    Population by Purok
+                </h2>
+                <div class="relative" style="height: 300px;">
+                    <canvas id="purokPopulationChart"></canvas>
                 </div>
             </div>
         </div>
@@ -254,4 +325,222 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // User Distribution Pie Chart
+    const userDistCtx = document.getElementById('userDistributionChart').getContext('2d');
+    new Chart(userDistCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Residents', 'Purok Leaders', 'Barangay Officials', 'Admins'],
+            datasets: [{
+                data: [{{ $residents }}, {{ $purokLeaders }}, {{ $barangayOfficials }}, {{ $admins }}],
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.8)',  // Blue
+                    'rgba(168, 85, 247, 0.8)',  // Purple
+                    'rgba(34, 197, 94, 0.8)',   // Green
+                    'rgba(239, 68, 68, 0.8)'    // Red
+                ],
+                borderColor: [
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(168, 85, 247, 1)',
+                    'rgba(34, 197, 94, 1)',
+                    'rgba(239, 68, 68, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            let value = context.parsed || 0;
+                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = ((value / total) * 100).toFixed(1);
+                            return label + ': ' + value + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Request Status Pie Chart
+    const requestStatusCtx = document.getElementById('requestStatusChart').getContext('2d');
+    new Chart(requestStatusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pending', 'Awaiting Approval', 'Completed', 'Rejected'],
+            datasets: [{
+                data: [{{ $allPendingRequests }}, {{ $pendingRequests }}, {{ $completedRequests }}, {{ $rejectedRequests }}],
+                backgroundColor: [
+                    'rgba(251, 191, 36, 0.8)',  // Yellow
+                    'rgba(59, 130, 246, 0.8)',  // Blue
+                    'rgba(34, 197, 94, 0.8)',   // Green
+                    'rgba(239, 68, 68, 0.8)'    // Red
+                ],
+                borderColor: [
+                    'rgba(251, 191, 36, 1)',
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(34, 197, 94, 1)',
+                    'rgba(239, 68, 68, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            let value = context.parsed || 0;
+                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return label + ': ' + value + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Incident Status Pie Chart
+    const incidentStatusCtx = document.getElementById('incidentStatusChart').getContext('2d');
+    new Chart(incidentStatusCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Pending', 'In Progress', 'Resolved'],
+            datasets: [{
+                data: [{{ $pendingIncidents }}, {{ $inProgressIncidents }}, {{ $resolvedIncidents }}],
+                backgroundColor: [
+                    'rgba(251, 191, 36, 0.8)',  // Yellow
+                    'rgba(59, 130, 246, 0.8)',  // Blue
+                    'rgba(34, 197, 94, 0.8)'    // Green
+                ],
+                borderColor: [
+                    'rgba(251, 191, 36, 1)',
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(34, 197, 94, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            let value = context.parsed || 0;
+                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return label + ': ' + value + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Purok Population Chart
+    const purokPopCtx = document.getElementById('purokPopulationChart').getContext('2d');
+    const purokData = @json($purokData);
+    
+    new Chart(purokPopCtx, {
+        type: 'doughnut',
+        data: {
+            labels: purokData.map(p => p.name),
+            datasets: [{
+                data: purokData.map(p => p.count),
+                backgroundColor: [
+                    'rgba(59, 130, 246, 0.8)',
+                    'rgba(168, 85, 247, 0.8)',
+                    'rgba(34, 197, 94, 0.8)',
+                    'rgba(251, 191, 36, 0.8)',
+                    'rgba(239, 68, 68, 0.8)',
+                    'rgba(236, 72, 153, 0.8)',
+                    'rgba(14, 165, 233, 0.8)',
+                    'rgba(132, 204, 22, 0.8)'
+                ],
+                borderColor: [
+                    'rgba(59, 130, 246, 1)',
+                    'rgba(168, 85, 247, 1)',
+                    'rgba(34, 197, 94, 1)',
+                    'rgba(251, 191, 36, 1)',
+                    'rgba(239, 68, 68, 1)',
+                    'rgba(236, 72, 153, 1)',
+                    'rgba(14, 165, 233, 1)',
+                    'rgba(132, 204, 22, 1)'
+                ],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.label || '';
+                            let value = context.parsed || 0;
+                            let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            let percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                            return label + ': ' + value + ' residents (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+@endpush
 @endsection

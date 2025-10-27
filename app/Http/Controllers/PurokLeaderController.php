@@ -177,12 +177,21 @@ class PurokLeaderController extends Controller
         // Get the filter from the request
         $filter = request()->query('filter');
         $filterValue = request()->query('value');
+        
+        // Get search and filter parameters
+        $search = request()->query('search');
+        $statusFilter = request()->query('status_filter');
+        $formTypeFilter = request()->query('form_type_filter');
+        $dateFrom = request()->query('date_from');
+        $dateTo = request()->query('date_to');
+        $sortBy = request()->query('sort_by', 'created_at');
+        $sortOrder = request()->query('sort_order', 'desc');
 
         // Base query for requests
         $query = RequestModel::where('purok_id', $purokId)
             ->with('user');
             
-        // Apply filters if present
+        // Apply legacy filters if present (for backward compatibility)
         if ($filter && $filterValue) {
             switch ($filter) {
                 case 'status':
@@ -200,17 +209,58 @@ class PurokLeaderController extends Controller
             }
         }
         
+        // Apply search filter
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('id', 'like', '%' . $search . '%')
+                  ->orWhere('purpose', 'like', '%' . $search . '%')
+                  ->orWhereHas('user', function($userQuery) use ($search) {
+                      $userQuery->where('name', 'like', '%' . $search . '%')
+                                ->orWhere('email', 'like', '%' . $search . '%')
+                                ->orWhere('address', 'like', '%' . $search . '%');
+                  });
+            });
+        }
+        
+        // Apply status filter
+        if ($statusFilter && $statusFilter !== 'all') {
+            if ($statusFilter === 'approved') {
+                $query->whereIn('status', ['purok_approved', 'barangay_approved']);
+            } else {
+                $query->where('status', $statusFilter);
+            }
+        }
+        
+        // Apply form type filter
+        if ($formTypeFilter && $formTypeFilter !== 'all') {
+            $query->where('form_type', $formTypeFilter);
+        }
+        
+        // Apply date range filter
+        if ($dateFrom) {
+            $query->whereDate('created_at', '>=', $dateFrom);
+        }
+        if ($dateTo) {
+            $query->whereDate('created_at', '<=', $dateTo);
+        }
+        
+        // Apply sorting
+        $allowedSortFields = ['created_at', 'id', 'status', 'form_type'];
+        if (in_array($sortBy, $allowedSortFields)) {
+            $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
+        } else {
+            $query->latest();
+        }
+        
         // Get the filtered requests with pagination (10 per page)
         $perPage = 10;
-        $requests = $query->latest()->paginate($perPage);
+        $requests = $query->paginate($perPage);
         
-        // Add filter parameters to pagination links
-        if (request()->has('filter') && request()->has('value')) {
-            $requests->appends([
-                'filter' => request('filter'),
-                'value' => request('value')
-            ]);
-        }
+        // Preserve all query parameters in pagination links
+        $requests->appends(request()->query());
+        
+        // Get all form types for filter dropdown
+        $formTypes = RequestModel::FORM_TYPES;
             
         // Get statistics
         $stats = [
@@ -257,7 +307,22 @@ class PurokLeaderController extends Controller
             ->where('status', 'pending')
             ->count();
 
-        return view('purok_leader.dashboard', compact('requests', 'stats', 'purokName', 'residents', 'activeFilter', 'pendingCount'));
+        return view('purok_leader.dashboard', compact(
+            'requests', 
+            'stats', 
+            'purokName', 
+            'residents', 
+            'activeFilter', 
+            'pendingCount',
+            'formTypes',
+            'search',
+            'statusFilter',
+            'formTypeFilter',
+            'dateFrom',
+            'dateTo',
+            'sortBy',
+            'sortOrder'
+        ));
     }
     
     /**

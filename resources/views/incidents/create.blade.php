@@ -13,11 +13,13 @@
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="anonymous" />
     
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin="anonymous"></script>
     <style>
         .error-message {
             color: #ef4444;
@@ -26,6 +28,32 @@
         }
         .border-error {
             border-color: #ef4444;
+        }
+        
+        /* Fix Leaflet map display on mobile */
+        #map-container {
+            position: relative;
+            z-index: 1;
+        }
+        
+        #map {
+            position: relative;
+            z-index: 1;
+            background: #e5e7eb;
+        }
+        
+        /* Ensure Leaflet tiles load properly */
+        .leaflet-container {
+            font-family: inherit;
+            background: #e5e7eb;
+        }
+        
+        .leaflet-tile-container {
+            z-index: 1;
+        }
+        
+        .leaflet-pane {
+            z-index: auto;
         }
         
         /* Enhanced Styles */
@@ -101,6 +129,211 @@
         @media (max-width: 767px) {
             body {
                 padding: 12px 8px;
+            }
+        }
+        
+        /* Lightbox Styles */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            animation: fadeIn 0.2s ease-in;
+        }
+        
+        .lightbox.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .lightbox-content {
+            max-width: 95%;
+            max-height: 95%;
+            object-fit: contain;
+            animation: zoomIn 0.3s ease-out;
+        }
+        
+        .lightbox-close {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .lightbox-close:hover {
+            background: rgba(255, 0, 0, 0.7);
+            transform: rotate(90deg);
+        }
+        
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        
+        .lightbox-nav:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .lightbox-prev {
+            left: 25px;
+        }
+        
+        .lightbox-next {
+            right: 25px;
+        }
+        
+        .lightbox-counter {
+            position: absolute;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 18px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 25px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes zoomIn {
+            from { 
+                transform: scale(0.5);
+                opacity: 0;
+            }
+            to { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Make gallery thumbnails clickable */
+        #photos-gallery img,
+        #camera-thumbnails img {
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        #photos-gallery img:hover,
+        #camera-thumbnails img:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Camera zoom isolation - prevent zoom from affecting UI elements */
+        #camera-feed {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform-origin: center center;
+            /* Isolate zoom transformations */
+            will-change: transform;
+            backface-visibility: hidden;
+        }
+        
+        /* Keep UI elements fixed in position with higher z-index */
+        .camera-ui-layer {
+            position: absolute;
+            z-index: 100;
+            pointer-events: none;
+            /* Prevent UI from being affected by video transformations */
+            transform: translateZ(0);
+            backface-visibility: hidden;
+        }
+        
+        .camera-ui-layer * {
+            pointer-events: auto;
+        }
+        
+        /* Fix camera controls layout - always center capture button using flexbox */
+        .camera-controls-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            position: relative;
+            min-height: 100px;
+            padding: 0 1rem;
+        }
+        
+        /* Position side buttons absolutely to not affect center alignment */
+        .camera-control-left {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .camera-control-center {
+            /* Center is default with flexbox justify-content: center */
+            z-index: 10;
+        }
+        
+        .camera-control-right {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* Ensure buttons are always visible and properly sized */
+        .camera-control-btn {
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .camera-control-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Mobile optimizations for camera controls */
+        @media (max-width: 640px) {
+            .camera-control-left {
+                left: 1rem;
+            }
+            
+            .camera-control-right {
+                right: 1rem;
+            }
+            
+            .camera-controls-wrapper {
+                padding: 0 0.5rem;
             }
         }
     </style>
@@ -254,8 +487,8 @@
                 <div class="mt-2 text-xs text-gray-500" id="location-coordinates"></div>
                 
                 <!-- Map Preview -->
-                <div id="map-container" class="mt-3 rounded-md border border-gray-200 overflow-hidden" style="height: 250px; display: none;">
-                    <div id="map" style="height: 100%; width: 100%;"></div>
+                <div id="map-container" class="mt-3 rounded-md border border-gray-200 overflow-hidden" style="height: 300px; min-height: 300px; display: none;">
+                    <div id="map" style="height: 100%; width: 100%; min-height: 300px;"></div>
                 </div>
                 
                 <!-- Map Instructions -->
@@ -289,37 +522,123 @@
                 </h3>
 
                 <div class="space-y-4">
-                    <!-- Camera Section -->
-                    <div>
+                    <!-- Camera Activation Button (shown when camera is off) -->
+                    <div id="camera-activation" class="text-center">
                         <label class="block text-sm font-medium text-gray-700 mb-3">Take Photos with Camera</label>
-                        <div class="relative w-full aspect-video rounded-lg border-2 border-gray-300 overflow-hidden bg-gray-100">
-                            <video id="camera-feed" autoplay playsinline class="w-full h-full object-cover"></video>
-                        </div>
-
-                        <canvas id="snapshot" class="hidden"></canvas>
-
-                        <div class="flex gap-2 md:gap-3 mt-3">
-                            <button type="button" id="flipButton" data-action="flip-camera"
-                                class="flex-1 bg-yellow-500 text-white px-3 py-2.5 md:px-4 md:py-3 rounded-lg hover:bg-yellow-600 transition font-medium flex items-center justify-center gap-1.5 md:gap-2 text-sm md:text-base">
-                                <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                                </svg>
-                                <span class="hidden sm:inline">Flip Camera</span>
-                                <span class="sm:hidden">Flip</span>
-                            </button>
-                            <button type="button" id="photoButton" data-action="take-photo"
-                                class="flex-1 bg-blue-600 text-white px-3 py-2.5 md:px-4 md:py-3 rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center gap-1.5 md:gap-2 text-sm md:text-base">
-                                <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
-                                <span class="hidden sm:inline">Take Photo</span>
-                                <span class="sm:hidden">Capture</span>
-                            </button>
-                        </div>
+                        <button type="button" id="activateCameraBtn" data-action="activate-camera"
+                            class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white py-6 px-6 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all transform hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center gap-3 text-lg font-semibold">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>Open Camera</span>
+                        </button>
+                        <p class="text-xs text-gray-500 mt-2">Click to activate your device camera</p>
                     </div>
 
-                    <!-- Photos Gallery -->
+                    <!-- Camera Section (hidden by default) -->
+                    <div id="camera-section" class="hidden">
+                        <!-- Fullscreen Camera Container -->
+                        <div class="fixed inset-0 z-50 bg-black overflow-hidden">
+                            <!-- Camera Feed Container (isolated for zoom) -->
+                            <div class="absolute inset-0" style="z-index: 1;">
+                                <video id="camera-feed" autoplay playsinline class="w-full h-full object-cover"></video>
+                            </div>
+                            
+                            <!-- Camera Overlay (separate layer) -->
+                            <div class="camera-ui-layer" style="inset: 0; pointer-events: none;">
+                                <!-- Grid Lines for Composition -->
+                                <div class="absolute inset-0 grid grid-cols-3 grid-rows-3 opacity-20" style="z-index: 50;">
+                                    <div class="border border-white/30"></div>
+                                    <div class="border border-white/30"></div>
+                                    <div class="border border-white/30"></div>
+                                    <div class="border border-white/30"></div>
+                                    <div class="border border-white/30"></div>
+                                    <div class="border border-white/30"></div>
+                                    <div class="border border-white/30"></div>
+                                    <div class="border border-white/30"></div>
+                                    <div class="border border-white/30"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Flash Effect (separate layer) -->
+                            <div id="camera-flash" class="camera-ui-layer bg-white opacity-0 pointer-events-none transition-opacity duration-150" style="inset: 0; z-index: 200;"></div>
+                            
+                            <!-- Top Controls Bar (fixed UI layer) -->
+                            <div class="camera-ui-layer" style="top: 0; left: 0; right: 0; z-index: 150;">
+                                <div class="bg-gradient-to-b from-black/80 via-black/40 to-transparent p-4 sm:p-5 flex items-center justify-between">
+                                    <!-- Close Button -->
+                                    <button type="button" id="closeCameraBtn" data-action="close-camera"
+                                        class="camera-control-btn bg-white/20 hover:bg-red-500/80 text-white p-3 sm:p-3.5 rounded-full transition-all backdrop-blur-md shadow-lg">
+                                        <svg class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                    
+                                    <!-- Photo Counter -->
+                                    <div class="bg-black/70 text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-sm sm:text-base font-bold flex items-center gap-2 backdrop-blur-md shadow-lg border border-white/20">
+                                        <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                        <span id="photo-counter">0/6</span>
+                                    </div>
+                                    
+                                    <!-- Torch Button -->
+                                    <button type="button" id="torchButton" data-action="toggle-torch"
+                                        class="camera-control-btn bg-white/20 hover:bg-yellow-500/80 text-white p-3 sm:p-3.5 rounded-full transition-all backdrop-blur-md shadow-lg hidden">
+                                        <svg id="torchIcon" class="w-6 h-6 sm:w-7 sm:h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Bottom Controls Bar (fixed UI layer) -->
+                            <div class="camera-ui-layer" style="bottom: 0; left: 0; right: 0; z-index: 150;">
+                                <div class="bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 sm:p-6">
+                                    <!-- Thumbnails Preview -->
+                                    <div id="camera-thumbnails" class="flex gap-2 sm:gap-3 overflow-x-auto pb-4 sm:pb-5 px-1 justify-center scrollbar-hide">
+                                        <!-- Thumbnails will appear here -->
+                                    </div>
+                                    
+                                    <!-- Camera Controls with Flexbox Layout (Always Centers Capture Button) -->
+                                    <div class="camera-controls-wrapper">
+                                        <!-- Left: Flip Camera Button (Absolutely Positioned) -->
+                                        <div class="camera-control-left">
+                                            <button type="button" id="flipButton" data-action="flip-camera"
+                                                class="camera-control-btn bg-white/20 hover:bg-blue-500/80 text-white p-3.5 sm:p-4 rounded-full transition-all backdrop-blur-md shadow-lg">
+                                                <svg class="w-7 h-7 sm:w-8 sm:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Center: Capture Button (Always Centered via Flexbox) -->
+                                        <div class="camera-control-center">
+                                            <button type="button" id="photoButton" data-action="take-photo"
+                                                class="camera-control-btn w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-full hover:bg-gray-100 transition-all shadow-2xl border-4 sm:border-[5px] border-gray-300 flex items-center justify-center">
+                                                <div class="w-16 h-16 sm:w-[76px] sm:h-[76px] bg-gradient-to-br from-red-500 to-red-600 rounded-full pointer-events-none"></div>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Right: Done Button (Absolutely Positioned, hidden when no photos) -->
+                                        <div class="camera-control-right">
+                                            <button type="button" id="doneButton" data-action="done-photos"
+                                                class="camera-control-btn bg-green-500 hover:bg-green-600 text-white p-3.5 sm:p-4 rounded-full transition-all backdrop-blur-md shadow-lg hidden">
+                                                <svg class="w-7 h-7 sm:w-8 sm:h-8 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <canvas id="snapshot" class="hidden"></canvas>
+                    </div>
+
+                    <!-- Photos Gallery (Main) -->
                     <div id="photos-gallery" class="grid grid-cols-3 gap-3 hidden">
                         <!-- Photos will be added here -->
                     </div>
@@ -337,11 +656,6 @@
                         <input type="file" name="photos[]" id="photo" accept="image/*" multiple
                             class="block w-full text-sm text-gray-600 file:mr-4 file:py-3 file:px-6 file:rounded-lg file:border-0 file:bg-green-50 file:text-green-700 file:font-medium hover:file:bg-green-100 transition cursor-pointer"
                             data-action="upload-photos" />
-
-                        <button type="button" id="reEnableBtn" data-action="enable-camera"
-                            class="hidden mt-3 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
-                            Use Camera Again
-                        </button>
                     </div>
                 </div>
             </div>
@@ -384,6 +698,17 @@
                 </button>
             </div>
         </form>
+    </div>
+
+    <!-- Lightbox Modal -->
+    <div id="photoLightbox" class="lightbox">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <span class="lightbox-prev" onclick="changeLightboxPhoto(-1)">&#10094;</span>
+        <span class="lightbox-next" onclick="changeLightboxPhoto(1)">&#10095;</span>
+        <img class="lightbox-content" id="lightboxImage" alt="Full size photo">
+        <div class="lightbox-counter">
+            <span id="lightboxCounter">1 / 1</span>
+        </div>
     </div>
 
     <!-- Include our JavaScript file -->

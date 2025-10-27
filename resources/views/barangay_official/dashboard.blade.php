@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Barangay Official Dashboard')
+
 @section('content')
     <!-- Hero Section -->
     <div class="bg-gradient-to-r from-green-600 to-green-800 text-white py-8 px-4 sm:px-6 lg:px-8 rounded-lg shadow-lg mb-8">
@@ -17,7 +19,7 @@
                 <div class="grid grid-cols-2 gap-4 w-full md:w-auto">
                     <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4 text-center">
                         <p class="text-2xl font-bold">{{ count($pendingRequests) }}</p>
-                        <p class="text-sm">Pending Requests</p>
+                        <p class="text-sm">Pending Approval</p>
                     </div>
                     <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4 text-center">
                         <p class="text-2xl font-bold">{{ $incidents->whereIn('status', ['pending', 'in_progress'])->count() }}</p>
@@ -45,7 +47,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
-                        Requests Awaiting Barangay Approval
+                        Pending Approval
                         @if(count($pendingRequests) > 0)
                             <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white bg-opacity-20 text-white">
                                 {{ count($pendingRequests) }} {{ Str::plural('request', count($pendingRequests)) }}
@@ -71,61 +73,31 @@
                                             </span>
                                         </div>
                                     @endif
-                                    <!-- Request Header -->
-                                    <div class="flex items-start justify-between mb-3">
-                                        <div class="flex-1">
-                                            <p class="text-sm font-semibold text-gray-800">{{ $request->user->name }}</p>
-                                            <div class="flex items-center gap-2 mt-1">
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                    {{ format_label($request->form_type) }}
-                                                </span>
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                    {{ format_label($request->status) }}
-                                                </span>
-                                            </div>
+                                    <div class="flex items-center justify-between">
+                                        <div class="w-1/3">
+                                            <p class="text-sm font-medium text-gray-800 truncate">{{ $request->user->name }}</p>
                                         </div>
+                                        <div class="flex-1 text-center">
+                                            <span class="px-3 py-1 text-xs font-semibold rounded-full {{ $request->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' }}">
+                                                {{ format_label($request->status) }}
+                                            </span>
+                                        </div>
+                                        <div class="w-1/3 flex justify-end">
+                                            <a href="{{ route('requests.show', $request->id) }}" class="text-gray-400 hover:text-green-600" title="View Details">
+                                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2 mt-2">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            {{ \App\Models\Request::FORM_TYPES[$request->form_type] ?? format_label($request->form_type) }}
+                                        </span>
                                         <span class="text-xs text-gray-500" title="{{ $request->created_at->format('M d, Y h:i A') }}">
                                             {{ $request->created_at->diffForHumans() }}
                                         </span>
-                                    </div>
-
-                                    <!-- Request Purpose -->
-                                    <p class="text-sm text-gray-600 mb-3">{{ $request->purpose }}</p>
-
-                                    <!-- Action Buttons -->
-                                    <div class="flex items-center gap-2 pt-3 border-t border-gray-100">
-                                        <!-- Approve Button -->
-                                        <form action="{{ route('requests.approve-barangay', $request->id) }}" method="POST" class="flex-1">
-                                            @csrf
-                                            <button type="submit" 
-                                                class="w-full inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200"
-                                                onclick="return confirm('Are you sure you want to approve this request?')">
-                                                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                </svg>
-                                                Approve
-                                            </button>
-                                        </form>
-                                        
-                                        <!-- View Details Button -->
-                                        <a href="{{ route('requests.show', $request->id) }}" 
-                                            class="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors duration-200">
-                                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                            </svg>
-                                            View
-                                        </a>
-                                        
-                                        <!-- Reject Button -->
-                                        <button type="button" 
-                                            class="flex-1 inline-flex items-center justify-center px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200"
-                                            onclick="openRejectModal({{ $request->id }})">
-                                            <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                            </svg>
-                                            Reject
-                                        </button>
                                     </div>
                                 </div>
                             @endforeach
@@ -342,11 +314,15 @@
                             }
                         });
 
-                        // WebSocket listener for new incident reports
+                        // WebSocket listeners for real-time updates
                         document.addEventListener('DOMContentLoaded', function() {
+                            console.log('DOM Content Loaded - Checking for Echo...');
+                            
                             if (window.Echo) {
-                                console.log('Setting up incident report listener...');
+                                console.log('✅ Echo is available! Setting up real-time listeners for barangay officials...');
+                                console.log('Echo object:', window.Echo);
                                 
+                                // Listen for new incident reports
                                 window.Echo.private('barangay-officials')
                                     .listen('.new-incident', (data) => {
                                         console.log('New incident reported:', data);
@@ -364,18 +340,90 @@
                                             });
                                         }
                                         
-                                        // Update incident count badge
-                                        const badge = document.querySelector('.bg-white.bg-opacity-20 p:first-child');
-                                        if (badge) {
-                                            badge.textContent = data.incidentCount;
+                                        // Update incident count badge in hero section
+                                        const incidentBadges = document.querySelectorAll('.bg-white.bg-opacity-20');
+                                        if (incidentBadges.length > 1) {
+                                            const incidentCountElement = incidentBadges[1].querySelector('p:first-child');
+                                            if (incidentCountElement) {
+                                                incidentCountElement.textContent = data.incidentCount;
+                                            }
+                                        }
+                                        
+                                        // Update incident section count
+                                        const incidentSectionBadge = document.querySelector('.bg-gradient-to-r.from-blue-600 .bg-white.bg-opacity-20');
+                                        if (incidentSectionBadge) {
+                                            const countText = incidentSectionBadge.textContent.trim();
+                                            incidentSectionBadge.textContent = `${data.incidentCount} ${data.incidentCount === 1 ? 'incident' : 'incidents'}`;
                                         }
                                         
                                         // Update yellow dot in navigation
                                         updateDashboardDot();
                                         
                                         // Show toast notification
-                                        showToast('New Incident Report', `${data.incident_type} from ${data.purok_name}`);
+                                        showToast('New Incident Report', `${data.incident_type} from ${data.purok_name}`, 'blue');
+                                        
+                                        // Reload page after 2 seconds to show new incident
+                                        setTimeout(() => {
+                                            window.location.reload();
+                                        }, 2000);
+                                    })
+                                    // Listen for new barangay requests (purok approved)
+                                    .listen('.new-barangay-request', (data) => {
+                                        console.log('🔔 NEW BARANGAY REQUEST EVENT RECEIVED!');
+                                        console.log('Event data:', data);
+                                        console.log('Request Count:', data.requestCount);
+                                        console.log('Form Type:', data.form_type);
+                                        console.log('Resident:', data.resident_name);
+                                        
+                                        // Play notification sound
+                                        const audio = new Audio('/sounds/810191__mokasza__notification-chime.mp3');
+                                        audio.play().catch(e => console.log('Could not play sound:', e));
+                                        
+                                        // Show browser notification if permitted
+                                        if ('Notification' in window && Notification.permission === 'granted') {
+                                            new Notification('New Request Pending Approval', {
+                                                body: `${data.form_type} from ${data.resident_name} (${data.purok_name})`,
+                                                icon: '/images/logo.png',
+                                                badge: '/images/logo.png'
+                                            });
+                                        }
+                                        
+                                        // Update request count badge in hero section
+                                        const requestBadges = document.querySelectorAll('.bg-white.bg-opacity-20');
+                                        if (requestBadges.length > 0) {
+                                            const requestCountElement = requestBadges[0].querySelector('p:first-child');
+                                            if (requestCountElement) {
+                                                requestCountElement.textContent = data.requestCount;
+                                            }
+                                        }
+                                        
+                                        // Update request section count
+                                        const requestSectionBadge = document.querySelector('.bg-gradient-to-r.from-green-600 .bg-white.bg-opacity-20');
+                                        if (requestSectionBadge) {
+                                            requestSectionBadge.textContent = `${data.requestCount} ${data.requestCount === 1 ? 'request' : 'requests'}`;
+                                        }
+                                        
+                                        // Update yellow dot in navigation
+                                        updateDashboardDot();
+                                        
+                                        // Show toast notification
+                                        showToast('New Request Pending Approval', `${data.form_type} from ${data.purok_name}`, 'green');
+                                        
+                                        // Reload page after 2 seconds to show new request
+                                        console.log('⏱️ Scheduling page reload in 2 seconds...');
+                                        setTimeout(() => {
+                                            console.log('🔄 Reloading page now...');
+                                            window.location.reload();
+                                        }, 2000);
+                                    })
+                                    .error((error) => {
+                                        console.error('❌ WebSocket Error:', error);
                                     });
+                                    
+                                console.log('✅ All listeners registered successfully!');
+                            } else {
+                                console.error('❌ Echo is not available! WebSocket notifications will not work.');
+                                console.log('Make sure Laravel Reverb is running and Echo is properly configured.');
                             }
                             
                             // Request notification permission
@@ -385,13 +433,22 @@
                         });
                         
                         // Toast notification function
-                        function showToast(title, message) {
+                        function showToast(title, message, color = 'green') {
+                            const colorClasses = {
+                                'green': 'bg-green-600',
+                                'blue': 'bg-blue-600',
+                                'red': 'bg-red-600',
+                                'yellow': 'bg-yellow-600'
+                            };
+                            
+                            const bgColor = colorClasses[color] || 'bg-green-600';
+                            
                             const toast = document.createElement('div');
-                            toast.className = 'fixed bottom-4 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 animate-slide-up';
+                            toast.className = `fixed bottom-4 right-4 ${bgColor} text-white px-6 py-4 rounded-lg shadow-lg z-50 animate-slide-up`;
                             toast.innerHTML = `
                                 <div class="flex items-center">
                                     <svg class="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                                     </svg>
                                     <div>
                                         <div class="font-bold">${title}</div>

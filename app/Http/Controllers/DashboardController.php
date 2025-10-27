@@ -120,7 +120,7 @@ class DashboardController extends Controller
 
             $incidentReportsCount = IncidentReport::where('user_id', $userId)->count();
             $resolvedIncidentsCount = IncidentReport::where('user_id', $userId)
-                ->where('status', 'Resolved')
+                ->where('status', IncidentReport::STATUS_RESOLVED)
                 ->count();
                 
             $pendingIncidentsCount = IncidentReport::where('user_id', $userId)
@@ -242,7 +242,7 @@ class DashboardController extends Controller
             if (!$request->session()->has('recently_shown_feedback_prompt')) {
                 // Count resolved items without feedback
                 $resolvedIncidents = $user->incidentReports()
-                    ->whereIn('status', ['Resolved', 'Rejected'])
+                    ->whereIn('status', [IncidentReport::STATUS_RESOLVED, 'Rejected'])
                     ->whereDoesntHave('feedback')
                     ->count();
 

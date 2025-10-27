@@ -34,7 +34,7 @@ class CheckFeedbackEligibility
 
         // Count resolved items that don't have feedback yet
         $resolvedIncidents = $user->incidentReports()
-            ->whereIn('status', ['Resolved', 'Rejected'])
+            ->whereIn('status', [\App\Models\IncidentReport::STATUS_RESOLVED, 'Rejected'])
             ->whereDoesntHave('feedback')
             ->count();
 

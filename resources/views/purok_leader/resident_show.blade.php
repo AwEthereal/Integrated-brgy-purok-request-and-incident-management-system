@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'Resident Details')
+
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white rounded-lg shadow-sm p-6">

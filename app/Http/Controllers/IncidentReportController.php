@@ -415,15 +415,31 @@ class IncidentReportController extends Controller
             'additional_notes' => 'nullable|string|max:1000'
         ]);
 
+        $oldStatus = $incidentReport->status;
+        
+        // Build comprehensive notes
+        $staffNotes = $incidentReport->staff_notes ?? '';
+        if ($staffNotes) {
+            $staffNotes .= "\n\n";
+        }
+        $staffNotes .= "Rejected by " . auth()->user()->name . " on " . now()->toDateTimeString();
+        if (!empty($validated['additional_notes'])) {
+            $staffNotes .= "\nAdditional Notes: " . $validated['additional_notes'];
+        }
+
         $incidentReport->update([
             'status' => IncidentReport::STATUS_REJECTED,
             'rejection_reason' => $validated['rejection_reason'],
             'rejected_by' => auth()->id(),
             'rejected_at' => now(),
             'approved_by' => null,
-            'approved_at' => null
+            'approved_at' => null,
+            'staff_notes' => $staffNotes
         ]);
 
-        return back()->with('success', 'Incident report rejected');
+        // Send notification to resident
+        $incidentReport->user->notify(new \App\Notifications\IncidentReportStatusNotification($incidentReport, $oldStatus, IncidentReport::STATUS_REJECTED));
+
+        return back()->with('success', 'Incident report rejected and notification sent to resident');
     }
 }

@@ -32,8 +32,9 @@ class FeedbackService
         session(['feedback_checked' => true]);
         
         // Check for pending request feedback
+        // Status can be: barangay_approved (fully approved) or completed (document received)
         $pendingRequest = ServiceRequest::where('user_id', $user->id)
-            ->whereIn('status', ['approved', 'completed'])
+            ->whereIn('status', ['barangay_approved', 'completed'])
             ->whereNull('feedback_provided_at')
             ->where('feedback_skipped', false)
             ->whereNull('feedback_dismissed_at')
@@ -57,7 +58,7 @@ class FeedbackService
         
         // Check for pending incident report feedback
         $pendingIncident = IncidentReport::where('user_id', $user->id)
-            ->where('status', 'Resolved')
+            ->where('status', IncidentReport::STATUS_RESOLVED)
             ->where('feedback_skipped', false)
             ->whereNull('feedback_submitted_at')
             ->whereNull('feedback_dismissed_at')

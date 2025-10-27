@@ -1,0 +1,151 @@
+╔══════════════════════════════════════════════════════════════════╗
+║          DUMMY DATA QUICK REFERENCE GUIDE                        ║
+║          Barangay Management System - Load Testing               ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📋 SETUP (Run Once)
+═══════════════════════════════════════════════════════════════════
+php artisan migrate
+
+
+🚀 CREATE DUMMY DATA
+═══════════════════════════════════════════════════════════════════
+php artisan db:seed --class=DummyUsersSeeder
+
+Creates:
+  ✓ 1 Barangay Captain
+  ✓ 2 Barangay Kagawad
+  ✓ 1 Secretary
+  ✓ 1 SK Chairman
+  ✓ 1 Purok President per purok
+  ✓ 500 Residents (distributed across puroks)
+  
+Default Password: password123
+
+
+🗑️ RESET DUMMY DATA
+═══════════════════════════════════════════════════════════════════
+php artisan dummy:reset              # With confirmation
+php artisan dummy:reset --force      # Skip confirmation
+
+Deletes:
+  ✓ All dummy users
+  ✓ Their service requests
+  ✓ Their incident reports
+  ✓ Their announcements
+  
+Protects:
+  ✓ Real users and data
+  ✓ System data (puroks, etc.)
+
+
+📧 SAMPLE LOGIN CREDENTIALS
+═══════════════════════════════════════════════════════════════════
+Barangay Captain:
+  Email: captain.dummy@test.com
+  Password: password123
+
+Barangay Kagawad:
+  Email: kagawad1.dummy@test.com
+  Password: password123
+
+Secretary:
+  Email: secretary.dummy@test.com
+  Password: password123
+
+SK Chairman:
+  Email: sk.dummy@test.com
+  Password: password123
+
+Purok President (Purok 1):
+  Email: president.purok1.dummy@test.com
+  Password: password123
+
+Resident (Example):
+  Email: john.smith.1.0.dummy@test.com
+  Password: password123
+
+
+🧪 TESTING WORKFLOW
+═══════════════════════════════════════════════════════════════════
+1. php artisan migrate                        # Setup
+2. php artisan db:seed --class=DummyUsersSeeder  # Create data
+3. [Perform your tests]                       # Test system
+4. php artisan dummy:reset --force            # Clean up
+5. Repeat as needed
+
+
+⚠️ IMPORTANT NOTES
+═══════════════════════════════════════════════════════════════════
+• Dummy users are marked with is_dummy = true
+• Real users are protected (is_dummy = false)
+• Always reset dummy data before production
+• Never use in production environment
+• Backup database before testing
+
+
+📊 WHAT TO TEST
+═══════════════════════════════════════════════════════════════════
+✓ Concurrent logins (50-100 users)
+✓ Dashboard performance
+✓ Service request workflow
+✓ Incident reporting
+✓ Announcement system
+✓ Search and filtering
+✓ Pagination with large datasets
+✓ Database query performance
+✓ Memory usage
+✓ Response times
+
+
+🎯 PERFORMANCE TARGETS
+═══════════════════════════════════════════════════════════════════
+Page Load:        < 2 seconds
+Database Queries: < 50 per page
+Memory Usage:     < 256MB
+Concurrent Users: 100+
+
+
+🔧 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════
+Seeder fails?
+  → Check if puroks exist first
+
+Memory limit?
+  → php -d memory_limit=512M artisan db:seed --class=DummyUsersSeeder
+
+Timeout?
+  → php -d max_execution_time=300 artisan db:seed --class=DummyUsersSeeder
+
+Can't reset?
+  → php artisan migrate (ensure is_dummy column exists)
+
+
+📁 FILES CREATED
+═══════════════════════════════════════════════════════════════════
+database/seeders/DummyUsersSeeder.php
+app/Console/Commands/ResetDummyData.php
+database/migrations/[timestamp]_add_is_dummy_to_users_table.php
+LOAD_TESTING_GUIDE.md (detailed guide)
+DUMMY_DATA_QUICK_GUIDE.txt (this file)
+
+
+💡 TIPS
+═══════════════════════════════════════════════════════════════════
+• Start with small numbers (50 users) and scale up
+• Monitor system resources during tests
+• Use Laravel Debugbar for query monitoring
+• Reset data after each test session
+• Document performance metrics
+• Test in staging environment first
+
+
+🎉 QUICK START
+═══════════════════════════════════════════════════════════════════
+php artisan migrate
+php artisan db:seed --class=DummyUsersSeeder
+# Test your system
+php artisan dummy:reset
+
+
+For detailed information, see LOAD_TESTING_GUIDE.md

@@ -82,6 +82,29 @@
                             @endif
                         </a>
                     @endif
+
+                    {{-- Announcement Bell for Residents --}}
+                    @if(auth()->user()->role === 'resident')
+                        <a href="{{ route('announcements.public') }}"
+                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('announcements.public') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors relative">
+                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <span>Announcements</span>
+                            @php
+                                $hasFeaturedAnnouncements = \App\Models\Announcement::active()
+                                    ->published()
+                                    ->featured()
+                                    ->exists();
+                            @endphp
+                            @if($hasFeaturedAnnouncements && !request()->routeIs('announcements.public'))
+                                <span class="ml-2 relative inline-flex">
+                                    <span class="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                                    <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500"></span>
+                                </span>
+                            @endif
+                        </a>
+                    @endif
                 @endif
 
                 @auth
@@ -134,6 +157,27 @@
                                 </span>
                             @endif
                         </a>
+
+                        {{-- Announcement Bell for Purok Leaders --}}
+                        <a href="{{ route('announcements.public') }}"
+                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('announcements.public') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors relative">
+                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                            </svg>
+                            <span>Announcements</span>
+                            @php
+                                $hasFeaturedAnnouncements = \App\Models\Announcement::active()
+                                    ->published()
+                                    ->featured()
+                                    ->exists();
+                            @endphp
+                            @if($hasFeaturedAnnouncements && !request()->routeIs('announcements.public'))
+                                <span class="ml-2 relative inline-flex">
+                                    <span class="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                                    <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500"></span>
+                                </span>
+                            @endif
+                        </a>
                     @elseif(auth()->user()->role === 'admin')
                         <!-- Admin Navigation Links -->
                         <a href="{{ route('admin.users.index') }}"
@@ -168,6 +212,23 @@
                                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
                             <span>Incident History</span>
+                        </a>
+
+                        <!-- Announcements Link -->
+                        <a href="{{ route('barangay.announcements.index') }}"
+                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('barangay.announcements.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                            </svg>
+                            <span class="whitespace-nowrap">Announcements</span>
+                            @php
+                                $featuredCount = \App\Models\Announcement::where('is_featured', true)->where('is_active', true)->count();
+                            @endphp
+                            @if($featuredCount > 0)
+                                <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 whitespace-nowrap">
+                                    {{ $featuredCount }}
+                                </span>
+                            @endif
                         </a>
                     @endif
 
@@ -349,6 +410,24 @@
                         </span>
                     @endif
                 </a>
+                
+                {{-- Announcements for Purok Leaders --}}
+                <a href="{{ route('announcements.public') }}"
+                    class="flex justify-between items-center px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('announcements.public') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
+                    <span>Announcements</span>
+                    @php
+                        $hasFeaturedAnnouncements = \App\Models\Announcement::active()
+                            ->published()
+                            ->featured()
+                            ->exists();
+                    @endphp
+                    @if($hasFeaturedAnnouncements && !request()->routeIs('announcements.public'))
+                        <span class="ml-2 relative inline-flex">
+                            <span class="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500"></span>
+                        </span>
+                    @endif
+                </a>
             @endif
 
             @auth
@@ -400,6 +479,24 @@
                     <a href="{{ route('incident_reports.my_reports') }}"
                         class="flex justify-between items-center px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('incident_reports.my_reports') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
                         <span>My Incident Reports</span>
+                    </a>
+                    
+                    {{-- Announcements for Residents --}}
+                    <a href="{{ route('announcements.public') }}"
+                        class="flex justify-between items-center px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('announcements.public') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
+                        <span>Announcements</span>
+                        @php
+                            $hasFeaturedAnnouncements = \App\Models\Announcement::active()
+                                ->published()
+                                ->featured()
+                                ->exists();
+                        @endphp
+                        @if($hasFeaturedAnnouncements && !request()->routeIs('announcements.public'))
+                            <span class="ml-2 relative inline-flex">
+                                <span class="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                                <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500"></span>
+                            </span>
+                        @endif
                     </a>
                 @endif
             @endauth

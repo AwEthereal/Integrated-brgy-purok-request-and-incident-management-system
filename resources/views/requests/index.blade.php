@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@section('title', 'My Requests')
+
 @section('content')
     <div class="max-w-7xl mx-auto p-4">
         <h1 class="text-xl font-bold mb-4">Your Requests</h1>
