@@ -1,18 +1,22 @@
 <nav x-data="{ open: false }" class="bg-white shadow-md">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-20">
+    <div class="max-w-full mx-auto px-2 sm:px-4 lg:px-6">
+        <div class="flex justify-between items-center h-16 md:h-20">
             @vite(['resources/css/app.css', 'resources/js/app.js'])
 
             <!-- Logo -->
-            <a href="{{ auth()->check() && in_array(auth()->user()->role, ['purok_leader', 'purok_president']) ? route('purok_leader.dashboard') : route('dashboard') }}" class="flex-shrink-0 flex items-center">
-                <img src="{{ asset('images/Kal2Logo.png') }}" alt="Barangay Kalawag Logo" class="h-16 w-auto">
+            <a href="{{ auth()->check() && in_array(auth()->user()->role, ['purok_leader', 'purok_president']) ? route('purok_leader.dashboard') : route('dashboard') }}" class="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity">
+                <img src="{{ asset('images/Kal2Logo.png') }}" alt="Barangay Kalawag Logo" class="h-12 md:h-16 w-auto flex-shrink-0">
+                <div class="ml-3">
+                    <h1 class="text-sm md:text-lg font-bold leading-tight text-gray-800">Kalawag Dos</h1>
+                    <p class="text-xs md:text-sm text-gray-600 leading-tight">Integrated System</p>
+                </div>
             </a>
 
             <!-- Desktop Navigation Links -->
-            <div class="hidden sm:ml-6 sm:flex sm:items-center space-x-2">
+            <div class="hidden md:ml-4 md:flex md:flex-wrap md:items-center md:gap-1 lg:gap-2 flex-1 justify-center max-w-4xl">
                 @if(auth()->check() && !in_array(auth()->user()->role, ['purok_leader', 'purok_president']))
                     <a href="{{ route('dashboard') }}"
-                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('dashboard') ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-100 hover:text-green-800' }} transition-colors">
+                        class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('dashboard') ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-100 hover:text-green-800' }} transition-colors whitespace-nowrap">
                         <svg class="h-5 w-5 mr-2 {{ request()->routeIs('dashboard') ? 'text-green-600' : 'text-gray-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -61,7 +65,7 @@
                     {{-- Only show "My Purok Clearance Requests" for residents, not for barangay officials --}}
                     @if(auth()->user()->role === 'resident' && auth()->user()->is_approved)
                         <a href="{{ route('requests.index') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('requests.*') && !request()->routeIs('requests.pending-*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('requests.*') && !request()->routeIs('requests.pending-*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -86,7 +90,7 @@
                     {{-- Announcement Bell for Residents --}}
                     @if(auth()->user()->role === 'resident')
                         <a href="{{ route('announcements.public') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('announcements.public') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors relative">
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('announcements.public') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors relative whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
@@ -109,7 +113,7 @@
 
                 @auth
                     @if(auth()->user()->role === 'purok_leader' || auth()->user()->role === 'purok_president')
-                        <a href="{{ route('purok_leader.dashboard') }}" class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('purok_leader.dashboard') ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-100 hover:text-green-800' }} transition-colors">
+                        <a href="{{ route('purok_leader.dashboard') }}" class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('purok_leader.dashboard') ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-100 hover:text-green-800' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 {{ request()->routeIs('purok_leader.dashboard') ? 'text-green-600' : 'text-gray-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -130,7 +134,7 @@
                         </a>
                         
                         <a href="{{ route('purok_leader.residents') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('purok_leader.residents') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('purok_leader.residents') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
@@ -138,7 +142,7 @@
                         </a>
                         
                         <a href="{{ route('purok_leader.purok_change_requests') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('purok_leader.purok_change_requests') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('purok_leader.purok_change_requests') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                             </svg>
@@ -160,7 +164,7 @@
 
                         {{-- Announcement Bell for Purok Leaders --}}
                         <a href="{{ route('announcements.public') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('announcements.public') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors relative">
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('announcements.public') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors relative whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                             </svg>
@@ -181,7 +185,7 @@
                     @elseif(auth()->user()->role === 'admin')
                         <!-- Admin Navigation Links -->
                         <a href="{{ route('admin.users.index') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('admin.users.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('admin.users.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                             </svg>
@@ -197,7 +201,7 @@
                         @endphp
 
                         <a href="{{ route('barangay.approvals.index', ['status' => 'completed']) }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ $isHistoryActive ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ $isHistoryActive ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
@@ -206,7 +210,7 @@
                         
                         <!-- Incident Reports History Link -->
                         <a href="{{ route('barangay.incident_reports.index') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('barangay.incident_reports.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('barangay.incident_reports.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -216,7 +220,7 @@
 
                         <!-- Announcements Link -->
                         <a href="{{ route('barangay.announcements.index') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('barangay.announcements.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('barangay.announcements.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
                             </svg>
@@ -235,7 +239,7 @@
                     @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'admin']))
                         <!-- Reports Dropdown -->
                         <div x-data="{ open: false }" class="relative">
-                            <button @click="open = !open" class="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-green-700 focus:outline-none focus:bg-gray-100 focus:text-green-700 transition-colors">
+                            <button @click="open = !open" class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-green-700 focus:outline-none focus:bg-gray-100 focus:text-green-700 transition-colors whitespace-nowrap">
                                 <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                 </svg>
@@ -274,7 +278,7 @@
                     @if(auth()->user()->role === 'resident' && auth()->user()->is_approved)
                         <!-- Resident Links - Only show for approved residents -->
                         <a href="{{ route('incident_reports.my_reports') }}"
-                            class="flex items-center px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('incident_reports.my_reports') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors">
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('incident_reports.my_reports') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -299,10 +303,10 @@
             </div>
 
             <!-- User info and hamburger -->
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
                 @auth
                     <a href="{{ route('profile.edit') }}"
-                        class="hidden sm:flex items-center text-sm font-medium text-gray-700 hover:text-green-700 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors">
+                        class="hidden lg:flex items-center text-xs lg:text-sm font-medium text-gray-700 hover:text-green-700 px-2 lg:px-3 py-1.5 lg:py-2 rounded-md hover:bg-gray-100 transition-colors">
                         <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -314,7 +318,7 @@
                     <form method="POST" action="{{ route('logout') }}" class="flex items-center">
                         @csrf
                         <a href="{{ route('logout') }}" onclick="event.preventDefault(); this.closest('form').submit();"
-                            class="ml-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-red-600 transition-colors flex items-center">
+                            class="ml-1 md:ml-2 px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-red-600 transition-colors flex items-center whitespace-nowrap">
                             <svg class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -336,7 +340,7 @@
 
                 <!-- Hamburger button -->
                 <button @click="open = !open" aria-label="Toggle menu"
-                    class="sm:hidden focus:outline-none text-gray-700 dark:text-gray-300">
+                    class="md:hidden focus:outline-none text-gray-700 dark:text-gray-300 ml-2">
                     <svg x-show="!open" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="3" y1="6" x2="21" y2="6" />
@@ -358,7 +362,7 @@
     <div x-show="open" x-transition:enter="transition ease-out duration-100"
         x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
         x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100"
-        x-transition:leave-end="opacity-0 scale-95" class="sm:hidden bg-white border-t border-gray-200 shadow-lg">
+        x-transition:leave-end="opacity-0 scale-95" class="md:hidden bg-white border-t border-gray-200 shadow-lg">
         <div class="px-2 pt-2 pb-3 space-y-1">
             @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'admin']))
                 <!-- Reports Section for Mobile -->

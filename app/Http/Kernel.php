@@ -30,11 +30,10 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \App\Http\Middleware\CheckFeedbackEligibility::class,
-            \App\Http\Middleware\CheckForPendingFeedback::class,
-            \App\Http\Middleware\CheckResidentApproved::class,
-            // Temporarily disabled due to blank page issue
-            // \App\Http\Middleware\SetIntendedUrl::class,
+            // Moved to route-specific middleware for better performance
+            // \App\Http\Middleware\CheckFeedbackEligibility::class,
+            // \App\Http\Middleware\CheckForPendingFeedback::class,
+            // \App\Http\Middleware\CheckResidentApproved::class,
         ],
 
         'api' => [

@@ -49,11 +49,11 @@ class DashboardController extends Controller
         // Redirect barangay officials to their dedicated dashboard
         if (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman'])) {
             // Get all puroks
-            $puroks = \App\Models\Purok::orderBy('name')->get();
+            $puroks = Purok::orderBy('name')->get();
             $selectedPurok = $request->query('purok');
 
             // Get active incidents (pending or in_progress)
-            $incidentsQuery = \App\Models\IncidentReport::with(['user', 'purok'])
+            $incidentsQuery = IncidentReport::with(['user', 'purok'])
                 ->whereIn('status', ['pending', 'in_progress']);
                 
             if ($selectedPurok) {
@@ -88,7 +88,6 @@ class DashboardController extends Controller
         }
         
         $userId = $user->id;
-        \Log::info('Starting dashboard for user ID: ' . $userId);
         
         // Initialize variables with default values
         $pendingRequestsCount = 0;
@@ -103,18 +102,11 @@ class DashboardController extends Controller
         $showFeedbackPrompt = false;
         $resolvedCount = 0;
         
-        // Log session data for debugging
-        \Log::info('Session data: ' . json_encode($request->session()->all()));
         
         try {
-            // Debug: Log user info
-            \Log::info('Dashboard accessed by user:', [
-                'user_id' => $userId,
-                'email' => $user->email
-            ]);
 
             // Get counts
-            $pendingRequestsCount = \App\Models\Request::where('user_id', $userId)
+            $pendingRequestsCount = ServiceRequest::where('user_id', $userId)
                 ->where('status', 'Pending')
                 ->count();
 
@@ -127,17 +119,10 @@ class DashboardController extends Controller
                 ->where('status', 'Pending')
                 ->count();
                 
-            $completedRequestsCount = \App\Models\Request::where('user_id', $userId)
+            $completedRequestsCount = ServiceRequest::where('user_id', $userId)
                 ->where('status', 'barangay_approved')
                 ->count();
 
-            // Debug: Log counts
-            \Log::info('Dashboard counts:', [
-                'pending_requests' => $pendingRequestsCount,
-                'total_incidents' => $incidentReportsCount,
-                'resolved_incidents' => $resolvedIncidentsCount,
-                'completed_requests' => $completedRequestsCount
-            ]);
 
             // Get recent requests
             $recentRequests = ServiceRequest::with(['user', 'purok'])
@@ -153,8 +138,6 @@ class DashboardController extends Controller
                 ->limit(5)
                 ->get(['id', 'purpose', 'status', 'created_at']);
 
-            // Debug: Log recent requests
-            \Log::info('Recent requests:', $recentRequests->toArray());
 
             // Format status labels for display
             $recentRequests->each(function($request) {
@@ -264,8 +247,6 @@ class DashboardController extends Controller
                 }
             }
 
-            // Debug: Log recent incidents
-            \Log::info('Recent incidents:', $recentIncidents->toArray());
 
             // Prepare recent activities - use the existing collections
             $recentActivities = collect()

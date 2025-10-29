@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'Dashboard') - {{ config('app.name', 'Barangay Kalawag II') }}</title>
+    <title>@yield('title', 'Dashboard') - Barangay Kalawag Dos</title>
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ asset('images/Kal2Logo.png') }}">
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
     <!-- User Meta Tags -->
@@ -22,8 +23,9 @@
         @endif
     @endauth
     
-    <!-- Pusher JS (CDN) -->
-    <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
+    <!-- Pusher JS (CDN) - Deferred for better performance -->
+    <link rel="preconnect" href="https://js.pusher.com" crossorigin>
+    <script src="https://js.pusher.com/7.2/pusher.min.js" defer></script>
 
     <!-- Custom CSS for Incident Reports -->
     <link href="{{ asset('css/incident-reports.css') }}" rel="stylesheet">

@@ -6,36 +6,71 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const resendButton = document.getElementById('resend-button');
+        const resendForm = document.getElementById('resend-form');
         const timerElement = document.getElementById('resend-timer');
-        let countdown = 60; // 1 minute cooldown
+        const COOLDOWN_KEY = 'email_verification_cooldown';
+        const COOLDOWN_DURATION = 60; // 1 minute in seconds
         
-        function updateTimer() {
+        function getRemainingCooldown() {
+            const cooldownEnd = localStorage.getItem(COOLDOWN_KEY);
+            if (!cooldownEnd) return 0;
+            
+            const now = Math.floor(Date.now() / 1000);
+            const remaining = parseInt(cooldownEnd) - now;
+            return remaining > 0 ? remaining : 0;
+        }
+        
+        function setCooldown() {
+            const now = Math.floor(Date.now() / 1000);
+            localStorage.setItem(COOLDOWN_KEY, now + COOLDOWN_DURATION);
+        }
+        
+        function updateTimer(countdown) {
             if (countdown <= 0) {
                 resendButton.disabled = false;
-                timerElement.classList.add('hidden');
                 resendButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                timerElement.textContent = '';
+                localStorage.removeItem(COOLDOWN_KEY);
                 return;
             }
             
             const minutes = Math.floor(countdown / 60);
             const seconds = countdown % 60;
-            timerElement.textContent = `Resend available in ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            countdown--;
-            setTimeout(updateTimer, 1000);
+            timerElement.textContent = `Please wait ${minutes}:${seconds.toString().padStart(2, '0')} before resending`;
+            
+            setTimeout(() => updateTimer(countdown - 1), 1000);
         }
         
-        if (resendButton) {
-            resendButton.addEventListener('click', function() {
-                resendButton.disabled = true;
-                resendButton.classList.add('opacity-50', 'cursor-not-allowed');
-                timerElement.classList.remove('hidden');
-                countdown = 60; // Reset countdown
-                updateTimer();
-            });
-            
-            // Start the timer on page load
-            updateTimer();
+        function startCooldown() {
+            resendButton.disabled = true;
+            resendButton.classList.add('opacity-50', 'cursor-not-allowed');
+            setCooldown();
+            updateTimer(COOLDOWN_DURATION);
         }
+        
+        // Check if there's an active cooldown on page load
+        const remainingCooldown = getRemainingCooldown();
+        if (remainingCooldown > 0) {
+            resendButton.disabled = true;
+            resendButton.classList.add('opacity-50', 'cursor-not-allowed');
+            updateTimer(remainingCooldown);
+        }
+        
+        // Handle form submission
+        if (resendForm) {
+            resendForm.addEventListener('submit', function(e) {
+                if (getRemainingCooldown() > 0) {
+                    e.preventDefault();
+                    return false;
+                }
+                startCooldown();
+            });
+        }
+        
+        // Check if email was just sent (from session status)
+        @if (session('status') == 'verification-link-sent')
+            startCooldown();
+        @endif
     });
 </script>
 @endpush
@@ -100,17 +135,17 @@
                 <div class="border-t border-gray-200 dark:border-gray-700 pt-4">
                     <div class="space-y-3">
                         <div>
-                            <form method="POST" action="{{ route('verification.send') }}">
+                            <form id="resend-form" method="POST" action="{{ route('verification.send') }}">
                                 @csrf
                                 <button
                                     id="resend-button"
                                     type="submit"
-                                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150"
+                                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Resend Verification Email
                                 </button>
                             </form>
-                            <p id="resend-timer" class="mt-2 text-center text-sm text-gray-500 dark:text-gray-400"></p>
+                            <p id="resend-timer" class="mt-2 text-center text-sm font-semibold text-orange-600 dark:text-orange-400"></p>
                         </div>
                         
                         <div class="text-center">

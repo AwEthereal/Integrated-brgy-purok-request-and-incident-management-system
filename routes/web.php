@@ -86,9 +86,14 @@ Route::middleware('auth')
         });
     });
 
-// Dashboard route for all authenticated users
+// Dashboard route for all authenticated users (no email verification required for officials)
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+});
+
+// Request show route - accessible to all authenticated users (barangay officials, residents, etc.)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/requests/{request}', [RequestController::class, 'show'])->name('requests.show');
 });
 
 // Routes that require an approved resident account and verified email
@@ -99,7 +104,6 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckResidentApprove
     Route::post('/requests', [RequestController::class, 'store'])
         ->middleware('throttle:5,60') // 5 requests per hour
         ->name('requests.store');
-    Route::get('/requests/{request}', [RequestController::class, 'show'])->name('requests.show');
     Route::get('/requests/{request}/edit', [RequestController::class, 'edit'])->name('requests.edit');
     Route::put('/requests/{request}', [RequestController::class, 'update'])->name('requests.update');
     Route::delete('/requests/{request}', [RequestController::class, 'destroy'])->name('requests.destroy');
@@ -214,7 +218,7 @@ Route::prefix('feedback')->middleware('auth')->group(function () {
 // ============================================
 // Report Routes - Accessible to authorized roles only
 // ============================================
-Route::prefix('reports')->middleware(['auth', 'verified'])->group(function () {
+Route::prefix('reports')->middleware(['auth'])->group(function () {
     // Preview reports
     Route::get('/residents', [\App\Http\Controllers\ReportController::class, 'residents'])
         ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')

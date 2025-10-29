@@ -11,8 +11,8 @@
     <meta name="purok-id" content="{{ auth()->user()->purok_id }}">
     
     <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white py-8 px-4 sm:px-6 lg:px-8 rounded-lg shadow-lg mb-8">
-        <div class="max-w-7xl mx-auto">
+    <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white py-8 rounded-lg shadow-lg mb-8">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="mb-6 md:mb-0">
                     <h1 class="text-3xl md:text-4xl font-bold mb-2 flex items-center purok-leader-dashboard">
@@ -370,8 +370,14 @@
                             </span>
                         @endif
                         @if($formTypeFilter && $formTypeFilter !== 'all')
+                            @php
+                                $formTypeLabel = ucfirst(str_replace('_', ' ', $formTypeFilter));
+                                if (isset($formTypes) && is_array($formTypes) && array_key_exists($formTypeFilter, $formTypes)) {
+                                    $formTypeLabel = $formTypes[$formTypeFilter];
+                                }
+                            @endphp
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Type: {{ $formTypes[$formTypeFilter] ?? $formTypeFilter }}
+                                Type: {{ $formTypeLabel }}
                             </span>
                         @endif
                         @if($dateFrom)

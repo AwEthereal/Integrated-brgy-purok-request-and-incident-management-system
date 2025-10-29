@@ -174,10 +174,33 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     
     /**
-     * Send the email verification notification.
+     * Determine if the user has verified their email address.
+     * Admin and officials are automatically considered verified.
      *
-     * @return void
+     * @return bool
      */
+    public function hasVerifiedEmail()
+    {
+        // Roles that don't require email verification
+        $exemptRoles = [
+            'admin',
+            'barangay_captain',
+            'barangay_kagawad',
+            'secretary',
+            'sk_chairman',
+            'purok_leader',
+            'purok_president'
+        ];
+
+        // Exempt roles are automatically verified
+        if (in_array($this->role, $exemptRoles)) {
+            return true;
+        }
+
+        // For residents, check actual verification status
+        return ! is_null($this->email_verified_at);
+    }
+
     /**
      * Send the email verification notification.
      *

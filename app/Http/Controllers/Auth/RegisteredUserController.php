@@ -74,10 +74,13 @@ class RegisteredUserController extends Controller
         // Create the user with all validated data
         $user = User::create($validated);
 
+        // Fire the Registered event to trigger email verification
+        event(new Registered($user));
+
         // Log in the user
         Auth::login($user);
 
-        // Redirect to dashboard after registration
-        return redirect()->route('dashboard');
+        // Redirect to email verification notice page
+        return redirect()->route('verification.notice');
     }
 }
