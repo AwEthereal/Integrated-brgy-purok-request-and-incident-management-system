@@ -24,6 +24,12 @@ class CheckRole
         // If no user is logged in, redirect to login
         if (!$user) {
             Log::warning('CheckRole: No authenticated user');
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated. Please log in.'
+                ], 401);
+            }
             return redirect()->route('login');
         }
 

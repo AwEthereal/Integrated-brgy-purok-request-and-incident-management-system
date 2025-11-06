@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'checkrole' => \App\Http\Middleware\CheckRole::class,
             'resident_approved' => \App\Http\Middleware\CheckResidentApproved::class,
             'role' => \App\Http\Middleware\RoleMiddleware::class,
+            'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,
         ]);
         
         // Register web middleware group

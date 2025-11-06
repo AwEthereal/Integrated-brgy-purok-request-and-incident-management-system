@@ -400,6 +400,14 @@
                                     errorMessage += `• ${error[0]}\n`;
                                 });
                                 throw new Error(errorMessage);
+                            } else if (response.status === 403 || response.status === 401) {
+                                // Handle authorization errors - redirect if provided
+                                const errorMessage = data.message || 'You are not authorized to perform this action';
+                                alert(errorMessage);
+                                if (data.redirect) {
+                                    window.location.href = data.redirect;
+                                }
+                                throw new Error(errorMessage);
                             } else {
                                 throw new Error(data.message || 'An error occurred while submitting the form');
                             }

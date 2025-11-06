@@ -30,6 +30,14 @@ class PurokLeaderMiddleware
                 'user_id' => $user ? $user->id : null,
                 'user_role' => $user ? $user->role : 'not logged in'
             ]);
+            
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. You must be a Purok Leader or Purok President to access this page.'
+                ], 403);
+            }
+            
             abort(403, 'Unauthorized. You must be a Purok Leader or Purok President to access this page.');
         }
 

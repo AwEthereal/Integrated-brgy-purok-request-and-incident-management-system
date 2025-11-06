@@ -93,7 +93,9 @@ Route::middleware(['auth'])->group(function () {
 
 // Request show route - accessible to all authenticated users (barangay officials, residents, etc.)
 Route::middleware(['auth'])->group(function () {
-    Route::get('/requests/{request}', [RequestController::class, 'show'])->name('requests.show');
+    Route::get('/requests/{request}', [RequestController::class, 'show'])
+        ->whereNumber('request')
+        ->name('requests.show');
 });
 
 // Routes that require an approved resident account and verified email
