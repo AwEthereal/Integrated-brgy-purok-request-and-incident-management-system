@@ -1,0 +1,2 @@
+[2026-02-11 02:42:50] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["secretary","barangay_captain","barangay_kagawad","admin"],"path":"official/requests/145/document"} 
+[2026-02-11 02:42:54] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["secretary","barangay_captain","barangay_kagawad","admin"],"path":"official/requests/145/document"} 
