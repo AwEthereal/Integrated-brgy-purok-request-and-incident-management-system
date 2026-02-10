@@ -250,6 +250,22 @@
         let useOverlay = false;
         let video = videoInline;
 
+        function requestUserMedia(constraints) {
+            const md = (navigator && navigator.mediaDevices) ? navigator.mediaDevices : null;
+            if (md && typeof md.getUserMedia === 'function') {
+                return md.getUserMedia(constraints);
+            }
+
+            const legacyGetUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+            if (legacyGetUserMedia) {
+                return new Promise((resolve, reject) => {
+                    legacyGetUserMedia.call(navigator, constraints, resolve, reject);
+                });
+            }
+
+            return Promise.reject(new Error('getUserMedia is not supported in this browser/context'));
+        }
+
         function updateUI(state){
             if (!takeBtn || !captureBtn || !uploadBtn || !retakeBtn) return;
             switch(state){
@@ -290,7 +306,11 @@
                     overlay.classList.remove('hidden');
                     document.body.classList.add('overflow-hidden');
                 }
-                stream = await navigator.mediaDevices.getUserMedia({
+                if (window.isSecureContext === false) {
+                    throw new Error('Camera access requires HTTPS (secure context).');
+                }
+
+                stream = await requestUserMedia({
                     video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
                     audio: false
                 });
@@ -303,16 +323,23 @@
                 updateUI('cameraActive');
                 await video.play();
                 try{
-                    const devices = await navigator.mediaDevices.enumerateDevices();
-                    const cams = devices.filter(d => d.kind === 'videoinput');
-                    if (useOverlay) {
-                        if (switchOverlayBtn) switchOverlayBtn.classList.toggle('hidden', cams.length <= 1);
-                    } else {
-                        if (switchBtn) switchBtn.classList.toggle('hidden', cams.length <= 1);
+                    const md = (navigator && navigator.mediaDevices) ? navigator.mediaDevices : null;
+                    if (md && typeof md.enumerateDevices === 'function') {
+                        const devices = await md.enumerateDevices();
+                        const cams = devices.filter(d => d.kind === 'videoinput');
+                        if (useOverlay) {
+                            if (switchOverlayBtn) switchOverlayBtn.classList.toggle('hidden', cams.length <= 1);
+                        } else {
+                            if (switchBtn) switchBtn.classList.toggle('hidden', cams.length <= 1);
+                        }
                     }
                 }catch(e){}
             }catch(err){
-                alert('Could not access the camera: ' + (err.message || 'Please check permissions'));
+                let msg = (err && err.message) ? err.message : 'Please check permissions';
+                if (String(msg).toLowerCase().includes('https') || window.isSecureContext === false) {
+                    msg = msg + ' Open this page using https:// (not http://).';
+                }
+                alert('Could not access the camera: ' + msg);
                 updateUI('error');
                 if (switchBtn) switchBtn.classList.add('hidden');
                 if (switchOverlayBtn) switchOverlayBtn.classList.add('hidden');

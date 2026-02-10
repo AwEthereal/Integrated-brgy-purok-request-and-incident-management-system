@@ -18,7 +18,7 @@
                     <h1 class="text-2xl md:text-4xl font-bold">Public Services</h1>
                     <p class="mt-2 text-blue-100">Quick access to common services without logging in.</p>
                 </div>
-                <a href="{{ route('public.feedback.general') }}"
+                <a href="{{ '/' . ltrim(route('public.feedback.general', [], false), '/') }}"
                    class="hidden sm:inline-flex shrink-0 items-center px-4 py-2 bg-white/15 hover:bg-white/20 text-white rounded-lg text-sm font-semibold border border-white/20">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8L3 20l1.2-3.6A7.37 7.37 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
@@ -35,7 +35,7 @@
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100">
                     <div class="px-4 py-3 flex items-center justify-between">
                         <h2 class="text-base md:text-lg font-semibold text-gray-900">Announcements</h2>
-                        <a href="{{ route('public.announcements.index') }}" class="text-sm text-blue-600 hover:text-blue-800">View all</a>
+                        <a href="{{ '/' . ltrim(route('public.announcements.index', [], false), '/') }}" class="text-sm text-blue-600 hover:text-blue-800">View all</a>
                     </div>
 
                     <div class="sm:hidden px-4 pb-4">
@@ -47,7 +47,7 @@
                                 @else
                                     <div class="space-y-2">
                                         @foreach($announcements->take(3) as $a)
-                                            <a href="{{ route('public.announcements.show', $a) }}" class="block bg-white rounded-lg border border-gray-100 p-3 hover:border-gray-200 transition">
+                                            <a href="{{ '/' . ltrim(route('public.announcements.show', $a, false), '/') }}" class="block bg-white rounded-lg border border-gray-100 p-3 hover:border-gray-200 transition">
                                                 <div class="flex items-center gap-2 mb-1">
                                                     @if($a->is_featured)
                                                         <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
@@ -69,7 +69,7 @@
                         @else
                             <div class="space-y-2">
                                 @foreach($announcements->take(3) as $a)
-                                    <a href="{{ route('public.announcements.show', $a) }}" class="block bg-gray-50 rounded-lg border border-gray-100 p-3 hover:bg-white hover:border-gray-200 transition">
+                                    <a href="{{ '/' . ltrim(route('public.announcements.show', $a, false), '/') }}" class="block bg-gray-50 rounded-lg border border-gray-100 p-3 hover:bg-white hover:border-gray-200 transition">
                                         <div class="flex items-center gap-2 mb-1">
                                             @if($a->is_featured)
                                                 <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
@@ -91,7 +91,7 @@
                 </div>
                 <h2 class="text-lg md:text-xl font-semibold mb-2">Request Purok Clearance</h2>
                 <p class="text-gray-600 mb-4">Submit a clearance request with optional identity verification.</p>
-                <a href="{{ route('public.clearance.create') }}" class="inline-flex items-center justify-center w-full px-4 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Start Request</a>
+                <a href="{{ '/' . ltrim(route('public.clearance.create', [], false), '/') }}" class="inline-flex items-center justify-center w-full px-4 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Start Request</a>
             </div>
         </div>
 
@@ -101,12 +101,12 @@
             </div>
             <h2 class="text-lg md:text-xl font-semibold mb-2">Report an Incident</h2>
             <p class="text-gray-600 mb-4">Send details about emergencies or community concerns for action.</p>
-            <a href="{{ route('public.incident.create') }}" class="inline-flex items-center justify-center w-full px-4 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700">Report Now</a>
+            <a href="{{ '/' . ltrim(route('public.incident.create', [], false), '/') }}" class="inline-flex items-center justify-center w-full px-4 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700">Report Now</a>
         </div>
     </div>
 </div>
 
-<a href="{{ route('public.feedback.general') }}"
+<a href="{{ '/' . ltrim(route('public.feedback.general', [], false), '/') }}"
    class="fixed bottom-5 right-5 z-50 sm:hidden inline-flex items-center justify-center w-14 h-14 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
    aria-label="Send Feedback">
     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
