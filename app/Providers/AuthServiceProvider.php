@@ -36,8 +36,10 @@ class AuthServiceProvider extends ServiceProvider
             ]);
         });
 
-        // Set the URL for email verification links
-        if (app()->environment('production')) {
+        // Set the URL scheme for email verification links
+        // Only force https when the app is actually configured to run on https.
+        $appUrl = (string) config('app.url');
+        if ($appUrl !== '' && str_starts_with($appUrl, 'https://')) {
             URL::forceScheme('https');
         }
 
