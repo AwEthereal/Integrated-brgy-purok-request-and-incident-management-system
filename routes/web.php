@@ -319,14 +319,26 @@ Route::prefix('reports')->middleware(['auth'])->group(function () {
     Route::post('/download/residents', [\App\Http\Controllers\ReportController::class, 'downloadResidents'])
         ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
         ->name('reports.download.residents');
+
+    Route::get('/pdf/residents', [\App\Http\Controllers\ReportController::class, 'pdfResidents'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.pdf.residents');
         
     Route::post('/download/purok-leaders', [\App\Http\Controllers\ReportController::class, 'downloadPurokLeaders'])
         ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
         ->name('reports.download.purok-leaders');
+
+    Route::get('/pdf/purok-leaders', [\App\Http\Controllers\ReportController::class, 'pdfPurokLeaders'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.pdf.purok-leaders');
         
     Route::post('/download/purok-clearance', [\App\Http\Controllers\ReportController::class, 'downloadPurokClearance'])
         ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,purok_leader,admin')
         ->name('reports.download.purok-clearance');
+
+    Route::get('/pdf/purok-clearance', [\App\Http\Controllers\ReportController::class, 'pdfPurokClearance'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,purok_leader,admin')
+        ->name('reports.pdf.purok-clearance');
         
     Route::post('/download/incident-reports', [\App\Http\Controllers\ReportController::class, 'downloadIncidentReports'])
         ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')

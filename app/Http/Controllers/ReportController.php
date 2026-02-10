@@ -108,6 +108,24 @@ class ReportController extends Controller
     }
 
     /**
+     * Stream residents report PDF inline (preview) (all or selected via ?ids=1,2,3)
+     */
+    public function pdfResidents(Request $request)
+    {
+        $idsParam = (string) $request->query('ids', '');
+        $ids = array_filter(array_map('intval', array_filter(explode(',', $idsParam))));
+
+        $query = User::where('role', 'resident')->with('purok')->orderBy('last_name');
+        if (!empty($ids)) {
+            $query->whereIn('id', $ids);
+        }
+
+        $residents = $query->get();
+        $pdf = PDF::loadView('reports.pdf.residents', compact('residents'));
+        return $pdf->stream('residents-list-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    /**
      * Preview residents (all or selected via ?ids=1,2,3)
      */
     public function previewResidents(Request $request)
@@ -209,6 +227,24 @@ class ReportController extends Controller
     }
 
     /**
+     * Stream purok leaders report PDF inline (preview) (all or selected via ?ids=1,2,3)
+     */
+    public function pdfPurokLeaders(Request $request)
+    {
+        $idsParam = (string) $request->query('ids', '');
+        $ids = array_filter(array_map('intval', array_filter(explode(',', $idsParam))));
+
+        $query = User::where('role', 'purok_leader')->with(['purok', 'latestResidentRecord'])->orderBy('last_name');
+        if (!empty($ids)) {
+            $query->whereIn('id', $ids);
+        }
+
+        $leaders = $query->get();
+        $pdf = PDF::loadView('reports.pdf.purok-leaders', compact('leaders'));
+        return $pdf->stream('purok-leaders-list-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    /**
      * Preview purok leaders (all or selected via ?ids=1,2,3)
      */
     public function previewPurokLeaders(Request $request)
@@ -268,12 +304,43 @@ class ReportController extends Controller
     }
 
     /**
+     * Stream purok clearance report PDF inline (preview) (all or selected via ?ids=1,2,3)
+     */
+    public function pdfPurokClearance(Request $request)
+    {
+        $idsParam = (string) $request->query('ids', '');
+        $ids = array_filter(array_map('intval', array_filter(explode(',', $idsParam))));
+
+        $query = ResidentRequest::with(['user', 'purok', 'purokApprover', 'barangayApprover'])
+            ->orderBy('created_at', 'desc');
+
+        $viewer = Auth::user();
+        if ($viewer && $viewer->role === 'purok_leader') {
+            $query->where('purok_id', $viewer->purok_id);
+        }
+
+        if (!empty($ids)) {
+            $query->whereIn('id', $ids);
+        }
+
+        $requests = $query->get();
+        $pdf = PDF::loadView('reports.pdf.purok-clearance', compact('requests'));
+
+        return $pdf->stream('purok-clearance-requests-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    /**
      * Download purok clearance report
      */
     public function downloadPurokClearance(Request $request)
     {
         $query = ResidentRequest::with(['user', 'purok', 'purokApprover', 'barangayApprover'])
             ->orderBy('created_at', 'desc');
+
+        $viewer = Auth::user();
+        if ($viewer && $viewer->role === 'purok_leader') {
+            $query->where('purok_id', $viewer->purok_id);
+        }
         
         // If specific IDs are provided, filter by them
         if ($request->has('request_ids') && !empty($request->request_ids)) {
@@ -295,13 +362,19 @@ class ReportController extends Controller
 
         $query = ResidentRequest::with(['user', 'purok', 'purokApprover', 'barangayApprover'])
             ->orderBy('created_at', 'desc');
+
+        $viewer = Auth::user();
+        if ($viewer && $viewer->role === 'purok_leader') {
+            $query->where('purok_id', $viewer->purok_id);
+        }
         if (!empty($ids)) {
             $query->whereIn('id', $ids);
         }
-        $requests = $query->get();
 
-        $pdf = PDF::loadView('reports.pdf.purok-clearance', compact('requests'));
-        return $pdf->stream('purok-clearance-requests-' . now()->format('Y-m-d') . '.pdf');
+        $requests = $query->get();
+        $puroks = Purok::orderBy('name')->get();
+
+        return view('reports.preview.purok-clearance', compact('requests', 'puroks'));
     }
 
     /**

@@ -36,17 +36,13 @@
         </div>
         @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary']))
         <div class="flex flex-col sm:flex-row gap-2">
-            <form id="printForm" action="{{ route('reports.specific.residents') }}" method="POST" target="_blank" class="inline-flex items-center">
-                @csrf
-                <input type="hidden" name="resident_ids" id="selectedResidents">
-                <button type="button" id="printSelectedBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <button type="button" id="printSelectedBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-5 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
                     </svg>
                     Print Selected
-                </button>
-            </form>
-            <a href="{{ route('reports.residents') }}" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-5 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg">
+            </button>
+            <a href="{{ route('reports.pdf.residents') }}" target="_blank" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 px-5 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
                 </svg>
@@ -203,8 +199,6 @@
         const selectAllCheckbox = document.getElementById('selectAll');
         const residentCheckboxes = document.querySelectorAll('.resident-checkbox');
         const printSelectedBtn = document.getElementById('printSelectedBtn');
-        const selectedResidentsInput = document.getElementById('selectedResidents');
-        const printForm = document.getElementById('printForm');
 
         // Toggle select all checkboxes
         if (selectAllCheckbox) {
@@ -267,19 +261,12 @@
             }
         }
 
-        // Handle print form submission
-        if (printForm) {
-            printForm.addEventListener('submit', function(e) {
-                const selectedCheckboxes = document.querySelectorAll('.resident-checkbox:checked');
-                const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.value);
-                
-                if (selectedIds.length === 0) {
-                    e.preventDefault();
-                    return false;
-                }
-                
-                selectedResidentsInput.value = JSON.stringify(selectedIds);
-                return true;
+        if (printSelectedBtn) {
+            printSelectedBtn.addEventListener('click', function () {
+                const selectedIds = Array.from(document.querySelectorAll('.resident-checkbox:checked')).map(cb => cb.value);
+                if (selectedIds.length === 0) return;
+                const url = "{{ route('reports.pdf.residents') }}" + '?ids=' + selectedIds.join(',');
+                window.open(url, '_blank');
             });
         }
 

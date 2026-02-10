@@ -206,7 +206,7 @@ function toggleAllHistory(source) {
 }
 
 function printAllApprovalsHistory() {
-    const url = "{{ route('reports.preview.purok-clearance') }}";
+    const url = "{{ route('reports.pdf.purok-clearance') }}";
     window.open(url, '_blank');
 }
 
@@ -216,7 +216,7 @@ function printSelectedApprovalsHistory() {
         alert('Please select at least one request to preview.');
         return;
     }
-    const url = "{{ route('reports.preview.purok-clearance') }}" + '?ids=' + selected.join(',');
+    const url = "{{ route('reports.pdf.purok-clearance') }}" + '?ids=' + selected.join(',');
     window.open(url, '_blank');
 }
 

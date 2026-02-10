@@ -87,11 +87,15 @@ class Request extends Model
         static::updated(function ($request) {
             // Dispatch the event if status or purok_id was changed
             if ($request->isDirty('status') || $request->isDirty('purok_id')) {
-                event(new RequestStatusUpdated(
-                    $request,
-                    $request->purok_id,
-                    $request->status
-                ));
+                try {
+                    event(new RequestStatusUpdated(
+                        $request,
+                        $request->purok_id,
+                        $request->status
+                    ));
+                } catch (\Throwable $e) {
+                    \Log::warning('Broadcast failed (RequestStatusUpdated)', ['error' => $e->getMessage()]);
+                }
             }
         });
     }

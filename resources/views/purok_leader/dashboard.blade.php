@@ -190,8 +190,8 @@
             </a>
 
             <!-- Approved Requests Card -->
-            <a href="{{ route('purok_leader.dashboard', ['filter' => 'status', 'value' => 'approved']) }}"
-                class="block bg-white rounded-xl shadow-sm hover:shadow-lg p-6 transition-all duration-200 border-2 {{ isset($activeFilter) && $activeFilter['type'] == 'status' && $activeFilter['value'] == 'approved' ? 'border-green-500 bg-green-50' : 'border-transparent' }}">
+            <a href="{{ route('purok_leader.dashboard', ['status_filter' => 'purok_approved', 'form_type_filter' => $formTypeFilter ?? 'barangay_clearance']) }}"
+                class="block bg-white rounded-xl shadow-sm hover:shadow-lg p-6 transition-all duration-200 border-2 {{ ($statusFilter ?? 'all') == 'purok_approved' ? 'border-green-500 bg-green-50' : 'border-transparent' }}">
                 <div class="flex items-center">
                     <div class="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-md">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
@@ -200,8 +200,8 @@
                         </svg>
                     </div>
                     <div class="ml-4">
-                        <h3 class="text-gray-600 text-xs font-medium uppercase tracking-wide">Approved</h3>
-                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['approved_requests'] }}</p>
+                        <h3 class="text-gray-600 text-xs font-medium uppercase tracking-wide">Purok Approved</h3>
+                        <p class="text-2xl font-bold text-gray-900 mt-1">{{ $stats['purok_approved_requests'] }}</p>
                     </div>
                 </div>
             </a>
@@ -225,7 +225,7 @@
             </a>
 
             <!-- Total Residents Card -->
-            <a href="{{ route('purok_leader.residents') }}"
+            <a href="{{ route('purok_leader.resident_records.index') }}"
                 class="block bg-white rounded-xl shadow-sm hover:shadow-lg p-6 transition-all duration-200 border-2 border-transparent relative">
                 <div class="flex items-center">
                     <div class="p-3 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-md relative">
@@ -318,6 +318,21 @@
                             </span>
                         @endif
                     </h2>
+
+                    <div class="flex gap-2">
+                        <button type="button" onclick="plPrintAll()" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition ease-in-out duration-150">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                            </svg>
+                            Print All
+                        </button>
+                        <button type="button" id="plPrintSelectedBtn" onclick="plPrintSelected()" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition ease-in-out duration-150 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Print Selected
+                        </button>
+                    </div>
                 </div>
             </div>
             
@@ -370,6 +385,9 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
+                            <th scope="col" class="w-10 px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <input type="checkbox" id="plSelectAllRequests" class="rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50">
+                            </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Request ID
                             </th>
@@ -400,6 +418,9 @@
                                 $needsAction = $request->status === 'pending';
                             @endphp
                             <tr class="hover:bg-gray-50 transition-colors duration-150">
+                                <td class="px-2 py-4 text-center" onclick="event.stopPropagation()">
+                                    <input type="checkbox" class="pl-request-checkbox rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50" value="{{ $request->id }}">
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                     <div class="flex items-center gap-2">
                                         @if($needsAction)
@@ -487,7 +508,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-6 py-12 text-center">
+                                <td colspan="8" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center justify-center text-gray-400">
                                         <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -590,5 +611,49 @@
                 statusSelect.addEventListener('change', () => form.submit());
             }
         })();
+
+        function plSelectedRequestIds() {
+            return Array.from(document.querySelectorAll('.pl-request-checkbox:checked')).map(cb => cb.value);
+        }
+
+        function plUpdatePrintSelectedButton() {
+            const btn = document.getElementById('plPrintSelectedBtn');
+            if (!btn) return;
+            btn.disabled = plSelectedRequestIds().length === 0;
+        }
+
+        function plPrintAll() {
+            const url = "{{ route('reports.pdf.purok-clearance') }}";
+            window.open(url, '_blank');
+        }
+
+        function plPrintSelected() {
+            const selected = plSelectedRequestIds();
+            if (selected.length === 0) return;
+            const url = "{{ route('reports.pdf.purok-clearance') }}" + '?ids=' + selected.join(',');
+            window.open(url, '_blank');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAll = document.getElementById('plSelectAllRequests');
+            const boxes = Array.from(document.querySelectorAll('.pl-request-checkbox'));
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
+                    boxes.forEach(cb => cb.checked = selectAll.checked);
+                    plUpdatePrintSelectedButton();
+                });
+            }
+
+            boxes.forEach(cb => cb.addEventListener('change', function () {
+                if (selectAll) {
+                    selectAll.checked = boxes.length > 0 && boxes.every(x => x.checked);
+                    selectAll.indeterminate = boxes.some(x => x.checked) && !selectAll.checked;
+                }
+                plUpdatePrintSelectedButton();
+            }));
+
+            plUpdatePrintSelectedButton();
+        });
     </script>
 @endpush
