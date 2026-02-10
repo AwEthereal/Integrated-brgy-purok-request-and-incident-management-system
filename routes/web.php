@@ -474,7 +474,6 @@ if (config('features.public_forms')) {
         // Public Clearance
         Route::get('/clearance', [PublicClearanceController::class, 'create'])->name('clearance.create');
         Route::post('/clearance', [PublicClearanceController::class, 'store'])
-            ->middleware('throttle:5,60')
             ->name('clearance.store');
 
         // Public Incident

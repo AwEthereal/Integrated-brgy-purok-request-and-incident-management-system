@@ -173,6 +173,9 @@ class PurokLeaderController extends Controller
         $user = Auth::user()->load('purok');
         $purokId = $user->purok_id;
         $purokName = $user->purok ? $user->purok->name : 'Unknown Purok';
+
+        $purokApprovedStatuses = ['purok_approved', 'completed', 'approved'];
+        $approvedStatuses = ['purok_approved', 'barangay_approved', 'completed', 'approved'];
         
         // Get the filter from the request
         $filter = request()->query('filter');
@@ -201,9 +204,13 @@ class PurokLeaderController extends Controller
                     if ($filterValue === 'all') {
                         // Show all requests (no status filter)
                     } else if ($filterValue === 'approved') {
-                        $query->whereIn('status', ['purok_approved', 'barangay_approved']);
+                        $query->whereIn('status', $approvedStatuses);
                     } else if (in_array($filterValue, ['pending', 'rejected', 'cancelled', 'purok_approved', 'barangay_approved'])) {
-                        $query->where('status', $filterValue);
+                        if ($filterValue === 'purok_approved') {
+                            $query->whereIn('status', $purokApprovedStatuses);
+                        } else {
+                            $query->where('status', $filterValue);
+                        }
                     }
                     break;
                 case 'resident':
@@ -228,7 +235,9 @@ class PurokLeaderController extends Controller
         // Apply status filter
         if ($statusFilter && $statusFilter !== 'all') {
             if ($statusFilter === 'approved') {
-                $query->whereIn('status', ['purok_approved', 'barangay_approved']);
+                $query->whereIn('status', $approvedStatuses);
+            } else if ($statusFilter === 'purok_approved') {
+                $query->whereIn('status', $purokApprovedStatuses);
             } else {
                 $query->where('status', $statusFilter);
             }
@@ -290,21 +299,26 @@ class PurokLeaderController extends Controller
 
         $totalResidentsInPurok = $rbiLinkedUsersCount + $rbiUnlinkedCount + $residentUsersWithoutRbiCount;
 
+        $statsRequestsQuery = RequestModel::query()->where('purok_id', $purokId);
+        if ($formTypeFilter && $formTypeFilter !== 'all') {
+            $statsRequestsQuery->where('form_type', $formTypeFilter);
+        }
+
         $stats = [
-            'total_requests' => RequestModel::where('purok_id', $purokId)->count(),
-            'pending_requests' => RequestModel::where('purok_id', $purokId)
+            'total_requests' => (clone $statsRequestsQuery)->count(),
+            'pending_requests' => (clone $statsRequestsQuery)
                                         ->where('status', 'pending')
                                         ->count(),
-            'approved_requests' => RequestModel::where('purok_id', $purokId)
-                                        ->whereIn('status', ['purok_approved', 'barangay_approved'])
+            'approved_requests' => (clone $statsRequestsQuery)
+                                        ->whereIn('status', $approvedStatuses)
                                         ->count(),
-            'purok_approved_requests' => RequestModel::where('purok_id', $purokId)
-                                        ->where('status', 'purok_approved')
+            'purok_approved_requests' => (clone $statsRequestsQuery)
+                                        ->whereIn('status', $purokApprovedStatuses)
                                         ->count(),
-            'barangay_approved_requests' => RequestModel::where('purok_id', $purokId)
+            'barangay_approved_requests' => (clone $statsRequestsQuery)
                                         ->where('status', 'barangay_approved')
                                         ->count(),
-            'rejected_requests' => RequestModel::where('purok_id', $purokId)
+            'rejected_requests' => (clone $statsRequestsQuery)
                                         ->where('status', 'rejected')
                                         ->count(),
             'residents_count' => $totalResidentsInPurok,

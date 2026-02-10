@@ -190,7 +190,7 @@
             </a>
 
             <!-- Approved Requests Card -->
-            <a href="{{ route('purok_leader.dashboard', ['status_filter' => 'purok_approved', 'form_type_filter' => $formTypeFilter ?? 'barangay_clearance']) }}"
+            <a href="{{ '/' . ltrim(route('purok_leader.dashboard', ['status_filter' => 'purok_approved', 'form_type_filter' => $formTypeFilter ?? 'barangay_clearance'], false), '/') }}"
                 class="block bg-white rounded-xl shadow-sm hover:shadow-lg p-6 transition-all duration-200 border-2 {{ ($statusFilter ?? 'all') == 'purok_approved' ? 'border-green-500 bg-green-50' : 'border-transparent' }}">
                 <div class="flex items-center">
                     <div class="p-3 rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-white shadow-md">
