@@ -2118,3 +2118,8 @@
 [2026-02-11 07:51:27] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
 [2026-02-11 07:51:32] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
 [2026-02-11 07:53:32] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-11 07:53:56] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-11 07:54:01] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-11 07:54:04] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-11 07:54:06] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-11 07:54:06] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
