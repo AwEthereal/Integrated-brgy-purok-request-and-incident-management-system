@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\URL;
 use App\View\Components\Feedback\FeedbackPrompt;
 use App\Providers\BroadcastServiceProvider;
 
@@ -29,6 +30,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (!$this->app->runningInConsole()) {
+            try {
+                $root = request()->getSchemeAndHttpHost();
+                if (is_string($root) && $root !== '') {
+                    URL::forceRootUrl($root);
+                }
+            } catch (\Throwable $e) {
+            }
+        }
+
         // Register the feedback components
         \Blade::component('feedback-prompt', FeedbackPrompt::class);
         \Blade::component('feedback-form', \App\View\Components\FeedbackForm::class);
