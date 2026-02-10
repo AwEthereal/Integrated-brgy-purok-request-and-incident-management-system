@@ -147,7 +147,7 @@
                                 </a>
                             @endif
                         @else
-                            <a href="{{ route('public.landing') }}" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-medium">
+                            <a href="{{ '/' . ltrim(route('public.landing', [], false), '/') }}" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-medium">
                                 Public Services
                             </a>
                         @endif

@@ -17,7 +17,7 @@
     <h1 class="text-2xl md:text-3xl font-bold">Thank you!</h1>
     <p class="text-gray-600">Your submission was received. We will review it as soon as possible.</p>
     <div class="pt-2 flex flex-col sm:flex-row gap-3 justify-center">
-        <a href="{{ route('public.landing') }}" class="inline-flex items-center justify-center px-4 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Back to Public Services</a>
+        <a href="{{ '/' . ltrim(route('public.landing', [], false), '/') }}" class="inline-flex items-center justify-center px-4 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Back to Public Services</a>
         <a href="{{ url('/') }}" class="inline-flex items-center justify-center px-4 py-3 rounded-lg border border-gray-300 hover:bg-gray-50">Go to Homepage</a>
     </div>
 </div>

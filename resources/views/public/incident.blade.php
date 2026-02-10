@@ -17,7 +17,7 @@
                 <h1 class="text-2xl md:text-3xl font-bold">Report an Incident</h1>
                 <p class="text-red-100 mt-1">Share details so the barangay can take action.</p>
             </div>
-            <a href="{{ route('public.landing') }}" class="hidden sm:inline-flex items-center px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/40">
+            <a href="{{ '/' . ltrim(route('public.landing', [], false), '/') }}" class="hidden sm:inline-flex items-center px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-white/40">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
@@ -73,7 +73,7 @@
     @endif
 </div>
 
-<a href="{{ route('public.landing') }}" class="sm:hidden fixed left-4 bottom-4 z-40 inline-flex items-center px-4 py-3 rounded-full bg-white shadow-lg border border-gray-200 text-gray-700 active:bg-gray-50">
+<a href="{{ '/' . ltrim(route('public.landing', [], false), '/') }}" class="sm:hidden fixed left-4 bottom-4 z-40 inline-flex items-center px-4 py-3 rounded-full bg-white shadow-lg border border-gray-200 text-gray-700 active:bg-gray-50">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
     </svg>

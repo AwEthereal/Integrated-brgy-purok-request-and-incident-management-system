@@ -732,13 +732,12 @@
 
             <!-- Submit Section -->
             <div class="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4 md:pt-6">
-                <a href="{{ (isset($publicMode) && $publicMode) ? route('public.landing') : route('dashboard') }}"
+                <a href="{{ (isset($publicMode) && $publicMode) ? route('public.landing', [], false) : route('dashboard') }}"
                     class="w-full sm:w-1/2 text-center bg-gray-200 text-gray-700 py-3 md:py-4 px-4 md:px-6 rounded-lg font-semibold hover:bg-gray-300 transition flex items-center justify-center gap-2 text-sm md:text-base">
                     <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
-                    <span class="hidden sm:inline">{{ (isset($publicMode) && $publicMode) ? 'Back to Public Services' : 'Back to Dashboard' }}</span>
-                    <span class="sm:hidden">Back</span>
+                    Back
                 </a>
                 <button type="submit" id="submit-button"
                     class="w-full sm:w-1/2 bg-green-600 text-white py-3 md:py-4 px-4 md:px-6 rounded-lg font-semibold hover:bg-green-700 active:bg-green-800 transition flex items-center justify-center gap-2 shadow-lg text-sm md:text-base">

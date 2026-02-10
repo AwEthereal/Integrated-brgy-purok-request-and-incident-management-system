@@ -158,7 +158,7 @@
         </div>
 
         <div class="grid grid-cols-2 gap-3 md:gap-4 pt-2 md:pt-0 sm:flex sm:items-center sm:justify-start">
-            <a href="{{ route('public.landing') }}" class="inline-flex items-center justify-center w-full sm:w-auto bg-white text-gray-700 py-2.5 md:py-3 px-5 md:px-6 rounded-lg font-semibold border border-gray-300 hover:bg-gray-50 active:bg-gray-100 transition shadow-sm text-base min-h-[42px]">
+            <a href="{{ '/' . ltrim(route('public.landing', [], false), '/') }}" class="inline-flex items-center justify-center w-full sm:w-auto bg-white text-gray-700 py-2.5 md:py-3 px-5 md:px-6 rounded-lg font-semibold border border-gray-300 hover:bg-gray-50 active:bg-gray-100 transition shadow-sm text-base min-h-[42px]">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
