@@ -123,18 +123,22 @@
 <body>
     <div class="header">
         <div class="warning-icon">⚠️</div>
-        <h1>Clearance Request Update</h1>
+        <h1>Purok Clearance Request Update</h1>
         <p style="margin: 10px 0 0 0;">Action required on your purok clearance request</p>
     </div>
 
     <div class="content">
-        <p>Dear <strong>{{ $request->user->full_name }}</strong>,</p>
+        @php
+            $residentName = optional($request->user)->name ?? ($request->requester_name ?? 'Resident');
+            $docLabel = \App\Models\Request::FORM_TYPES[$request->form_type] ?? ucfirst(str_replace('_', ' ', $request->form_type ?? 'Document'));
+        @endphp
+        <p>Dear <strong>{{ $residentName }}</strong>,</p>
 
-        <p>We regret to inform you that your purok clearance request requires attention and could not be processed as submitted.</p>
+        <p>We regret to inform you that your purok clearance request has been rejected. Please submit the correct information or visit your Purok leader for more information.</p>
 
         <div style="background: #fee2e2; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #ef4444; text-align: center;">
             <h2 style="margin: 0; color: #991b1b; font-size: 20px;">
-                📄 {{ ucfirst(str_replace('_', ' ', $request->document_type)) }}
+                📄 {{ $docLabel }}
             </h2>
             <p style="margin: 10px 0 0 0; color: #b91c1c; font-size: 16px;">
                 <strong>Purpose:</strong> {{ $request->purpose }}
@@ -149,7 +153,7 @@
             </div>
             <div class="info-row">
                 <span class="info-label">Document Type:</span>
-                <span class="info-value"><strong>{{ ucfirst(str_replace('_', ' ', $request->document_type)) }}</strong></span>
+                <span class="info-value"><strong>Purok Clearance</strong></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Purpose:</span>
@@ -157,7 +161,7 @@
             </div>
             <div class="info-row">
                 <span class="info-label">Status:</span>
-                <span class="info-value"><span class="status-badge">Requires Attention</span></span>
+                <span class="info-value"><span class="status-badge">Rejected</span></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Reviewed By:</span>
@@ -180,7 +184,7 @@
         <p>Please visit the Barangay Hall during office hours to:</p>
         <ul>
             <li>Discuss the concerns with your request</li>
-            <li>Provide additional information or documents if needed</li>
+            <li>Contact your Purok leader for more information.</li>
             <li>Resubmit your request with the necessary corrections</li>
         </ul>
 
@@ -192,10 +196,6 @@
             <strong>Office Hours:</strong><br>
             Monday - Friday: 8:00 AM - 5:00 PM<br>
             Saturday: 8:00 AM - 12:00 PM
-        </p>
-
-        <p style="background: #eff6ff; padding: 15px; border-radius: 6px; border-left: 4px solid #3b82f6;">
-            <strong>💡 Tip:</strong> You can submit a new request anytime through your account dashboard.
         </p>
     </div>
 

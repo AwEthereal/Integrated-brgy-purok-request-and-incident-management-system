@@ -113,17 +113,20 @@
                                 @endif
                                 
                                 <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                    <div class="flex items-center truncate">
-                                        <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                        </svg>
-                                        <span class="truncate">{{ $announcement->creator->name }}</span>
-                                    </div>
-                                    <div class="flex items-center ml-2 flex-shrink-0">
-                                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <span>{{ $announcement->created_at->format('M d') }}</span>
+                                    <a href="{{ url('/public/announcements/'.$announcement->id) }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium">View announcement</a>
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex items-center max-w-[12rem]">
+                                            <svg class="w-3 h-3 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                            </svg>
+                                            <span class="truncate">{{ $announcement->creator->name }}</span>
+                                        </div>
+                                        <div class="flex items-center flex-shrink-0">
+                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span>{{ $announcement->created_at->format('M d') }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

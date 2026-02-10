@@ -14,6 +14,22 @@ use Illuminate\Support\Str;
 class IncidentReportController extends Controller
 {
 
+    private function safeRedirectTo(?string $redirectTo): ?string
+    {
+        if (!is_string($redirectTo) || trim($redirectTo) === '') {
+            return null;
+        }
+        $redirectTo = trim($redirectTo);
+        if (str_starts_with($redirectTo, '/')) {
+            return $redirectTo;
+        }
+        if (str_starts_with($redirectTo, url('/'))) {
+            return $redirectTo;
+        }
+        return null;
+    }
+
+
     // Resident submits incident report
     public function store(Request $request)
     {
@@ -38,6 +54,7 @@ class IncidentReportController extends Controller
         
         $request->validate([
             'incident_type' => 'required|in:' . implode(',', array_keys(IncidentReport::TYPES)),
+            'incident_type_other' => 'nullable|string|max:100',
             'description' => 'required|string',
             'photo_data' => 'nullable|string', // base64 string (first photo for backward compatibility)
             'photos_data' => 'nullable|string', // JSON array of base64 strings
@@ -127,6 +144,7 @@ class IncidentReportController extends Controller
         $incident->user_id = auth()->id();
         $incident->purok_id = auth()->user()->purok_id ?? null;
         $incident->incident_type = $request->incident_type;
+        $incident->incident_type_other = $request->incident_type === 'other' ? ($request->incident_type_other ?: null) : null;
         $incident->description = $request->description;
         $incident->photo_path = $photoPath;
         $incident->photo_paths = !empty($photoPaths) ? $photoPaths : null;
@@ -273,9 +291,10 @@ class IncidentReportController extends Controller
     }
 
     // Staff views a specific report
-    public function show($id)
+    public function show(Request $request, $id)
     {
         $report = IncidentReport::with(['user', 'purok'])->findOrFail($id);
+        $redirectTo = $this->safeRedirectTo((string) $request->query('redirect_to', ''));
         
         // Check if the authenticated user is an admin or barangay official
         if (in_array(auth()->user()->role, ['admin', 'barangay_kagawad', 'barangay_captain', 'secretary', 'sk_chairman'])) {
@@ -286,11 +305,11 @@ class IncidentReportController extends Controller
                 $report->refresh();
             }
             
-            return view('admin.incidents.show', compact('report'));
+            return view('admin.incidents.show', compact('report', 'redirectTo'));
         }
         
         // For residents, show the resident view
-        return view('resident.incidents.show', compact('report'));
+        return view('resident.incidents.show', compact('report', 'redirectTo'));
     }
 
     // Staff updates status or adds notes
@@ -311,7 +330,9 @@ class IncidentReportController extends Controller
 
         // Send email notification if status changed
         if ($oldStatus !== $request->status) {
-            $report->user->notify(new \App\Notifications\IncidentReportStatusNotification($report, $oldStatus, $request->status));
+            if ($report->user) {
+                $report->user->notify(new \App\Notifications\IncidentReportStatusNotification($report, $oldStatus, $request->status));
+            }
         }
 
         return back()->with('success', 'Report updated and notification sent to resident.');
@@ -353,11 +374,13 @@ class IncidentReportController extends Controller
         $oldStatus = $incidentReport->status;
         $incidentReport->update([
             'status' => IncidentReport::STATUS_IN_PROGRESS,
-            'staff_notes' => $incidentReport->staff_notes . "\n\nMarked as In Progress by " . auth()->user()->name . " on " . now()->toDateTimeString(),
+            'staff_notes' => ($incidentReport->staff_notes ?? '') . "\n\nMarked as In Progress by " . auth()->user()->name . " on " . now()->toDateTimeString(),
         ]);
 
         // Send notification to resident
-        $incidentReport->user->notify(new \App\Notifications\IncidentReportStatusNotification($incidentReport, $oldStatus, IncidentReport::STATUS_IN_PROGRESS));
+        if ($incidentReport->user) {
+            $incidentReport->user->notify(new \App\Notifications\IncidentReportStatusNotification($incidentReport, $oldStatus, IncidentReport::STATUS_IN_PROGRESS));
+        }
 
         return back()->with('success', 'Incident report marked as In Progress');
     }
@@ -374,11 +397,13 @@ class IncidentReportController extends Controller
             'status' => IncidentReport::STATUS_RESOLVED,
             'resolved_at' => now(),
             'resolved_by' => auth()->id(),
-            'staff_notes' => $incidentReport->staff_notes . "\n\nMarked as Resolved by " . auth()->user()->name . " on " . now()->toDateTimeString(),
+            'staff_notes' => ($incidentReport->staff_notes ?? '') . "\n\nMarked as Resolved by " . auth()->user()->name . " on " . now()->toDateTimeString(),
         ]);
 
         // Send notification to resident
-        $incidentReport->user->notify(new \App\Notifications\IncidentReportStatusNotification($incidentReport, $oldStatus, IncidentReport::STATUS_RESOLVED));
+        if ($incidentReport->user) {
+            $incidentReport->user->notify(new \App\Notifications\IncidentReportStatusNotification($incidentReport, $oldStatus, IncidentReport::STATUS_RESOLVED));
+        }
 
         return back()->with('success', 'Incident report marked as Resolved');
     }
@@ -438,7 +463,9 @@ class IncidentReportController extends Controller
         ]);
 
         // Send notification to resident
-        $incidentReport->user->notify(new \App\Notifications\IncidentReportStatusNotification($incidentReport, $oldStatus, IncidentReport::STATUS_REJECTED));
+        if ($incidentReport->user) {
+            $incidentReport->user->notify(new \App\Notifications\IncidentReportStatusNotification($incidentReport, $oldStatus, IncidentReport::STATUS_REJECTED));
+        }
 
         return back()->with('success', 'Incident report rejected and notification sent to resident');
     }

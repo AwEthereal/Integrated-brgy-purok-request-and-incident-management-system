@@ -36,7 +36,7 @@
                     <svg class="w-5 h-5 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
-                    <p class="text-sm text-green-600 dark:text-green-400">{{ session('success') }}</p>
+                    <p class="text-sm text-black dark:text-dark">{{ session('success') }}</p>
                 </div>
             </div>
         @endif

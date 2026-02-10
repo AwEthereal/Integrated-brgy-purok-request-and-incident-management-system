@@ -137,10 +137,12 @@
                 <td>{{ $resident->address ?? 'N/A' }}</td>
                 <td>{{ $resident->purok->name ?? 'N/A' }}</td>
                 <td>{{ $resident->contact_number ?? 'N/A' }}</td>
-                <td>{{ $resident->birth_date ? \Carbon\Carbon::parse($resident->birth_date)->format('M j, Y') : 'N/A' }}</td>
-                <td class="text-center">{{ $resident->birth_date ? \Carbon\Carbon::parse($resident->birth_date)->age : 'N/A' }}</td>
+                @php($dob = $resident->birth_date ?? ($resident->date_of_birth ?? null))
+                <td>{{ $dob ? \Carbon\Carbon::parse($dob)->format('M j, Y') : 'N/A' }}</td>
+                <td class="text-center">{{ $dob ? \Carbon\Carbon::parse($dob)->age : 'N/A' }}</td>
                 <td>{{ $resident->civil_status ?? 'N/A' }}</td>
-                <td>{{ $resident->gender ?? 'N/A' }}</td>
+                @php($gender = $resident->gender ?? ($resident->sex ?? null))
+                <td>{{ $gender ?? 'N/A' }}</td>
             </tr>
             @endforeach
         </tbody>

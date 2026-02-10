@@ -34,8 +34,7 @@
                     <h3 class="text-2xl font-bold text-gray-800 mb-3">Office Address</h3>
                     <p class="text-xl text-gray-700 leading-relaxed">
                         Barangay Kalawag Dos<br>
-                        Pasig City, Metro Manila<br>
-                        Philippines
+                        Sangguniang Pambarangay ng Kalawag Ⅱ, General Siongco Street, Kalawag II, Isulan, Sultan Kudarat
                     </p>
                 </div>
             </div>

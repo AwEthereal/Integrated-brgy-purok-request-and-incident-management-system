@@ -135,13 +135,17 @@
     </div>
 
     <div class="content">
-        <p>Dear <strong>{{ $request->user->full_name }}</strong>,</p>
+        @php
+            $residentName = optional($request->user)->name ?? ($request->requester_name ?? 'Resident');
+            $docLabel = \App\Models\Request::FORM_TYPES[$request->form_type] ?? ucfirst(str_replace('_', ' ', $request->form_type ?? 'Document'));
+        @endphp
+        <p>Dear <strong>{{ $residentName }}</strong>,</p>
 
         <p>This is to inform you that the status of your purok clearance request has been updated.</p>
 
         <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #3b82f6; text-align: center;">
             <h2 style="margin: 0; color: #1e40af; font-size: 20px;">
-                📄 {{ ucfirst(str_replace('_', ' ', $request->document_type)) }}
+                📄 {{ $docLabel }}
             </h2>
             <p style="margin: 10px 0 0 0; color: #1e3a8a; font-size: 16px;">
                 <strong>Purpose:</strong> {{ $request->purpose }}
@@ -165,7 +169,7 @@
             </div>
             <div class="info-row">
                 <span class="info-label">Document Type:</span>
-                <span class="info-value"><strong>{{ ucfirst(str_replace('_', ' ', $request->document_type)) }}</strong></span>
+                <span class="info-value"><strong>{{ $docLabel }}</strong></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Purpose:</span>

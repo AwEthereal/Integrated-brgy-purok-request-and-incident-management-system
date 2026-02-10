@@ -14,6 +14,13 @@ use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\PublicSubmission\PublicClearanceController;
+use App\Http\Controllers\PublicSubmission\PublicIncidentController;
+use App\Models\Announcement;
+use App\Http\Controllers\Secretary\PurokLeaderAccountController;
+use App\Http\Controllers\Captain\SecretaryAccountController;
+
+use App\Http\Controllers\FeedbackController;
 
 // ============================================
 // KIOSK ROUTES (Public - No Authentication)
@@ -30,6 +37,19 @@ Route::prefix('kiosk')->name('kiosk.')->group(function () {
     Route::get('/reset', [KioskController::class, 'reset'])->name('reset');
 });
 
+// Secretary/Barangay Official - View Purok Clearance Document (read-only view page)
+Route::middleware(['auth','checkrole:secretary,barangay_captain,barangay_kagawad,admin'])->group(function () {
+    Route::get('/official/requests/{request}/document', [\App\Http\Controllers\Pdf\PurokClearanceDocumentController::class, 'officialView'])
+        ->name('official.clearance.view');
+
+    Route::get('/official/requests/{request}/document/preview', [\App\Http\Controllers\Pdf\PurokClearanceDocumentController::class, 'officialPreview'])
+        ->name('official.clearance.preview');
+    Route::post('/official/requests/{request}/document/draft', [\App\Http\Controllers\Pdf\PurokClearanceDocumentController::class, 'officialUpdateDraft'])
+        ->name('official.clearance.draft');
+    Route::post('/official/requests/{request}/document/finalize', [\App\Http\Controllers\Pdf\PurokClearanceDocumentController::class, 'officialFinalize'])
+        ->name('official.clearance.finalize');
+});
+
 // Welcome page
 Route::get('/', function () {
     return view('welcome');
@@ -39,6 +59,11 @@ Route::get('/', function () {
 Route::post('/feedback/submit', [\App\Http\Controllers\FeedbackController::class, 'submit'])
     ->name('feedback.submit')
     ->middleware('auth');
+
+// CSM / General feedback form
+Route::get('/feedback/general', [FeedbackController::class, 'general'])
+    ->middleware('auth')
+    ->name('feedback.general');
 
 // ============================================
 // Email Verification Routes
@@ -110,11 +135,6 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckResidentApprove
     Route::put('/requests/{request}', [RequestController::class, 'update'])->name('requests.update');
     Route::delete('/requests/{request}', [RequestController::class, 'destroy'])->name('requests.destroy');
     Route::get('/my-requests', [RequestController::class, 'myRequests'])->name('requests.my_requests');
-    
-    // Other routes that require an approved account
-    Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])
-        ->middleware('throttle:10,60') // 10 feedback submissions per hour
-        ->name('feedback.store');
 });
 
 // Incident Reports - Accessible to all authenticated users
@@ -143,12 +163,12 @@ Route::middleware('auth')->group(function () {
     // Password update routes
     Route::get('/profile/password', [ProfileController::class, 'edit'])->name('profile.password.edit');
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
-    
-    // Feedback routes
-    Route::get('/feedback/{type}/{id}', [\App\Http\Controllers\FeedbackController::class, 'showFeedbackForm'])
-        ->name('feedback.show');
-    Route::post('/feedback/skip', [\App\Http\Controllers\FeedbackController::class, 'skip'])
-        ->name('feedback.skip');
+});
+
+// Analytics endpoints for dashboards
+Route::middleware('auth')->prefix('analytics')->group(function () {
+    Route::get('/clearances', [\App\Http\Controllers\DashboardAnalyticsController::class, 'clearances'])->name('analytics.clearances');
+    Route::get('/incidents', [\App\Http\Controllers\DashboardAnalyticsController::class, 'incidents'])->name('analytics.incidents');
 });
 
 // Purok Leader Dashboard
@@ -195,6 +215,32 @@ Route::prefix('purok-leader')->middleware(['auth', PurokLeaderMiddleware::class]
         Route::post('/reject', [\App\Http\Controllers\PurokLeader\PurokResidentController::class, 'reject'])
             ->name('purok_leader.residents.reject');
     });
+
+    // Purok Clearance Document (View/Preview/Edit/Finalize)
+    Route::get('/requests/{request}/document', [\App\Http\Controllers\Pdf\PurokClearanceDocumentController::class, 'view'])
+        ->name('purok_leader.clearance.view');
+    Route::get('/requests/{request}/document/preview', [\App\Http\Controllers\Pdf\PurokClearanceDocumentController::class, 'preview'])
+        ->name('purok_leader.clearance.preview');
+    Route::post('/requests/{request}/document/draft', [\App\Http\Controllers\Pdf\PurokClearanceDocumentController::class, 'updateDraft'])
+        ->name('purok_leader.clearance.draft');
+    Route::post('/requests/{request}/document/finalize', [\App\Http\Controllers\Pdf\PurokClearanceDocumentController::class, 'finalize'])
+        ->name('purok_leader.clearance.finalize');
+
+    // Resident Records (RBI Form B) CRUD moved to a broader access group below
+});
+
+// Resident Records (RBI Form B) CRUD - accessible to leaders, secretary, barangay officials, and admin
+Route::prefix('purok-leader')->middleware(['auth','checkrole:purok_leader,secretary,barangay_captain,barangay_kagawad,admin'])->group(function () {
+    Route::prefix('resident-records')->name('purok_leader.resident_records.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PurokLeader\ResidentRecordController::class, 'index'])->name('index');
+        Route::get('/create', [\App\Http\Controllers\PurokLeader\ResidentRecordController::class, 'create'])->name('create');
+        Route::post('/', [\App\Http\Controllers\PurokLeader\ResidentRecordController::class, 'store'])->name('store');
+        Route::get('/{record}/pdf', [\App\Http\Controllers\PurokLeader\ResidentRecordController::class, 'pdf'])->name('pdf');
+        Route::get('/{record}/edit', [\App\Http\Controllers\PurokLeader\ResidentRecordController::class, 'edit'])->name('edit');
+        Route::put('/{record}', [\App\Http\Controllers\PurokLeader\ResidentRecordController::class, 'update'])->name('update');
+        Route::delete('/{record}', [\App\Http\Controllers\PurokLeader\ResidentRecordController::class, 'destroy'])->name('destroy');
+        Route::get('/{record}', [\App\Http\Controllers\PurokLeader\ResidentRecordController::class, 'show'])->name('show');
+    });
 });
 
 // Update request status (approve/reject)
@@ -225,6 +271,15 @@ Route::prefix('reports')->middleware(['auth'])->group(function () {
     Route::get('/residents', [\App\Http\Controllers\ReportController::class, 'residents'])
         ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
         ->name('reports.residents');
+    // HTML preview for residents (all or selected via ?ids=1,2,3)
+    Route::get('/preview/residents', [\App\Http\Controllers\ReportController::class, 'previewResidents'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.preview.residents');
+
+    // RBI Residents PDF preview (all or selected via ?ids=1,2,3)
+    Route::get('/preview/residents-rbi', [\App\Http\Controllers\ReportController::class, 'previewResidentsRbi'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.preview.residents-rbi');
     
     // View resident profile from reports
     Route::get('/residents/{user}', [\App\Http\Controllers\ReportController::class, 'showResident'])
@@ -234,6 +289,10 @@ Route::prefix('reports')->middleware(['auth'])->group(function () {
     Route::get('/purok-leaders', [\App\Http\Controllers\ReportController::class, 'purokLeaders'])
         ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
         ->name('reports.purok-leaders');
+    // HTML preview for purok leaders (all or selected via ?ids=1,2,3)
+    Route::get('/preview/purok-leaders', [\App\Http\Controllers\ReportController::class, 'previewPurokLeaders'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.preview.purok-leaders');
     
     // View purok leader profile from reports
     Route::get('/purok-leaders/{user}', [\App\Http\Controllers\ReportController::class, 'showLeader'])
@@ -241,12 +300,20 @@ Route::prefix('reports')->middleware(['auth'])->group(function () {
         ->name('reports.purok-leaders.show');
         
     Route::get('/purok-clearance', [\App\Http\Controllers\ReportController::class, 'purokClearance'])
-        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,purok_president,admin')
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,purok_leader,admin')
         ->name('reports.purok-clearance');
+    // HTML preview for purok clearance report (all or selected via ?ids=1,2,3)
+    Route::get('/preview/purok-clearance', [\App\Http\Controllers\ReportController::class, 'previewPurokClearance'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,purok_leader,admin')
+        ->name('reports.preview.purok-clearance');
         
     Route::get('/incident-reports', [\App\Http\Controllers\ReportController::class, 'incidentReports'])
         ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
         ->name('reports.incident-reports');
+    // HTML preview for incident reports (all or selected via ?ids=1,2,3)
+    Route::get('/preview/incident-reports', [\App\Http\Controllers\ReportController::class, 'previewIncidentReports'])
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,admin')
+        ->name('reports.preview.incident-reports');
     
     // Download reports
     Route::post('/download/residents', [\App\Http\Controllers\ReportController::class, 'downloadResidents'])
@@ -258,7 +325,7 @@ Route::prefix('reports')->middleware(['auth'])->group(function () {
         ->name('reports.download.purok-leaders');
         
     Route::post('/download/purok-clearance', [\App\Http\Controllers\ReportController::class, 'downloadPurokClearance'])
-        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,purok_president,admin')
+        ->middleware('checkrole:barangay_captain,barangay_kagawad,secretary,purok_leader,admin')
         ->name('reports.download.purok-clearance');
         
     Route::post('/download/incident-reports', [\App\Http\Controllers\ReportController::class, 'downloadIncidentReports'])
@@ -271,9 +338,12 @@ Route::middleware('auth')->group(function () {
     // Purok Leader Routes
     Route::middleware(['can:viewPendingPurok,App\Models\Request', PurokLeaderMiddleware::class])->group(function () {
         Route::get('/requests/pending/purok', [RequestController::class, 'pendingPurok'])->name('requests.pending-purok');
-        Route::post('/requests/{request}/approve-purok', [RequestController::class, 'approvePurok'])->name('requests.approve-purok');
         Route::put('/requests/{request}/update-private-notes', [RequestController::class, 'updatePrivateNotes'])->name('requests.update-private-notes');
     });
+
+    Route::post('/requests/{request}/approve-purok', [RequestController::class, 'approvePurok'])
+        ->middleware('can:approvePurok,request')
+        ->name('requests.approve-purok');
 
     // Reject route for both purok leaders and barangay officials
     Route::post('/requests/{request}/reject', [RequestController::class, 'reject'])
@@ -310,20 +380,109 @@ Route::middleware('auth')->group(function () {
     });
 
     // This route is already using {id} which matches the controller method
-    Route::get('/reverse-geocode', [GeocodingController::class, 'reverse']);
-    Route::post('/feedback/skip', [\App\Http\Controllers\FeedbackController::class, 'skip'])
-        ->name('feedback.skip');
+    Route::get('/reverse-geocode', [GeocodingController::class, 'reverseGeocode']);
 });
 
 // ============================================
 // Admin Routes
 // ============================================
-Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'checkrole:barangay_captain,admin,barangay_kagawad'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::post('purge-data', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'purgeData'])
+        ->middleware('checkrole:barangay_captain,admin')
+        ->name('purge-data');
     Route::get('users', [UserManagementController::class, 'index'])->name('users.index');
     Route::get('users/{user}', [UserManagementController::class, 'show'])->name('users.show');
     Route::get('users/{user}/edit', [UserManagementController::class, 'edit'])->name('users.edit');
     Route::put('users/{user}', [UserManagementController::class, 'update'])->name('users.update');
 });
+
+// Secretary: Manage Purok Leader accounts
+Route::middleware(['auth', 'checkrole:secretary,barangay_captain,admin'])
+    ->prefix('secretary/purok-leaders')
+    ->name('secretary.purok-leaders.')
+    ->group(function () {
+        Route::get('/', [PurokLeaderAccountController::class, 'index'])->name('index');
+        Route::get('/create', [PurokLeaderAccountController::class, 'create'])->name('create');
+        Route::post('/', [PurokLeaderAccountController::class, 'store'])->name('store');
+        Route::get('/{purok_leader}/edit', [PurokLeaderAccountController::class, 'edit'])->name('edit');
+        Route::get('/{purok_leader}/personal-info', [PurokLeaderAccountController::class, 'editPersonalInfo'])->name('personal-info.edit');
+        Route::put('/{purok_leader}/personal-info', [PurokLeaderAccountController::class, 'updatePersonalInfo'])->name('personal-info.update');
+        Route::put('/{purok_leader}', [PurokLeaderAccountController::class, 'update'])->name('update');
+        Route::delete('/{purok_leader}', [PurokLeaderAccountController::class, 'destroy'])->name('destroy');
+    });
+
+// Barangay Captain: Manage Secretary and similar official accounts
+Route::middleware(['auth', 'checkrole:barangay_captain,admin'])
+    ->prefix('captain/secretaries')
+    ->name('captain.secretaries.')
+    ->group(function () {
+        Route::get('/', [SecretaryAccountController::class, 'index'])->name('index');
+        Route::get('/create', [SecretaryAccountController::class, 'create'])->name('create');
+        Route::post('/', [SecretaryAccountController::class, 'store'])->name('store');
+        Route::get('/{secretary}/edit', [SecretaryAccountController::class, 'edit'])->name('edit');
+        Route::put('/{secretary}', [SecretaryAccountController::class, 'update'])->name('update');
+        Route::delete('/{secretary}', [SecretaryAccountController::class, 'destroy'])->name('destroy');
+    });
+
+// Legacy aliases for old superadmin URL
+Route::middleware(['auth'])->group(function () {
+    Route::get('/superadmin', function () {
+        return redirect()->route('admin.dashboard');
+    })->name('superadmin.redirect');
+    Route::get('/superadmin/dashboard', function () {
+        return redirect()->route('admin.dashboard');
+    })->name('superadmin.dashboard');
+});
+
+// ============================================
+// Public Submission Routes (feature-flagged)
+// ============================================
+if (config('features.public_forms')) {
+    Route::prefix('public')->name('public.')->group(function () {
+        // Landing page for public services
+        Route::get('/', function () {
+            $announcements = Announcement::active()
+                ->published()
+                ->with('creator')
+                ->orderBy('is_featured', 'desc')
+                ->orderBy('priority', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->limit(6)
+                ->get();
+            return view('public.landing', compact('announcements'));
+        })->name('landing');
+
+        // Public Announcements (dedicated pages; no kiosk redirect)
+        Route::get('/announcements', [\App\Http\Controllers\AnnouncementPublicController::class, 'publicIndex'])
+            ->name('announcements.index');
+        Route::get('/announcements/{announcement}', [\App\Http\Controllers\AnnouncementPublicController::class, 'publicShow'])
+            ->name('announcements.show');
+
+        // Public Clearance
+        Route::get('/clearance', [PublicClearanceController::class, 'create'])->name('clearance.create');
+        Route::post('/clearance', [PublicClearanceController::class, 'store'])
+            ->middleware('throttle:5,60')
+            ->name('clearance.store');
+
+        // Public Incident
+        Route::get('/incident', [PublicIncidentController::class, 'create'])->name('incident.create');
+        Route::post('/incident', [PublicIncidentController::class, 'store'])
+            ->middleware('throttle:10,60')
+            ->name('incident.store');
+
+        // Public Feedback
+        Route::get('/feedback', [\App\Http\Controllers\FeedbackController::class, 'publicGeneral'])
+            ->name('feedback.general');
+        Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])
+            ->middleware('throttle:10,60')
+            ->name('feedback.store');
+
+        // Thank You page
+        Route::get('/thanks', function () {
+            return view('public.thanks');
+        })->name('thanks');
+    });
+}
 
 require __DIR__ . '/auth.php';

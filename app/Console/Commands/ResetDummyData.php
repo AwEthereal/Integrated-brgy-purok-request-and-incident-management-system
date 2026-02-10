@@ -48,7 +48,7 @@ class ResetDummyData extends Command
             [
                 ['Dummy Users', $dummyUsersCount],
                 ['  - Barangay Officials', User::where('is_dummy', true)->whereIn('role', ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman'])->count()],
-                ['  - Purok Presidents', User::where('is_dummy', true)->where('role', 'purok_president')->count()],
+                ['  - Purok Leaders', User::where('is_dummy', true)->where('role', 'purok_leader')->count()],
                 ['  - Residents', User::where('is_dummy', true)->where('role', 'resident')->count()],
             ]
         );

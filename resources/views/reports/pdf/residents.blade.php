@@ -79,10 +79,12 @@
                 <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ $resident->first_name }} {{ $resident->middle_name }} {{ $resident->last_name }}</td>
-                    <td>{{ ucfirst($resident->gender) }}</td>
+                    @php($gender = $resident->gender ?? ($resident->sex ?? null))
+                    <td>{{ $gender ? ucfirst($gender) : 'N/A' }}</td>
                     <td>{{ format_label($resident->civil_status) }}</td>
-                    <td>{{ $resident->birth_date ? $resident->birth_date->format('M d, Y') : 'N/A' }}</td>
-                    <td>{{ $resident->birth_date ? $resident->birth_date->age . ' yrs' : 'N/A' }}</td>
+                    @php($dob = $resident->birth_date ?? ($resident->date_of_birth ?? null))
+                    <td>{{ $dob ? \Carbon\Carbon::parse($dob)->format('M d, Y') : 'N/A' }}</td>
+                    <td>{{ $dob ? \Carbon\Carbon::parse($dob)->age . ' yrs' : 'N/A' }}</td>
                     <td>
                         {{ $resident->purok->name ?? 'N/A' }}<br>
                         <small>{{ $resident->address }}</small>

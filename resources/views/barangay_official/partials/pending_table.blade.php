@@ -27,7 +27,7 @@
         </thead>
         <tbody class="bg-gray-900 divide-y divide-gray-700">
             @forelse($requests as $request)
-                <tr class="hover:bg-gray-800">
+                <tr class="hover:bg-gray-800" data-purok-id="{{ $request->purok_id }}" data-status="{{ $request->status }}">
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-white font-mono">
                         #{{ str_pad($request->id, 2, '0', STR_PAD_LEFT) }}
                     </td>

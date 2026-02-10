@@ -167,32 +167,29 @@
                                 </thead>
                                 <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                                     @foreach ($reports as $report)
-                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onclick="window.location='{{ route('incident_reports.show', $report) }}'">
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onclick="window.location='{{ route('incident_reports.show', ['id' => $report->id, 'redirect_to' => url()->full()]) }}'">
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
                                                 #{{ str_pad($report->id, 2, '0', STR_PAD_LEFT) }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-medium">
-                                                {{ format_label($report->incident_type) }}
+                                                {{ $report->incident_type === 'other' ? ($report->incident_type_other ?? 'Other') : (\App\Models\IncidentReport::TYPES[$report->incident_type] ?? format_label($report->incident_type)) }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                                {{ $report->user->name }}
+                                                @php($reportedBy = $report->reporter_name ?? (optional($report->user)->full_name ?: optional($report->user)->name))
+                                                {{ $reportedBy ?: ($report->is_anonymous ? 'Anonymous' : 'N/A') }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                                {{ $report->purok->name ?? 'N/A' }}
+                                                {{ $report->purok->name ?? optional(optional($report->user)->purok)->name ?? 'N/A' }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                @php
-                                                    $statusColors = [
-                                                        'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-                                                        'in_progress' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-                                                        'resolved' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-                                                        'approved' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300', // Backward compatibility
-                                                        'rejected' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-                                                        'invalid' => 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
-                                                    ];
-                                                    $statusClass = $statusColors[$report->status] ?? 'bg-gray-100 text-gray-800';
-                                                @endphp
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClass }}">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ [
+                                                    'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+                                                    'in_progress' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+                                                    'resolved' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+                                                    'approved' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+                                                    'rejected' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+                                                    'invalid' => 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300',
+                                                ][$report->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }}">
                                                     {{ ucfirst(str_replace('_', ' ', $report->status)) }}
                                                 </span>
                                             </td>
@@ -200,7 +197,7 @@
                                                 {{ $report->created_at->format('M d, Y') }}
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <a href="{{ route('incident_reports.show', $report) }}" class="text-green-400 hover:text-green-300" title="View Details">
+                                                <a href="{{ route('incident_reports.show', ['id' => $report->id, 'redirect_to' => url()->full()]) }}" class="text-green-400 hover:text-green-300" title="View Details">
                                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />

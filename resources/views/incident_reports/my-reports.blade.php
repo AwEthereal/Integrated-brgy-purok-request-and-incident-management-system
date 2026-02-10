@@ -173,7 +173,7 @@
                                             </span>
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-center">
-                                            <a href="{{ route('incident_reports.show', $report->id) }}" class="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors inline-flex" title="View Details">
+                                            <a href="{{ route('incident_reports.show', ['id' => $report->id, 'redirect_to' => url()->full()]) }}" class="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors inline-flex" title="View Details">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -196,7 +196,7 @@
                                         <p class="text-xs text-gray-400 mb-1">{{ $report->created_at->format('M d, Y') }}</p>
                                         <p class="text-sm font-semibold text-white">{{ \App\Models\IncidentReport::TYPES[$report->incident_type] ?? format_label($report->incident_type) }}</p>
                                     </div>
-                                    <a href="{{ route('incident_reports.show', $report->id) }}" class="flex-shrink-0 p-1.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
+                                    <a href="{{ route('incident_reports.show', ['id' => $report->id, 'redirect_to' => url()->full()]) }}" class="flex-shrink-0 p-1.5 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />

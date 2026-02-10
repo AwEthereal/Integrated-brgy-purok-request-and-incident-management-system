@@ -20,7 +20,6 @@ class RequestPolicy
             'secretary',
             'sk_chairman',
             'purok_leader',
-            'purok_president',
             'admin'
         ]);
     }
@@ -37,7 +36,7 @@ class RequestPolicy
             'request_user_id' => $request->user_id,
             'request_status' => $request->status,
             'is_requester' => $user->id === $request->user_id,
-            'is_purok_leader' => in_array($user->role, ['purok_leader', 'purok_president']),
+            'is_purok_leader' => $user->role === 'purok_leader',
             'same_purok' => $user->purok_id == $request->purok_id,
             'is_barangay_official' => in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin']),
             'user_purok_id' => $user->purok_id ?? null,
@@ -57,9 +56,9 @@ class RequestPolicy
             return true;
         }
         
-        // Allow purok leaders and presidents to view requests from their purok
-        if (in_array($user->role, ['purok_leader', 'purok_president']) && $user->purok_id == $request->purok_id) {
-            \Log::debug('RequestPolicy@view - Allowed: User is purok leader/president for this purok');
+        // Allow purok leaders to view requests from their purok
+        if ($user->role === 'purok_leader' && $user->purok_id == $request->purok_id) {
+            \Log::debug('RequestPolicy@view - Allowed: User is purok leader for this purok');
             return true;
         }
         
@@ -99,21 +98,31 @@ class RequestPolicy
     public function updatePrivateNotes(User $user, Request $request): bool
     {
         // Purok leaders, purok presidents, and admins can update private notes
-        return in_array($user->role, ['purok_leader', 'purok_president', 'admin']);
+        return in_array($user->role, ['purok_leader', 'admin']);
     }
 
     // Purok Leader Methods
     public function viewPendingPurok(User $user): bool
     {
         // Purok leaders, purok presidents, and admins can view pending purok requests
-        return in_array($user->role, ['purok_leader', 'purok_president', 'admin']);
+        return in_array($user->role, ['purok_leader', 'admin']);
     }
 
     public function approvePurok(User $user, Request $request): bool
     {
-        // Purok leaders and purok presidents can approve requests in their purok
+        // Admins can approve at any time
+        if ($user->role === 'admin') {
+            return in_array($request->status, ['pending', 'purok_approved']);
+        }
+
+        // Secretary/Captain can approve pending requests at purok level
+        if (in_array($user->role, ['secretary', 'barangay_captain'])) {
+            return $request->status === 'pending';
+        }
+
+        // Purok leaders can approve requests in their purok
         // Allow approval for both 'pending' and 'purok_approved' statuses
-        return in_array($user->role, ['purok_leader', 'purok_president']) && 
+        return ($user->role === 'purok_leader') &&
                $request->purok_id === $user->purok_id &&
                in_array($request->status, ['pending', 'purok_approved']);
     }
@@ -142,9 +151,14 @@ class RequestPolicy
     public function reject(User $user, Request $request): bool
     {
         // Purok leaders and purok presidents can reject requests in their purok that are pending or purok_approved
-        if (in_array($user->role, ['purok_leader', 'purok_president'])) {
+        if ($user->role === 'purok_leader') {
             return $request->purok_id === $user->purok_id && 
                    in_array($request->status, ['pending', 'purok_approved']);
+        }
+
+        // Secretary/Captain can reject pending requests (purok-level)
+        if (in_array($user->role, ['secretary', 'barangay_captain'])) {
+            return in_array($request->status, ['pending', 'purok_approved', 'barangay_approved']);
         }
         
         // Barangay officials and admins can reject requests that are purok_approved or barangay_approved

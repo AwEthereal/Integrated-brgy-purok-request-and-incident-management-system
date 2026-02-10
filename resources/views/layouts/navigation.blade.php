@@ -4,17 +4,22 @@
             @vite(['resources/css/app.css', 'resources/js/app.js'])
 
             <!-- Logo -->
-            <a href="{{ auth()->check() && in_array(auth()->user()->role, ['purok_leader', 'purok_president']) ? route('purok_leader.dashboard') : route('dashboard') }}" class="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity">
+            @auth
+                <a href="{{ auth()->user()->role === 'purok_leader' ? route('purok_leader.dashboard') : route('dashboard') }}" class="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity">
+            @else
+                <a href="{{ route('login') }}" class="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity">
+            @endauth
                 <img src="{{ asset('images/Kal2Logo.png') }}" alt="Barangay Kalawag Logo" class="h-12 md:h-16 w-auto flex-shrink-0">
                 <div class="ml-3">
                     <h1 class="text-sm md:text-lg font-bold leading-tight text-gray-800">Kalawag Dos</h1>
-                    <p class="text-xs md:text-sm text-gray-600 leading-tight">Integrated System</p>
+                    <p class="text-xs md:text-sm text-gray-500">Community Services Portal</p>
                 </div>
             </a>
 
             <!-- Desktop Navigation Links -->
             <div class="hidden md:ml-4 md:flex md:flex-wrap md:items-center md:gap-1 lg:gap-2 flex-1 justify-center max-w-4xl">
-                @if(auth()->check() && !in_array(auth()->user()->role, ['purok_leader', 'purok_president']))
+                @auth
+                @if(auth()->user()->role !== 'purok_leader')
                     <a href="{{ route('dashboard') }}"
                         class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('dashboard') ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-100 hover:text-green-800' }} transition-colors whitespace-nowrap">
                         <svg class="h-5 w-5 mr-2 {{ request()->routeIs('dashboard') ? 'text-green-600' : 'text-gray-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -110,9 +115,10 @@
                         </a>
                     @endif
                 @endif
+                @endauth
 
                 @auth
-                    @if(auth()->user()->role === 'purok_leader' || auth()->user()->role === 'purok_president')
+                    @if(auth()->user()->role === 'purok_leader')
                         <a href="{{ route('purok_leader.dashboard') }}" class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('purok_leader.dashboard') ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-100 hover:text-green-800' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 {{ request()->routeIs('purok_leader.dashboard') ? 'text-green-600' : 'text-gray-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -133,34 +139,15 @@
                             @endif
                         </a>
                         
-                        <a href="{{ route('purok_leader.residents') }}"
-                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('purok_leader.residents') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
+                        <a href="{{ route('purok_leader.resident_records.index') }}"
+                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('purok_leader.resident_records.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
                             <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                             <span>Purok Residents</span>
                         </a>
                         
-                        <a href="{{ route('purok_leader.purok_change_requests') }}"
-                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('purok_leader.purok_change_requests') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
-                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                            </svg>
-                            <span>Purok Change Requests</span>
-                            @php
-                                $pendingChangeRequestsCount = \App\Models\PurokChangeRequest::where('requested_purok_id', auth()->user()->purok_id)
-                                    ->where('status', 'pending')
-                                    ->count();
-                            @endphp
-                            @if($pendingChangeRequestsCount > 0)
-                                <span class="ml-2 relative inline-flex items-center">
-                                    <span class="absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75 animate-ping"></span>
-                                    <span class="relative inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-yellow-500 rounded-full">
-                                        {{ $pendingChangeRequestsCount }}
-                                    </span>
-                                </span>
-                            @endif
-                        </a>
+                        
 
                         {{-- Announcement Bell for Purok Leaders --}}
                         <a href="{{ route('announcements.public') }}"
@@ -200,40 +187,73 @@
                             $pendingBarangayCount = \App\Models\Request::where('status', 'purok_approved')->count();
                         @endphp
 
-                        <a href="{{ route('barangay.approvals.index', ['status' => 'completed']) }}"
-                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ $isHistoryActive ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
-                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                            <span>Request History</span>
-                        </a>
-                        
-                        <!-- Incident Reports History Link -->
-                        <a href="{{ route('barangay.incident_reports.index') }}"
-                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('barangay.incident_reports.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
-                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                            <span>Incident History</span>
-                        </a>
-
-                        <!-- Announcements Link -->
-                        <a href="{{ route('barangay.announcements.index') }}"
-                            class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('barangay.announcements.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
-                            <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                            </svg>
-                            <span class="whitespace-nowrap">Announcements</span>
+                        @if(auth()->user()->role === 'barangay_captain')
                             @php
                                 $featuredCount = \App\Models\Announcement::where('is_featured', true)->where('is_active', true)->count();
+                                $isPendingActive = request()->routeIs('barangay.approvals.*') && request('status') === 'pending';
+                                $isManagementActive = $isPendingActive || $isHistoryActive || request()->routeIs('barangay.incident_reports.*') || request()->routeIs('barangay.announcements.*') || request()->routeIs('captain.secretaries.*');
                             @endphp
-                            @if($featuredCount > 0)
-                                <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 whitespace-nowrap">
-                                    {{ $featuredCount }}
-                                </span>
-                            @endif
-                        </a>
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = !open"
+                                    class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ $isManagementActive ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} focus:outline-none transition-colors whitespace-nowrap">
+                                    <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    <span>Management</span>
+                                    <!--@if($pendingBarangayCount > 0)
+                                        <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                                            {{ $pendingBarangayCount }}
+                                        </span>
+                                    @elseif($featuredCount > 0)
+                                        <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                                            {{ $featuredCount }}
+                                        </span>
+                                    @endif -->
+                                    <svg class="ml-1 h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                <div x-show="open" @click.away="open = false"
+                                    x-transition:enter="transition ease-out duration-100"
+                                    x-transition:enter-start="transform opacity-0 scale-95"
+                                    x-transition:enter-end="transform opacity-100 scale-100"
+                                    x-transition:leave="transition ease-in duration-75"
+                                    x-transition:leave-start="transform opacity-100 scale-100"
+                                    x-transition:leave-end="transform opacity-0 scale-95"
+                                    class="origin-top-right absolute right-0 mt-2 w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                                    <div class="py-1">
+                                        <a href="{{ route('barangay.announcements.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-green-700">
+                                            Announcements
+                                        </a>
+                                        <div class="border-t border-gray-100 my-1"></div>
+                                        <a href="{{ route('captain.secretaries.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-green-700">
+                                            Manage Accounts
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <!-- Announcements Link -->
+                            <a href="{{ route('barangay.announcements.index') }}"
+                                class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('barangay.announcements.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100 hover:text-green-700' }} transition-colors whitespace-nowrap">
+                                <svg class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                                </svg>
+                                <span class="whitespace-nowrap">Announcements</span>
+                                @php
+                                    $featuredCount = \App\Models\Announcement::where('is_featured', true)->where('is_active', true)->count();
+                                @endphp
+                                @if($featuredCount > 0)
+                                    <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 whitespace-nowrap">
+                                        {{ $featuredCount }}
+                                    </span>
+                                @endif
+                            </a>
+
+                            {{-- Secretary: No dedicated nav link; use Reports > Purok Leaders with Add button --}}
+                        @endif
                     @endif
 
                     @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'admin']))
@@ -269,6 +289,10 @@
                                     </a>
                                     <a href="{{ route('reports.incident-reports') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-green-700">
                                         <span>Incident Reports</span>
+                                    </a>
+                                    <div class="border-t border-gray-100 my-1"></div>
+                                    <a href="{{ route('feedback.general') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-green-700">
+                                        <span>Send Feedback</span>
                                     </a>
                                 </div>
                             </div>
@@ -364,75 +388,67 @@
         x-transition:leave="transition ease-in duration-75" x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95" class="md:hidden bg-white border-t border-gray-200 shadow-lg">
         <div class="px-2 pt-2 pb-3 space-y-1">
-            @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'admin']))
-                <!-- Reports Section for Mobile -->
-                <div class="px-3 pt-2 pb-1">
-                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">REPORTS</h3>
-                </div>
-                <a href="{{ route('reports.residents') }}" class="block px-6 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-700">
-                    Residents List
-                </a>
-                <a href="{{ route('reports.purok-leaders') }}" class="block px-6 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-700">
-                    Purok Leaders
-                </a>
-                <a href="{{ route('reports.purok-clearance') }}" class="block px-6 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-700">
-                    Purok Clearance Requests
-                </a>
-                <a href="{{ route('reports.incident-reports') }}" class="block px-6 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-700">
-                    Incident Reports
-                </a>
-                <div class="border-t border-gray-200 my-1"></div>
-            @endif
-            
-            @if(!in_array(auth()->user()->role, ['purok_leader', 'purok_president']))
-                <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('dashboard') ? 'bg-green-50 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-50 hover:text-green-800' }} transition-colors">
-                    <span class="font-medium">Dashboard</span>
-                </a>
-                {{-- Only show for residents, not barangay officials --}}
-                @if(auth()->user()->role === 'resident' && auth()->user()->is_approved)
-                    <a href="{{ route('requests.index') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('requests.*') && !request()->routeIs('requests.pending-*') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
-                        <span>My Purok Clearance Requests</span>
+            @auth
+                @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'admin']))
+                    <!-- Reports Section for Mobile -->
+                    <div class="px-3 pt-2 pb-1">
+                        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">REPORTS</h3>
+                    </div>
+                    <a href="{{ route('reports.residents') }}" class="block px-6 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-700">
+                        Residents List
+                    </a>
+                    <a href="{{ route('reports.purok-leaders') }}" class="block px-6 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-700">
+                        Purok Leaders
+                    </a>
+                    <a href="{{ route('reports.purok-clearance') }}" class="block px-6 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-700">
+                        Purok Clearance Requests
+                    </a>
+                    <a href="{{ route('reports.incident-reports') }}" class="block px-6 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-700">
+                        Incident Reports
+                    </a>
+                    <a href="{{ route('feedback.general') }}" class="block px-6 py-2 text-base font-medium text-gray-700 hover:bg-gray-50 hover:text-green-700">
+                        CSM Form
+                    </a>
+                    <div class="border-t border-gray-200 my-1"></div>
+                @endif
+                
+                @if(auth()->user()->role !== 'purok_leader')
+                    <a href="{{ route('dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('dashboard') ? 'bg-green-50 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-50 hover:text-green-800' }} transition-colors">
+                        <span class="font-medium">Dashboard</span>
+                    </a>
+                    {{-- Only show for residents, not barangay officials --}}
+                    @if(auth()->user()->role === 'resident' && auth()->user()->is_approved)
+                        <a href="{{ route('requests.index') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('requests.*') && !request()->routeIs('requests.pending-*') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
+                            <span>My Purok Clearance Requests</span>
+                        </a>
+                    @endif
+                @elseif(auth()->user()->role === 'purok_leader')
+                    <a href="{{ route('purok_leader.dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('purok_leader.dashboard') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
+                        <span class="text-center">Purok Dashboard</span>
+                    </a>
+                    <a href="{{ route('purok_leader.resident_records.index') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('purok_leader.resident_records.*') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
+                        <span class="text-center">Purok Residents</span>
+                    </a>
+                    
+                    {{-- Announcements for Purok Leaders --}}
+                    <a href="{{ route('announcements.public') }}"
+                        class="flex justify-between items-center px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('announcements.public') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
+                        <span>Announcements</span>
+                        @php
+                            $hasFeaturedAnnouncements = \App\Models\Announcement::active()
+                                ->published()
+                                ->featured()
+                                ->exists();
+                        @endphp
+                        @if($hasFeaturedAnnouncements && !request()->routeIs('announcements.public'))
+                            <span class="ml-2 relative inline-flex">
+                                <span class="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                                <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500"></span>
+                            </span>
+                        @endif
                     </a>
                 @endif
-            @elseif(auth()->user()->role === 'purok_leader' || auth()->user()->role === 'purok_president')
-                <a href="{{ route('purok_leader.dashboard') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('purok_leader.dashboard') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
-                    <span class="text-center">Purok Dashboard</span>
-                </a>
-                <a href="{{ route('purok_leader.residents') }}" class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('purok_leader.residents') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
-                    <span class="text-center">Purok Residents</span>
-                </a>
-                <a href="{{ route('purok_leader.purok_change_requests') }}" class="flex justify-between items-center px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('purok_leader.purok_change_requests') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
-                    <span>Purok Change Requests</span>
-                    @php
-                        $pendingChangeRequestsCount = \App\Models\PurokChangeRequest::where('current_purok_id', auth()->user()->purok_id)
-                            ->where('status', 'pending')
-                            ->count();
-                    @endphp
-                    @if($pendingChangeRequestsCount > 0)
-                        <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                            {{ $pendingChangeRequestsCount }}
-                        </span>
-                    @endif
-                </a>
-                
-                {{-- Announcements for Purok Leaders --}}
-                <a href="{{ route('announcements.public') }}"
-                    class="flex justify-between items-center px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('announcements.public') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
-                    <span>Announcements</span>
-                    @php
-                        $hasFeaturedAnnouncements = \App\Models\Announcement::active()
-                            ->published()
-                            ->featured()
-                            ->exists();
-                    @endphp
-                    @if($hasFeaturedAnnouncements && !request()->routeIs('announcements.public'))
-                        <span class="ml-2 relative inline-flex">
-                            <span class="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
-                            <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500"></span>
-                        </span>
-                    @endif
-                </a>
-            @endif
+            @endauth
 
             @auth
                 @if(in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin']))
@@ -440,28 +456,6 @@
                         $pendingBarangayCount = \App\Models\Request::where('status', 'purok_approved')->count();
                     @endphp
                     
-                    <!-- Pending Approvals -->
-                    <a href="{{ route('barangay.approvals.index', ['status' => 'pending']) }}"
-                        class="flex justify-between items-center px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('barangay.approvals.*') && request('status') !== 'completed' ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
-                        <span>Pending Approvals</span>
-                        @if($pendingBarangayCount > 0)
-                            <span class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-                                {{ $pendingBarangayCount }}
-                            </span>
-                        @endif
-                    </a>
-
-                    <!-- Request History -->
-                    <a href="{{ route('barangay.approvals.index', ['status' => 'completed']) }}"
-                        class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('barangay.approvals.*') && request('status') === 'completed' ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
-                        Request History
-                    </a>
-
-                    <!-- Incident History -->
-                    <a href="{{ route('barangay.incident_reports.index') }}"
-                        class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('barangay.incident_reports.*') && !request('status') ? 'bg-green-50 text-green-700' : 'text-gray-700 hover:bg-gray-50 hover:text-green-700' }} transition-colors">
-                        Incident History
-                    </a>
                 @endif
                 
                 @if(auth()->user()->role === 'purok_leader' || auth()->user()->role === 'admin')

@@ -4,7 +4,7 @@
 
 @php
     $user = auth()->user();
-    $isAuthorized = in_array($user->role, ['barangay_kagawad', 'barangay_captain', 'admin']);
+    $isAuthorized = in_array($user->role, ['barangay_kagawad', 'barangay_captain', 'secretary', 'admin']);
 @endphp
 
 @push('styles')
@@ -101,6 +101,14 @@
                         ID: <span class="font-mono">{{ str_pad($report->id, 2, '0', STR_PAD_LEFT) }}</span>
                     </p>
                 </div>
+                <div>
+                    <a href="{{ $redirectTo ?? route('incident_reports.index') }}" class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+                        </svg>
+                        Back
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -111,7 +119,7 @@
                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Incident Type</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {{ format_label($report->incident_type) }}
+                        {{ $report->incident_type === 'other' ? ($report->incident_type_other ?? 'Other') : (\App\Models\IncidentReport::TYPES[$report->incident_type] ?? format_label($report->incident_type)) }}
                     </dd>
                 </div>
 
@@ -125,61 +133,24 @@
                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Location Details</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2 space-y-3">
-                        <!-- Address -->
                         <div class="bg-gray-50 p-3 rounded-md">
-                            <div class="flex items-center text-gray-600 mb-1">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                </svg>
-                                <span class="font-medium">Reported Address</span>
-                            </div>
-                            <div class="ml-6">
-                                <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($report->location) }}" 
-                                   target="_blank" 
-                                   rel="noopener noreferrer"
-                                   class="text-blue-600 hover:text-blue-800 hover:underline flex items-center">
-                                    {{ $report->location }}
-                                    <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                    </svg>
+                            <div class="font-medium text-gray-800">Reported Address</div>
+                            <div class="text-gray-600 text-sm mt-1">Location at</div>
+                            <div class="text-gray-900">{{ $report->location ?: 'N/A' }}</div>
+                            @if($report->latitude && $report->longitude)
+                                <a href="https://www.google.com/maps?q={{ $report->latitude }},{{ $report->longitude }}"
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline mt-2">
+                                    View on google maps.
                                 </a>
-                            </div>
-                        </div>
-                        
-                        <!-- Coordinates -->
-                        @if($report->latitude && $report->longitude)
-                        <div class="bg-gray-50 p-3 rounded-md">
-                            <div class="flex items-center text-gray-600 mb-1">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <span class="font-medium">GPS Coordinates</span>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 ml-6">
-                                <div>
-                                    <div class="text-xs text-gray-500">Latitude</div>
-                                    <div class="font-mono">{{ number_format($report->latitude, 6) }}</div>
-                                </div>
-                                <div>
-                                    <div class="text-xs text-gray-500">Longitude</div>
-                                    <div class="font-mono">{{ number_format($report->longitude, 6) }}</div>
-                                </div>
-                            </div>
-                            <div class="mt-2 ml-6">
-                                <a href="https://www.google.com/maps?q={{ $report->latitude }},{{ $report->longitude }}" 
-                                   target="_blank" 
-                                   rel="noopener noreferrer"
-                                   class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                                   title="View on Google Maps">
-                                    <span>View on Map</span>
-                                    <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
-                                    </svg>
+                            @elseif($report->location)
+                                <a href="https://www.google.com/maps/search/?api=1&query={{ urlencode($report->location) }}"
+                                   target="_blank" rel="noopener noreferrer"
+                                   class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline mt-2">
+                                    View on google maps.
                                 </a>
-                            </div>
+                            @endif
                         </div>
-                        @endif
                     </dd>
                 </div>
 
@@ -203,21 +174,15 @@
                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 border-t border-gray-200">
                     <dt class="text-sm font-medium text-gray-500">Reported By</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {{ $report->user->name }}
+                        {{ optional($report->user)->name ?? ($report->reporter_name ?? 'Public Reporter') }}
                     </dd>
                 </div>
 
-                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-gray-50">
-                    <dt class="text-sm font-medium text-gray-500">Purok</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {{ $report->purok->name ?? 'N/A' }}
-                    </dd>
-                </div>
 
                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Contact Number</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        {{ $report->user->contact_number ?? 'N/A' }}
+                        {{ optional($report->user)->contact_number ?? ($report->contact_number ?? 'N/A') }}
                     </dd>
                 </div>
 
@@ -321,7 +286,7 @@
                 </div>
                 
                 <!-- Action Buttons -->
-                @if(in_array(auth()->user()->role, ['barangay_kagawad', 'barangay_captain', 'admin']))
+                @if(in_array(auth()->user()->role, ['barangay_kagawad', 'barangay_captain', 'secretary', 'admin']))
                     @if(strtolower($report->status) === 'pending')
                     <div class="flex flex-wrap gap-2 sm:space-x-3">
                         <button type="button" 
@@ -338,7 +303,7 @@
                             <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                             </svg>
-                            Mark as In Progress
+                            Mark as In-Progress
                         </button>
                         <button type="button" 
                                 onclick="document.getElementById('approveModal').classList.remove('hidden')" 
@@ -346,7 +311,7 @@
                             <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                             </svg>
-                            Mark as Resolved
+                            Mark as Closed/Completed
                         </button>
                     </div>
                     @elseif(strtolower($report->status) === 'in_progress')
@@ -366,7 +331,7 @@
                                 <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                 </svg>
-                                Mark as Resolved
+                                Mark as Closed/Completed
                             </button>
                         </form>
                     </div>
@@ -390,7 +355,7 @@
                     </svg>
                 </div>
                 <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">Resolve Incident Report</h3>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">Close/Complete Incident Report</h3>
                     <div class="mt-2">
                         <p class="text-sm text-gray-500 dark:text-gray-400">
                             Are you sure you want to mark this incident report as resolved? This action cannot be undone.
@@ -402,7 +367,7 @@
                 <form action="{{ route('barangay.incident_reports.approve', $report) }}" method="POST" class="inline-flex">
                     @csrf
                     <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        Resolve
+                        Close/Complete
                     </button>
                 </form>
                 <button type="button" onclick="document.getElementById('approveModal').classList.add('hidden')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600">
@@ -426,7 +391,7 @@
                     </svg>
                 </div>
                 <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">Mark as In Progress</h3>
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white" id="modal-title">Mark as In-Progress</h3>
                     <div class="mt-2">
                         <p class="text-sm text-gray-500 dark:text-gray-400">
                             Are you sure you want to mark this incident report as In Progress? This will notify the resident that their report is being handled.
@@ -438,7 +403,7 @@
                 <form action="{{ route('barangay.incident_reports.in_progress', $report) }}" method="POST" class="inline-flex">
                     @csrf
                     <button type="submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-yellow-600 text-base font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        Mark In Progress
+                        Mark In-Progress
                     </button>
                 </form>
                 <button type="button" onclick="document.getElementById('inProgressModal').classList.add('hidden')" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:hover:bg-gray-600">

@@ -1,0 +1,23 @@
+﻿
+FullName                                                                                                               
+--------                                                                                                               
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\AdminMiddleware.php             
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\Authenticate.php                
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\BarangayOfficialMiddleware.php  
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\CheckFeedbackEligibility.php    
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\CheckForPendingFeedback.php     
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\CheckPendingFeedback.php        
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\CheckResidentApproved.php       
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\CheckRole.php                   
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\EncryptCookies.php              
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\EnsureEmailIsVerified.php       
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\PreventRequestsDuringMaintena...
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\PurokLeaderMiddleware.php       
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\RedirectIfAuthenticated.php     
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\RoleMiddleware.php              
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\SetIntendedUrl.php              
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\TrimStrings.php                 
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\TrustProxies.php                
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\app\Http\Middleware\VerifyCsrfToken.php             
+
+

@@ -37,7 +37,7 @@
                             <label for="purok_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 Filter by Purok
                             </label>
-                            <select name="purok_id" id="purok_id" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-green-500 focus:ring-green-500">
+                            <select name="purok_id" id="purok_id" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-green-500 focus:ring-green-500" onchange="this.form.submit()">
                                 <option value="">All Puroks</option>
                                 @foreach($puroks as $purok)
                                     <option value="{{ $purok->id }}" {{ request('purok_id') == $purok->id ? 'selected' : '' }}>
@@ -54,10 +54,12 @@
                             </label>
                             <input type="text" 
                                    name="search" 
-                                   id="search" 
+                                   id="searchInput" 
                                    value="{{ request('search') }}"
-                                   placeholder="Name, email, contact..." 
-                                   class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-green-500 focus:ring-green-500">
+                                   placeholder="Live search: name, email, contact..." 
+                                   class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-green-500 focus:ring-green-500"
+                                   oninput="filterTable()">
+                            <p id="searchResults" class="mt-1 text-xs text-gray-500 dark:text-gray-400"></p>
                         </div>
 
                         <!-- Filter Button -->
@@ -104,25 +106,27 @@
                                         </td>
                                         <td class="px-6 py-4 text-sm">
                                             <div class="text-gray-900 dark:text-white">
-                                                <span class="font-medium">Gender:</span> {{ ucfirst($resident->gender) }}
+                                                @php($gender = $resident->gender ?? ($resident->sex ?? null))
+                                                <span class="font-medium">Gender:</span> {{ $gender ? ucfirst($gender) : 'N/A' }}
                                             </div>
                                             <div class="text-gray-900 dark:text-white">
-                                                <span class="font-medium">Civil Status:</span> {{ format_label($resident->civil_status) }}
+                                                <span class="font-medium">Civil Status:</span> {{ $resident->civil_status ? format_label($resident->civil_status) : 'N/A' }}
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 text-sm">
+                                            @php($dob = $resident->birth_date ?? ($resident->date_of_birth ?? null))
                                             <div class="text-gray-900 dark:text-white">
-                                                {{ $resident->birth_date ? $resident->birth_date->format('M d, Y') : 'N/A' }}
+                                                {{ $dob ? \Carbon\Carbon::parse($dob)->format('M d, Y') : 'N/A' }}
                                             </div>
                                             <div class="text-gray-500 dark:text-gray-400 text-xs">
-                                                @if($resident->birth_date)
-                                                    Age: {{ $resident->birth_date->age }} years
+                                                @if($dob)
+                                                    Age: {{ \Carbon\Carbon::parse($dob)->age }} years
                                                 @endif
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 text-sm">
                                             <div class="text-gray-900 dark:text-white font-medium">{{ $resident->purok->name ?? 'N/A' }}</div>
-                                            <div class="text-gray-500 dark:text-gray-400 text-xs">{{ $resident->address }}</div>
+                                            <div class="text-gray-500 dark:text-gray-400 text-xs">{{ $resident->full_address ?? $resident->address ?? 'N/A' }}</div>
                                         </td>
                                         <td class="px-6 py-4 text-sm">
                                             <div class="text-gray-900 dark:text-white">{{ $resident->email }}</div>
@@ -195,19 +199,18 @@ function toggleAll(source) {
 }
 
 function printAll() {
-    // Uncheck all individual checkboxes to print everything
-    document.querySelectorAll('.resident-checkbox').forEach(cb => cb.checked = false);
-    document.getElementById('selectAll').checked = false;
-    document.getElementById('printForm').submit();
+    // Navigate to preview page (all residents) in a new tab
+    window.open("{{ route('reports.preview.residents') }}", '_blank');
 }
 
 function printSelected() {
-    const selected = document.querySelectorAll('.resident-checkbox:checked');
+    const selected = Array.from(document.querySelectorAll('.resident-checkbox:checked')).map(cb => cb.value);
     if (selected.length === 0) {
-        alert('Please select at least one resident to print.');
+        alert('Please select at least one resident to preview.');
         return;
     }
-    document.getElementById('printForm').submit();
+    const url = "{{ route('reports.preview.residents') }}" + '?ids=' + selected.join(',');
+    window.open(url, '_blank');
 }
 </script>
 @endsection

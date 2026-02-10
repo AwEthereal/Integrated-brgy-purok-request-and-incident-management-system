@@ -1,0 +1,9 @@
+SEEDED USERNAMES (2026-01-29 23:22:55)
+========================================
+id=12 | role=admin | purok=Tagumpay III | username=100001 | name=edison laurico
+id=20 | role=secretary | purok=PC Barracks | username=200001 | name=Ana Test Garcia
+id=2 | role=purok_president | purok=Tagumpay III | username=300001 | name=Mark Laurence Tomagan
+id=7 | role=purok_president | purok=Mabuhay | username=300002 | name=Dave Smith
+id=9 | role=purok_president | purok=Pag-Asa I | username=300003 | name=Elaijah Linaza
+id=11 | role=purok_president | purok=Masagana II | username=300004 | name=Jian Laurico
+id=13 | role=purok_president | purok=Purok Pagkakaisa | username=300005 | name=jona laurico

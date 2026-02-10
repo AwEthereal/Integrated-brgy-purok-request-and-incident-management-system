@@ -1,0 +1,10 @@
+﻿
+FullName                                                                                          
+--------                                                                                          
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\public\js\camera-handler-new.js
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\public\js\camera-handler.js    
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\public\js\location-fix.js      
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\public\js\location-handler.js  
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\public\js\notification.js      
+
+

@@ -60,6 +60,16 @@ class ProfileController extends Controller
     {
         try {
             $user = $request->user();
+            // Disallow users from editing their own profile; updates must be done by secretary or captain
+            if ($user) {
+                if ($request->wantsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Profile updates are restricted. Please contact the barangay secretary or captain.'
+                    ], 403);
+                }
+                return back()->with('error', 'Profile updates are restricted. Please contact the barangay secretary or captain.');
+            }
             $validated = $request->validated();
             
             Log::info('Starting profile update', [

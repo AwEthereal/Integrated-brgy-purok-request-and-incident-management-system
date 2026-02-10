@@ -43,7 +43,7 @@ class UserManagementController extends Controller
         // List all possible roles from the database ENUM
         $roles = [
             'resident' => 'Resident',
-            'purok_president' => 'Purok President',
+            'purok_leader' => 'Purok Leader',
             'barangay_kagawad' => 'Barangay Kagawad',
             'barangay_captain' => 'Barangay Captain',
             'secretary' => 'Secretary',
@@ -57,7 +57,7 @@ class UserManagementController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'role' => 'required|string|in:resident,purok_leader,purok_president,barangay_kagawad,barangay_captain,secretary,sk_chairman,admin',
+            'role' => 'required|string|in:resident,purok_leader,barangay_kagawad,barangay_captain,secretary,sk_chairman,admin',
             'is_approved' => 'nullable|boolean',
         ]);
 

@@ -46,7 +46,6 @@
                         <option value="">All Roles</option>
                         <option value="resident" {{ request('role') == 'resident' ? 'selected' : '' }}>Resident</option>
                         <option value="purok_leader" {{ request('role') == 'purok_leader' ? 'selected' : '' }}>Purok Leader</option>
-                        <option value="purok_president" {{ request('role') == 'purok_president' ? 'selected' : '' }}>Purok President</option>
                         <option value="barangay_kagawad" {{ request('role') == 'barangay_kagawad' ? 'selected' : '' }}>Barangay Kagawad</option>
                         <option value="barangay_captain" {{ request('role') == 'barangay_captain' ? 'selected' : '' }}>Barangay Captain</option>
                         <option value="admin" {{ request('role') == 'admin' ? 'selected' : '' }}>Admin</option>

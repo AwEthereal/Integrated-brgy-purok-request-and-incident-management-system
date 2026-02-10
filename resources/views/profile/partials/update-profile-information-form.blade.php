@@ -2,6 +2,7 @@
     @csrf
     @method('patch')
     <input type="hidden" name="_previous_url" value="{{ url()->current() }}">
+    <fieldset disabled>
 
         <!-- Name Fields -->
         <div class="space-y-6">
@@ -383,20 +384,25 @@
             </div>
         </div>
 
-        <!-- Form Actions -->
-        <div class="flex items-center justify-end pt-6 border-t border-gray-200">
-            <a href="{{ route('dashboard') }}" class="inline-flex items-center px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out shadow-sm">
+        </fieldset>
+        <!-- Read-only notice -->
+        <div class="flex items-center justify-between pt-6 border-t border-gray-200">
+            <div class="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
+                <div class="flex items-start">
+                    <svg class="h-5 w-5 text-amber-400 mr-2 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                    </svg>
+                    <p class="text-sm text-amber-800">
+                        Your profile is read-only. Please contact the Barangay Secretary or Barangay Captain to request updates.
+                    </p>
+                </div>
+            </div>
+            <a href="{{ route('dashboard') }}" class="ml-3 inline-flex items-center px-5 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out shadow-sm">
                 <svg class="-ml-1 mr-2 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
                 </svg>
                 Back to Dashboard
             </a>
-            <button type="submit" class="ml-3 inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out">
-                <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                </svg>
-                Save Changes
-            </button>
         </div>
             <div id="form-message" class="mt-3 text-sm text-gray-600"></div>
         </div>

@@ -15,7 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register route middleware aliases
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            'purok_president_only' => \App\Http\Middleware\PurokLeaderMiddleware::class,
+            'purok_leader_only' => \App\Http\Middleware\PurokLeaderMiddleware::class,
             'barangay_official' => \App\Http\Middleware\BarangayOfficialMiddleware::class,
             'checkrole' => \App\Http\Middleware\CheckRole::class,
             'resident_approved' => \App\Http\Middleware\CheckResidentApproved::class,

@@ -132,7 +132,7 @@ class DummyUsersSeeder extends Seeder
                 'suffix' => null,
                 'email' => 'president.purok' . $purok->id . '.dummy@test.com',
                 'password' => Hash::make('password123'),
-                'role' => 'purok_president',
+                'role' => 'purok_leader',
                 'contact_number' => '09' . rand(100000000, 999999999),
                 'date_of_birth' => now()->subYears(rand(35, 65))->format('Y-m-d'),
                 'place_of_birth' => 'Barangay Kalawag II, Pasig City',
@@ -244,7 +244,7 @@ class DummyUsersSeeder extends Seeder
                 ['Barangay Kagawad', User::where('role', 'barangay_kagawad')->where('is_dummy', true)->count()],
                 ['Secretary', User::where('role', 'secretary')->where('is_dummy', true)->count()],
                 ['SK Chairman', User::where('role', 'sk_chairman')->where('is_dummy', true)->count()],
-                ['Purok Presidents', User::where('role', 'purok_president')->where('is_dummy', true)->count()],
+                ['Purok Leaders', User::where('role', 'purok_leader')->where('is_dummy', true)->count()],
                 ['Residents', User::where('role', 'resident')->where('is_dummy', true)->count()],
                 ['TOTAL', User::where('is_dummy', true)->count()],
             ]

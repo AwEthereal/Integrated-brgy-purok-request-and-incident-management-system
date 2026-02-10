@@ -79,7 +79,7 @@ class RequestController extends Controller
     {
         // Verify the user is authorized to update this request
         $user = auth()->user();
-        if ((!in_array($user->role, ['purok_leader', 'purok_president'])) || 
+        if (($user->role !== 'purok_leader') || 
             $requestModel->purok_id !== $user->purok_id) {
             abort(403, 'Unauthorized action.');
         }
@@ -94,8 +94,10 @@ class RequestController extends Controller
             $requestModel->purok_approved_by = $user->id;
             $requestModel->save();
             
-            // Send email notification to resident
-            $requestModel->user->notify(new \App\Notifications\RequestApprovedNotification($requestModel, 'purok'));
+            // Notify linked user if exists
+            if ($requestModel->user) {
+                $requestModel->user->notify(new \App\Notifications\RequestApprovedNotification($requestModel, 'purok'));
+            }
             
             // Broadcast to barangay officials about new pending request
             $barangayRequestCount = RequestModel::where('status', 'purok_approved')->count();
@@ -107,8 +109,10 @@ class RequestController extends Controller
             $requestModel->rejected_by = $user->id;
             $requestModel->save();
             
-            // Send email notification to resident
-            $requestModel->user->notify(new \App\Notifications\RequestRejectedNotification($requestModel, 'purok'));
+            // Notify linked user if exists
+            if ($requestModel->user) {
+                $requestModel->user->notify(new \App\Notifications\RequestRejectedNotification($requestModel, 'purok'));
+            }
         }
 
         return back()->with('success', 'Request has been ' . $validated['status'] . ' successfully.');
@@ -302,7 +306,7 @@ class RequestController extends Controller
                 $errorMessage = 'You are not authorized to view this request.';
                 
                 // Provide more specific error message for purok leaders
-                if (in_array(auth()->user()->role, ['purok_leader', 'purok_president']) && 
+                if ((auth()->user()->role === 'purok_leader') && 
                     $request->purok_id !== auth()->user()->purok_id) {
                     $errorMessage = 'You can only view requests from your own purok.';
                 }
@@ -459,24 +463,63 @@ class RequestController extends Controller
             'purok_notes' => $data['purok_notes'] ?? null,
         ]);
 
-        // Send email notification to resident
-        $request->user->notify(new \App\Notifications\RequestApprovedNotification($request, 'purok'));
-        
-        // Send email
-        try {
-            Mail::to($request->user->email)->send(new PurokClearanceApproved($request, auth()->user()->full_name));
-        } catch (\Exception $e) {
-            \Log::error('Failed to send approval email: ' . $e->getMessage());
+        // Determine recipient email (public or linked user)
+        $recipientEmail = $request->email ?? optional($request->user)->email;
+
+        // Notify linked user if exists
+        if ($request->user) {
+            $request->user->notify(new \App\Notifications\RequestApprovedNotification($request, 'purok'));
         }
 
-        // Broadcast real-time notification to resident
+        // Send email if available
+        if ($recipientEmail) {
+            try {
+                Mail::to($recipientEmail)->send(new PurokClearanceApproved($request, auth()->user()->full_name));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send approval email: ' . $e->getMessage());
+            }
+        }
+
+        // If final_purok_approval is enabled, mark as completed and skip barangay step
+        if (config('features.final_purok_approval')) {
+            $request->update([
+                'status' => 'completed',
+                'document_generated_at' => now(),
+            ]);
+
+            // Broadcast completion to resident
+            event(new \App\Events\ResidentRequestUpdated($request, 'completed'));
+
+            if (in_array(auth()->user()->role, ['secretary', 'barangay_captain'], true)) {
+                return redirect()->route('reports.purok-clearance')
+                    ->with('success', 'Purok clearance approved and completed.');
+            }
+
+            if (in_array(auth()->user()->role, ['purok_leader', 'admin'])) {
+                return redirect()->route('purok_leader.dashboard')
+                    ->with('success', 'Purok clearance approved and completed.');
+            }
+
+            return redirect()->route('requests.show', $request)
+                ->with('success', 'Purok clearance approved and completed.');
+        }
+
+        // Otherwise continue existing flow
         event(new \App\Events\ResidentRequestUpdated($request, 'purok_approved'));
-        
-        // Broadcast to barangay officials about new pending request
         $barangayRequestCount = \App\Models\Request::where('status', 'purok_approved')->count();
         event(new \App\Events\NewBarangayRequest($request, $barangayRequestCount));
 
-        return redirect()->route('requests.pending-purok')
+        if (in_array(auth()->user()->role, ['secretary', 'barangay_captain'], true)) {
+            return redirect()->route('reports.purok-clearance')
+                ->with('success', 'Purok clearance approved. The resident can now proceed to the barangay office.');
+        }
+
+        if (in_array(auth()->user()->role, ['purok_leader', 'admin'])) {
+            return redirect()->route('requests.pending-purok')
+                ->with('success', 'Purok clearance approved. The resident can now proceed to the barangay office.');
+        }
+
+        return redirect()->route('requests.show', $request)
             ->with('success', 'Purok clearance approved. The resident can now proceed to the barangay office.');
     }
     
@@ -522,14 +565,18 @@ class RequestController extends Controller
             'barangay_notes' => $data['barangay_notes'] ?? null,
         ]);
 
-        // Send email notification to resident
-        $request->user->notify(new \App\Notifications\RequestApprovedNotification($request, 'barangay'));
-        
-        // Send email
-        try {
-            Mail::to($request->user->email)->send(new PurokClearanceApproved($request, auth()->user()->full_name));
-        } catch (\Exception $e) {
-            \Log::error('Failed to send approval email: ' . $e->getMessage());
+        // Notify linked user if exists
+        if ($request->user) {
+            $request->user->notify(new \App\Notifications\RequestApprovedNotification($request, 'barangay'));
+        }
+        // Email to public or linked user
+        $recipientEmail = $request->email ?? optional($request->user)->email;
+        if ($recipientEmail) {
+            try {
+                Mail::to($recipientEmail)->send(new PurokClearanceApproved($request, auth()->user()->full_name));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send approval email: ' . $e->getMessage());
+            }
         }
 
         // Broadcast real-time notification to resident
@@ -573,9 +620,9 @@ class RequestController extends Controller
         ];
 
         // Store rejection reason in appropriate field based on user role
-        if (in_array($user->role, ['purok_leader', 'purok_president'])) {
+        if ($user->role === 'purok_leader') {
             $updates['purok_notes'] = 'Rejected by Purok: ' . $data['rejection_reason'];
-        } elseif (in_array($user->role, ['barangay_official', 'admin'])) {
+        } elseif (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin'])) {
             $updates['barangay_notes'] = 'Rejected by Barangay: ' . $data['rejection_reason'];
         } else {
             $updates['barangay_notes'] = 'Rejected: ' . $data['rejection_reason'];
@@ -584,22 +631,26 @@ class RequestController extends Controller
         // Update the request
         $request->update($updates);
 
-        // Send email notification to resident
-        $approvalType = in_array($user->role, ['purok_leader', 'purok_president']) ? 'purok' : 'barangay';
-        $request->user->notify(new \App\Notifications\RequestRejectedNotification($request, $approvalType));
-        
-        // Send rejection email
-        try {
-            Mail::to($request->user->email)->send(new PurokClearanceRejected($request, $user->full_name, $data['rejection_reason']));
-        } catch (\Exception $e) {
-            \Log::error('Failed to send rejection email: ' . $e->getMessage());
+        // Notify linked user if exists
+        $approvalType = ($user->role === 'purok_leader') ? 'purok' : 'barangay';
+        if ($request->user) {
+            $request->user->notify(new \App\Notifications\RequestRejectedNotification($request, $approvalType));
+        }
+        // Email to public or linked user
+        $recipientEmail = $request->email ?? optional($request->user)->email;
+        if ($recipientEmail) {
+            try {
+                Mail::to($recipientEmail)->send(new PurokClearanceRejected($request, $user->full_name, $data['rejection_reason']));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send rejection email: ' . $e->getMessage());
+            }
         }
 
         // Broadcast real-time notification to resident
         event(new \App\Events\ResidentRequestUpdated($request, 'rejected', 'Your request has been rejected'));
 
         // Redirect based on user role
-        if (in_array($user->role, ['purok_leader', 'purok_president'])) {
+        if ($user->role === 'purok_leader') {
             return redirect()->route('purok_leader.dashboard')
                 ->with('success', 'Request has been rejected.');
         }

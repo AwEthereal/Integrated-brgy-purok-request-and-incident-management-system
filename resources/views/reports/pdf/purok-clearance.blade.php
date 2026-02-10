@@ -73,7 +73,6 @@
             <tr>
                 <th>ID</th>
                 <th>Resident</th>
-                <th>Form Type</th>
                 <th>Purpose</th>
                 <th>Purok</th>
                 <th>Status</th>
@@ -85,10 +84,10 @@
                 <tr>
                     <td>#{{ $request->id }}</td>
                     <td>
-                        {{ $request->user->first_name }} {{ $request->user->last_name }}<br>
-                        <small>{{ $request->user->email }}</small>
+                        @php($residentName = $request->requester_name ?? (optional($request->user)->full_name ?: optional($request->user)->name))
+                        {{ $residentName ?: 'N/A' }}<br>
+                        <small>{{ $request->email ?? optional($request->user)->email ?? 'N/A' }}</small>
                     </td>
-                    <td>{{ format_label($request->form_type) }}</td>
                     <td>{{ $request->purpose ?? 'N/A' }}</td>
                     <td>{{ $request->purok->name ?? 'N/A' }}</td>
                     <td class="status-{{ $request->status }}">

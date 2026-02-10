@@ -8,14 +8,17 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use App\Models\Request;
 use App\Models\IncidentReport;
+use App\Models\ResidentRecord;
 use App\Policies\RequestPolicy;
 use App\Policies\IncidentReportPolicy;
+use App\Policies\ResidentRecordPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
     protected $policies = [
         Request::class => RequestPolicy::class,
         IncidentReport::class => IncidentReportPolicy::class,
+        ResidentRecord::class => ResidentRecordPolicy::class,
     ];
 
     public function boot(): void

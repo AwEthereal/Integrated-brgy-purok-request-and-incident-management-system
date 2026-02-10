@@ -137,12 +137,18 @@
                             Dashboard
                         </a>
                     @else
-                        <a href="{{ route('login') }}" class="px-6 py-2.5 text-blue-600 hover:text-blue-800 transition-all font-medium">
-                            Log in
-                        </a>
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-medium">
-                                Get Started
+                        @if (!config('features.remove_public_login'))
+                            <a href="{{ route('login') }}" class="px-6 py-2.5 text-blue-600 hover:text-blue-800 transition-all font-medium">
+                                Log in
+                            </a>
+                            @if (Route::has('register'))
+                                <a href="{{ route('register') }}" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-medium">
+                                    Get Started
+                                </a>
+                            @endif
+                        @else
+                            <a href="{{ route('public.landing') }}" class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all shadow-md hover:shadow-lg font-medium">
+                                Public Services
                             </a>
                         @endif
                     @endauth
@@ -175,12 +181,14 @@
                 <!-- CTA Buttons -->
                 <div class="flex flex-wrap justify-center gap-4 pt-4">
                     @guest
-                        <a href="{{ route('register') }}" class="px-8 py-4 bg-yellow-400 text-blue-900 rounded-lg hover:bg-yellow-300 transition-all shadow-xl hover:shadow-2xl font-bold text-lg">
-                            Register Now
-                        </a>
-                        <a href="{{ route('login') }}" class="px-8 py-4 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-all shadow-xl backdrop-blur-sm font-bold text-lg border-2 border-white/30">
-                            Sign In
-                        </a>
+                        @if (!config('features.remove_public_login'))
+                            <a href="{{ route('register') }}" class="px-8 py-4 bg-yellow-400 text-blue-900 rounded-lg hover:bg-yellow-300 transition-all shadow-xl hover:shadow-2xl font-bold text-lg">
+                                Register Now
+                            </a>
+                            <a href="{{ route('login') }}" class="px-8 py-4 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-all shadow-xl backdrop-blur-sm font-bold text-lg border-2 border-white/30">
+                                Sign In
+                            </a>
+                        @endif
                     @endguest
                 </div>
             </div>
@@ -195,12 +203,14 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">Document Requests</h3>
                     <p class="text-gray-600 mb-4">Request barangay clearance, certificates, and other documents online.</p>
-                    <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center">
-                        Learn more
-                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </a>
+                    @if (!config('features.remove_public_login'))
+                        <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center">
+                            Learn more
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                    @endif
                 </div>
 
                 <div class="service-card bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-xl">
@@ -211,12 +221,14 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">Report Incidents</h3>
                     <p class="text-gray-600 mb-4">Report emergencies, concerns, and incidents in your community.</p>
-                    <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center">
-                        Learn more
-                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </a>
+                    @if (!config('features.remove_public_login'))
+                        <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center">
+                            Learn more
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                    @endif
                 </div>
 
                 <div class="service-card bg-white/95 backdrop-blur-sm rounded-xl p-6 shadow-xl">
@@ -227,12 +239,14 @@
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">Track Requests</h3>
                     <p class="text-gray-600 mb-4">Monitor the status of your document requests and reports in real-time.</p>
-                    <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center">
-                        Learn more
-                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </a>
+                    @if (!config('features.remove_public_login'))
+                        <a href="{{ route('login') }}" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center">
+                            Learn more
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                    @endif
                 </div>
             </div>
 
@@ -296,8 +310,10 @@
                 <div>
                     <h3 class="text-lg font-bold text-gray-900 mb-3">Quick Links</h3>
                     <ul class="space-y-2 text-sm">
-                        <li><a href="{{ route('login') }}" class="text-gray-600 hover:text-blue-600">Login</a></li>
-                        <li><a href="{{ route('register') }}" class="text-gray-600 hover:text-blue-600">Register</a></li>
+                        @if (!config('features.remove_public_login'))
+                            <li><a href="{{ route('login') }}" class="text-gray-600 hover:text-blue-600">Login</a></li>
+                            <li><a href="{{ route('register') }}" class="text-gray-600 hover:text-blue-600">Register</a></li>
+                        @endif
                     </ul>
                 </div>
                 <div>

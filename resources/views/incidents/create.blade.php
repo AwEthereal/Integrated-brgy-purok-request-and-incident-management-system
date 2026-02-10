@@ -372,8 +372,30 @@
             </div>
         @endif
 
-        <form action="{{ route('incident_reports.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        <form action="{{ isset($publicMode) && $publicMode ? route('public.incident.store') : route('incident_reports.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
             @csrf
+            @if(isset($publicMode) && $publicMode)
+            <div class="section-card">
+                <div class="space-y-4">
+                    <div>
+                        <label for="reporter_name" class="block text-sm font-medium text-gray-700 mb-2">Your Name *</label>
+                        <input type="text" id="reporter_name" name="reporter_name" required value="{{ old('reporter_name') }}"
+                               class="w-full rounded-lg border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" autocomplete="name">
+                        @error('reporter_name')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label for="contact_number" class="block text-sm font-medium text-gray-700 mb-2">Contact Number *</label>
+                        <input type="tel" id="contact_number" name="contact_number" required inputmode="numeric" maxlength="20" value="{{ old('contact_number') }}"
+                               class="w-full rounded-lg border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" autocomplete="tel">
+                        @error('contact_number')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Incident Details Section -->
             <div class="section-card">
@@ -394,7 +416,36 @@
                                 <option value="{{ $key }}">{{ format_label($label) }}</option>
                             @endforeach
                         </select>
+                        <div id="incident_type_other_wrap" class="mt-3 hidden">
+                            <label for="incident_type_other" class="block text-sm font-medium text-gray-700 mb-2">Please specify</label>
+                            <input type="text" name="incident_type_other" id="incident_type_other" maxlength="100"
+                                   value="{{ old('incident_type_other') }}"
+                                   class="w-full rounded-lg border-gray-300 px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition" placeholder="Describe the incident type">
+                            @error('incident_type_other')
+                                <p class="error-message">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const sel = document.getElementById('incident_type');
+                            const wrap = document.getElementById('incident_type_other_wrap');
+                            const otherInput = document.getElementById('incident_type_other');
+                            if (!sel || !wrap) return;
+                            function syncOther() {
+                                if (sel.value === 'other') {
+                                    wrap.classList.remove('hidden');
+                                } else {
+                                    wrap.classList.add('hidden');
+                                    if (otherInput) otherInput.value = '';
+                                }
+                            }
+                            const oldVal = "{{ old('incident_type') }}";
+                            if (oldVal) { sel.value = oldVal; }
+                            sel.addEventListener('change', syncOther);
+                            syncOther();
+                        });
+                    </script>
 
                     <div>
                         <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description *</label>
@@ -681,12 +732,12 @@
 
             <!-- Submit Section -->
             <div class="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4 md:pt-6">
-                <a href="{{ route('dashboard') }}"
+                <a href="{{ (isset($publicMode) && $publicMode) ? route('public.landing') : route('dashboard') }}"
                     class="w-full sm:w-1/2 text-center bg-gray-200 text-gray-700 py-3 md:py-4 px-4 md:px-6 rounded-lg font-semibold hover:bg-gray-300 transition flex items-center justify-center gap-2 text-sm md:text-base">
                     <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
-                    <span class="hidden sm:inline">Back to Dashboard</span>
+                    <span class="hidden sm:inline">{{ (isset($publicMode) && $publicMode) ? 'Back to Public Services' : 'Back to Dashboard' }}</span>
                     <span class="sm:hidden">Back</span>
                 </a>
                 <button type="submit" id="submit-button"

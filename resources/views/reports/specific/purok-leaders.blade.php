@@ -95,6 +95,11 @@
     </style>
 </head>
 <body>
+    <div class="no-print" style="margin-bottom: 10px; text-align: right;">
+        <button type="button" onclick="window.print()" style="background:#16a34a;color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;">
+            Print
+        </button>
+    </div>
     <div class="header">
         <div class="text-center">
             @if(file_exists(public_path('images/logo.png')))
@@ -115,25 +120,24 @@
     <table>
         <thead>
             <tr>
-                <th>#</th>
                 <th>Name</th>
                 <th>Purok</th>
                 <th>Contact Number</th>
-                <th>Email</th>
+                <th>DOB</th>
+                <th>Sex</th>
                 <th>Date Assigned</th>
-                <th>Status</th>
             </tr>
         </thead>
         <tbody>
             @foreach($leaders as $index => $leader)
+            @php($rbi = $leader->latestResidentRecord)
             <tr>
-                <td>{{ $index + 1 }}</td>
-                <td>{{ strtoupper($leader->last_name) }}, {{ strtoupper($leader->first_name) }} {{ strtoupper($leader->middle_name) }}</td>
+                <td>{{ strtoupper($rbi?->last_name ?? $leader->last_name) }}, {{ strtoupper($rbi?->first_name ?? $leader->first_name) }} {{ strtoupper($rbi?->middle_name ?? $leader->middle_name) }}</td>
                 <td>{{ $leader->purok->name ?? 'N/A' }}</td>
-                <td>{{ $leader->contact_number ?? 'N/A' }}</td>
-                <td>{{ $leader->email }}</td>
+                <td>{{ $rbi?->contact_number ?? $leader->contact_number ?? 'N/A' }}</td>
+                <td>{{ $rbi?->birth_date?->format('Y-m-d') ?? ($leader->birth_date ? $leader->birth_date->format('Y-m-d') : ($leader->date_of_birth ?? 'N/A')) }}</td>
+                <td>{{ $rbi?->sex ?? $leader->sex ?? $leader->gender ?? 'N/A' }}</td>
                 <td>{{ $leader->created_at->format('M j, Y') }}</td>
-                <td>{{ $leader->is_approved ? 'Active' : 'Inactive' }}</td>
             </tr>
             @endforeach
         </tbody>

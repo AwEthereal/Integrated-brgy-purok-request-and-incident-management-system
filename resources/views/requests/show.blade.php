@@ -7,7 +7,7 @@
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Request Details #{{ $request->id }}</h1>
             @php
-                $isPurokLeader = in_array(auth()->user()->role, ['purok_leader', 'purok_president']);
+                $isPurokLeader = auth()->user()->role === 'purok_leader';
                 $isBarangayOfficial = in_array(auth()->user()->role, ['barangay_kagawad', 'barangay_captain']);
                 $backRoute = 'requests.index'; // Default for regular users
 
@@ -123,16 +123,12 @@
                     </div>
                     <div class="text-right">
                         <span class="text-xs font-semibold inline-block text-blue-600">
-                            @if($request->status === 'pending') 33%
-                            @elseif($request->status === 'purok_approved') 66%
-                            @else 100% @endif
+                            @if($request->status === 'pending') 50% @else 100% @endif
                         </span>
                     </div>
                 </div>
                 <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
-                    <div style="width:@if($request->status === 'pending') 33%
-                    @elseif($request->status === 'purok_approved') 66%
-                        @else 100% @endif" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center 
+                    <div style="width:@if($request->status === 'pending') 50% @else 100% @endif" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center 
                                                                 @if($request->status === 'rejected') bg-red-500
                                                                 @else bg-blue-500 @endif">
                     </div>
@@ -184,32 +180,7 @@
                         @endif
                     </div>
 
-                    {{-- Step 3: Barangay (only show if not rejected by purok) --}}
-                    @if(!$isPurokRejected && !$isBarangayRejected)
-                        <div class="text-center">
-                            <div class="w-8 h-8 mx-auto rounded-full flex items-center justify-center 
-                                                        @if(in_array($request->status, ['barangay_approved', 'completed'])) 
-                                                            bg-blue-600 text-white 
-                                                        @else 
-                                                            bg-gray-200 
-                                                        @endif">
-                                @if($request->barangay_approved_at)
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                @else
-                                    <span class="text-xs">3</span>
-                                @endif
-                            </div>
-                            <div class="mt-1">Barangay Approved</div>
-                            @if($request->barangay_approved_at)
-                                <div class="text-xs text-gray-500">{{ $request->barangay_approved_at->format('M d, Y') }}</div>
-                                @if($request->barangayApprover)
-                                    <div class="text-xs text-gray-500">by {{ $request->barangayApprover->name }}</div>
-                                @endif
-                            @endif
-                        </div>
-                    @endif
+                    {{-- Barangay step hidden per requirement --}}
 
                     {{-- Step 3: Barangay is now the final step --}}
                     @if($isPurokRejected || $isBarangayRejected)
@@ -277,7 +248,7 @@
                             <div class="flex items-center space-x-2">
                                 <p class="font-medium">{{ $request->user->name ?? 'N/A' }}</p>
                                 @if($request->user)
-                                    @if(in_array(auth()->user()->role, ['purok_leader', 'purok_president']))
+                                    @if(auth()->user()->role === 'purok_leader')
                                         <a href="{{ route('purok_leader.residents.show', $request->user->id) }}" 
                                            class="text-blue-600 hover:text-blue-800 hover:underline flex items-center text-sm">
                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -392,15 +363,18 @@
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <div class="flex flex-wrap gap-3">
                         @php
-                            $isPurokLeader = in_array(auth()->user()->role, ['purok_leader', 'purok_president']);
-                            $isAdmin = auth()->user()->role === 'admin';
-                            $isBarangayOfficial = in_array(auth()->user()->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman']);
+                            $role = auth()->user()->role;
+                            $isPurokLeader = ($role === 'purok_leader');
+                            $isAdmin = $role === 'admin';
+                            $isSecretary = $role === 'secretary';
+                            $isBarangayDecisionMaker = in_array($role, ['barangay_captain', 'barangay_kagawad']);
+                            $isBarangayOfficial = $isBarangayDecisionMaker || $isSecretary || $role === 'sk_chairman';
                             $isPurokLeaderForThisRequest = $isPurokLeader &&
                                 ($request->purok_id == auth()->user()->purok_id || $isAdmin);
                         @endphp
 
-                        @if($request->status === 'pending' && ($isPurokLeaderForThisRequest || $isAdmin))
-                            @if($isPurokLeaderForThisRequest || $isAdmin)
+                        @if($request->status === 'pending' && ($isPurokLeaderForThisRequest || $isBarangayOfficial || $isAdmin))
+                            @if($isPurokLeaderForThisRequest || $isBarangayOfficial || $isAdmin)
                                 <button onclick="openApproveModal({{ $request->id }})"
                                     class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                     Approve Purok Clearance
@@ -410,8 +384,8 @@
                                     Reject Request
                                 </button>
                             @endif
-                        @elseif($request->status === 'purok_approved' && ($isBarangayOfficial || $isAdmin))
-                            @if($isBarangayOfficial || $isAdmin)
+                        @elseif($request->status === 'purok_approved' && ($isBarangayDecisionMaker || $isAdmin))
+                            @if($isBarangayDecisionMaker || $isAdmin)
                                 <button onclick="openApproveModal({{ $request->id }})"
                                     class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
                                     Approve Request
@@ -503,7 +477,7 @@
             </div>
 
             <!-- Purok Leader Private Notes (Only visible to purok leaders) -->
-            @if(in_array(auth()->user()->role, ['purok_leader', 'purok_president', 'admin']))
+            @if(in_array(auth()->user()->role, ['purok_leader', 'admin']))
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <div class="flex justify-between items-center mb-3">
                         <h2 class="text-lg font-semibold text-gray-700">Private Notes</h2>

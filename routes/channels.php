@@ -10,7 +10,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 // Authorize purok private channels
 Broadcast::channel('purok.{purokId}', function (User $user, $purokId) {
     // Allow purok leaders and admins to listen to their purok's channel
-    if ($user->purok_id == $purokId || in_array($user->role, ['admin', 'purok_leader', 'purok_president'])) {
+    if ($user->purok_id == $purokId || in_array($user->role, ['admin', 'purok_leader'])) {
         return [
             'id' => $user->id,
             'name' => $user->name,

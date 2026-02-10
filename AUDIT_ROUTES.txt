@@ -1,0 +1,110 @@
+﻿
+  GET|HEAD  / ........................................................................................................ 
+  DELETE    account ............................................... account.destroy ΓÇ║ ProfileController@destroyAccount
+  GET|HEAD  admin/dashboard ................................... admin.dashboard ΓÇ║ Admin\AdminDashboardController@index
+  GET|HEAD  admin/users ..................................... admin.users.index ΓÇ║ Admin\UserManagementController@index
+  GET|HEAD  admin/users/{user} ................................ admin.users.show ΓÇ║ Admin\UserManagementController@show
+  PUT       admin/users/{user} ............................ admin.users.update ΓÇ║ Admin\UserManagementController@update
+  GET|HEAD  admin/users/{user}/edit ........................... admin.users.edit ΓÇ║ Admin\UserManagementController@edit
+  GET|HEAD  announcements .................................. announcements.public ΓÇ║ AnnouncementPublicController@index
+  GET|HEAD  api/ip-location ...................................... api.ip-location ΓÇ║ GeocodingController@getIpLocation
+  GET|HEAD  api/pending-purok-count ............ api.pending-purok-count ΓÇ║ Api\PurokApprovalController@getPendingCount
+  GET|HEAD  api/reverse-geocode ............................. api.reverse-geocode ΓÇ║ GeocodingController@reverseGeocode
+  GET|HEAD  api/user ................................................................................................. 
+  GET|HEAD  barangay/announcements .............. barangay.announcements.index ΓÇ║ Barangay\AnnouncementController@index
+  POST      barangay/announcements .............. barangay.announcements.store ΓÇ║ Barangay\AnnouncementController@store
+  GET|HEAD  barangay/announcements/create ..... barangay.announcements.create ΓÇ║ Barangay\AnnouncementController@create
+  GET|HEAD  barangay/announcements/{announcement} . barangay.announcements.show ΓÇ║ Barangay\AnnouncementController@show
+  PUT       barangay/announcements/{announcement} barangay.announcements.update ΓÇ║ Barangay\AnnouncementController@updΓÇª
+  DELETE    barangay/announcements/{announcement} barangay.announcements.destroy ΓÇ║ Barangay\AnnouncementController@deΓÇª
+  GET|HEAD  barangay/announcements/{announcement}/edit barangay.announcements.edit ΓÇ║ Barangay\AnnouncementController@ΓÇª
+  GET|HEAD  barangay/approvals ........................... barangay.approvals.index ΓÇ║ BarangayApprovalController@index
+  GET|HEAD  barangay/approvals/{id} ........................ barangay.approvals.show ΓÇ║ BarangayApprovalController@show
+  POST      barangay/approvals/{id}/approve .......... barangay.approvals.approve ΓÇ║ BarangayApprovalController@approve
+  POST      barangay/approvals/{id}/reject ............. barangay.approvals.reject ΓÇ║ BarangayApprovalController@reject
+  GET|HEAD  barangay/incident-reports ..... barangay.incident_reports.index ΓÇ║ IncidentReportController@pendingApproval
+  POST      barangay/incident-reports/{incidentReport}/approve barangay.incident_reports.approve ΓÇ║ IncidentReportContΓÇª
+  POST      barangay/incident-reports/{incidentReport}/in-progress barangay.incident_reports.in_progress ΓÇ║ IncidentReΓÇª
+  POST      barangay/incident-reports/{incidentReport}/reject barangay.incident_reports.reject ΓÇ║ IncidentReportControΓÇª
+  POST      barangay/incident-reports/{incidentReport}/resolve barangay.incident_reports.resolve ΓÇ║ IncidentReportContΓÇª
+  GET|POST|HEAD broadcasting/auth ......................... Illuminate\Broadcasting ΓÇ║ BroadcastController@authenticate
+  GET|HEAD  confirm-password .............................. password.confirm ΓÇ║ Auth\ConfirmablePasswordController@show
+  POST      confirm-password ................................................ Auth\ConfirmablePasswordController@store
+  GET|HEAD  dashboard .......................................................... dashboard ΓÇ║ DashboardController@index
+  POST      email/verification-notification ... verification.send ΓÇ║ Auth\EmailVerificationNotificationController@store
+  POST      feedback ....................................................... feedback.store ΓÇ║ FeedbackController@store
+  POST      feedback/skip .................................................... feedback.skip ΓÇ║ FeedbackController@skip
+  POST      feedback/submit .............................................. feedback.submit ΓÇ║ FeedbackController@submit
+  GET|HEAD  feedback/{type}/{id} ................................. feedback.show ΓÇ║ FeedbackController@showFeedbackForm
+  GET|HEAD  forgot-password ............................... password.request ΓÇ║ Auth\PasswordResetLinkController@create
+  POST      forgot-password .................................. password.email ΓÇ║ Auth\PasswordResetLinkController@store
+  GET|HEAD  incident-reports ................................. incident_reports.index ΓÇ║ IncidentReportController@index
+  POST      incident-reports ................................. incident_reports.store ΓÇ║ IncidentReportController@store
+  GET|HEAD  incident-reports/create ........................ incident_reports.create ΓÇ║ IncidentReportController@create
+  GET|HEAD  incident-reports/my_reports ............. incident_reports.my_reports ΓÇ║ IncidentReportController@myReports
+  GET|HEAD  incident-reports/{id} .............................. incident_reports.show ΓÇ║ IncidentReportController@show
+  GET|HEAD  kiosk ................................................................ kiosk.index ΓÇ║ KioskController@index
+  GET|HEAD  kiosk/announcements .................................. kiosk.announcements ΓÇ║ KioskController@announcements
+  GET|HEAD  kiosk/contact .................................................... kiosk.contact ΓÇ║ KioskController@contact
+  GET|HEAD  kiosk/information ........................................ kiosk.information ΓÇ║ KioskController@information
+  GET|HEAD  kiosk/officials .............................................. kiosk.officials ΓÇ║ KioskController@officials
+  GET|HEAD  kiosk/qr-code ..................................................... kiosk.qr-code ΓÇ║ KioskController@qrCode
+  GET|HEAD  kiosk/requirements ..................................... kiosk.requirements ΓÇ║ KioskController@requirements
+  GET|HEAD  kiosk/reset .......................................................... kiosk.reset ΓÇ║ KioskController@reset
+  GET|HEAD  kiosk/services ................................................. kiosk.services ΓÇ║ KioskController@services
+  GET|HEAD  login ................................................. login ΓÇ║ Auth\AuthenticatedSessionController@create
+  POST      login .......................................................... Auth\AuthenticatedSessionController@store
+  POST      logout .............................................. logout ΓÇ║ Auth\AuthenticatedSessionController@destroy
+  GET|HEAD  my-requests .......................................... requests.my_requests ΓÇ║ RequestController@myRequests
+  PUT       password ................................................ password.update ΓÇ║ Auth\PasswordController@update
+  GET|HEAD  profile ............................................................ profile.edit ΓÇ║ ProfileController@edit
+  PATCH     profile ........................................................ profile.update ΓÇ║ ProfileController@update
+  DELETE    profile ...................................................... profile.destroy ΓÇ║ ProfileController@destroy
+  GET|HEAD  profile/password .......................................... profile.password.edit ΓÇ║ ProfileController@edit
+  PUT       profile/password .............................. profile.password.update ΓÇ║ ProfileController@updatePassword
+  GET|HEAD  purok-leader/dashboard .......................... purok_leader.dashboard ΓÇ║ PurokLeaderController@dashboard
+  GET|HEAD  purok-leader/purok-change-requests purok_leader.purok_change_requests ΓÇ║ PurokLeaderController@purokChangeΓÇª
+  POST      purok-leader/purok-change-requests/{changeRequest}/approve purok_leader.approve-purok-change ΓÇ║ PurokLeadeΓÇª
+  POST      purok-leader/purok-change-requests/{changeRequest}/reject purok_leader.reject-purok-change ΓÇ║ PurokLeaderCΓÇª
+  GET|HEAD  purok-leader/residents .......................... purok_leader.residents ΓÇ║ PurokLeaderController@residents
+  GET|HEAD  purok-leader/residents/{id} ............. purok_leader.residents.show ΓÇ║ PurokLeaderController@showResident
+  PATCH     purok-leader/residents/{resident}/approve purok_leader.residents.approve ΓÇ║ PurokLeader\PurokResidentContrΓÇª
+  GET|HEAD  purok-leader/residents/{resident}/reject purok_leader.residents.reject-form ΓÇ║ PurokLeader\PurokResidentCoΓÇª
+  POST      purok-leader/residents/{resident}/reject purok_leader.residents.reject ΓÇ║ PurokLeader\PurokResidentControlΓÇª
+  GET|HEAD  register ................................................. register ΓÇ║ Auth\RegisteredUserController@create
+  POST      register ............................................................. Auth\RegisteredUserController@store
+  POST      reports/download/incident-reports reports.download.incident-reports ΓÇ║ ReportController@downloadIncidentReΓÇª
+  POST      reports/download/purok-clearance reports.download.purok-clearance ΓÇ║ ReportController@downloadPurokClearanΓÇª
+  POST      reports/download/purok-leaders .... reports.download.purok-leaders ΓÇ║ ReportController@downloadPurokLeaders
+  POST      reports/download/residents ............... reports.download.residents ΓÇ║ ReportController@downloadResidents
+  GET|HEAD  reports/incident-reports ..................... reports.incident-reports ΓÇ║ ReportController@incidentReports
+  GET|HEAD  reports/purok-clearance ........................ reports.purok-clearance ΓÇ║ ReportController@purokClearance
+  GET|HEAD  reports/purok-leaders .............................. reports.purok-leaders ΓÇ║ ReportController@purokLeaders
+  GET|HEAD  reports/purok-leaders/{user} .................... reports.purok-leaders.show ΓÇ║ ReportController@showLeader
+  GET|HEAD  reports/residents ......................................... reports.residents ΓÇ║ ReportController@residents
+  GET|HEAD  reports/residents/{user} .......................... reports.residents.show ΓÇ║ ReportController@showResident
+  GET|HEAD  requests ........................................................ requests.index ΓÇ║ RequestController@index
+  POST      requests ........................................................ requests.store ΓÇ║ RequestController@store
+  GET|HEAD  requests/create ............................................... requests.create ΓÇ║ RequestController@create
+  GET|HEAD  requests/pending/barangay .................. requests.pending-barangay ΓÇ║ RequestController@pendingBarangay
+  GET|HEAD  requests/pending/purok ........................... requests.pending-purok ΓÇ║ RequestController@pendingPurok
+  GET|HEAD  requests/{request} ................................................ requests.show ΓÇ║ RequestController@show
+  PUT       requests/{request} ............................................ requests.update ΓÇ║ RequestController@update
+  DELETE    requests/{request} .......................................... requests.destroy ΓÇ║ RequestController@destroy
+  POST      requests/{request}/approve-barangay ........ requests.approve-barangay ΓÇ║ RequestController@approveBarangay
+  POST      requests/{request}/approve-purok ................. requests.approve-purok ΓÇ║ RequestController@approvePurok
+  POST      requests/{request}/complete ............................... requests.complete ΓÇ║ RequestController@complete
+  GET|HEAD  requests/{request}/edit ........................................... requests.edit ΓÇ║ RequestController@edit
+  POST      requests/{request}/reject ..................................... requests.reject ΓÇ║ RequestController@reject
+  PATCH     requests/{request}/status ......................... requests.updateStatus ΓÇ║ RequestController@updateStatus
+  PUT       requests/{request}/update-private-notes requests.update-private-notes ΓÇ║ RequestController@updatePrivateNoΓÇª
+  POST      reset-password ......................................... password.store ΓÇ║ Auth\NewPasswordController@store
+  GET|HEAD  reset-password/{token} ................................ password.reset ΓÇ║ Auth\NewPasswordController@create
+  GET|HEAD  reverse-geocode .............................................................. GeocodingController@reverse
+  GET|HEAD  storage/{path} ............................................................................. storage.local
+  GET|HEAD  up ....................................................................................................... 
+  GET|HEAD  verify-email ................................ verification.notice ΓÇ║ Auth\EmailVerificationPromptController
+  GET|HEAD  verify-email/{id}/{hash} ................................ verification.verify ΓÇ║ Auth\VerifyEmailController
+
+                                                                                                  Showing [106] routes
+

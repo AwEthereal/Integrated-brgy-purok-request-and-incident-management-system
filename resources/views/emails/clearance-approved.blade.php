@@ -121,13 +121,17 @@
     </div>
 
     <div class="content">
-        <p>Dear <strong>{{ $request->user->full_name }}</strong>,</p>
+        @php
+            $residentName = optional($request->user)->name ?? ($request->requester_name ?? 'Resident');
+            $docLabel = \App\Models\Request::FORM_TYPES[$request->form_type] ?? ucfirst(str_replace('_', ' ', $request->form_type ?? 'Document'));
+        @endphp
+        <p>Dear <strong>{{ $residentName }}</strong>,</p>
 
         <p>We are pleased to inform you that your purok clearance request has been <strong>approved</strong>.</p>
 
         <div style="background: #d1fae5; padding: 20px; border-radius: 8px; margin: 20px 0; border: 2px solid #10b981; text-align: center;">
             <h2 style="margin: 0; color: #065f46; font-size: 20px;">
-                📄 {{ ucfirst(str_replace('_', ' ', $request->document_type)) }}
+                📄 {{ $docLabel }}
             </h2>
             <p style="margin: 10px 0 0 0; color: #047857; font-size: 16px;">
                 <strong>Purpose:</strong> {{ $request->purpose }}
@@ -142,7 +146,7 @@
             </div>
             <div class="info-row">
                 <span class="info-label">Document Type:</span>
-                <span class="info-value"><strong>{{ ucfirst(str_replace('_', ' ', $request->document_type)) }}</strong></span>
+                <span class="info-value"><strong>Purok Clearance</strong></span>
             </div>
             <div class="info-row">
                 <span class="info-label">Purpose:</span>
@@ -164,15 +168,14 @@
 
         @if($request->status === 'barangay_approved')
             <p><strong>🎉 Your document is now ready for pickup!</strong></p>
-            <p>Please visit the Barangay Hall during office hours to claim your <strong>{{ ucfirst(str_replace('_', ' ', $request->document_type)) }}</strong>.</p>
+            <p>Please visit the Barangay Hall during office hours.</p>
         @elseif($request->status === 'purok_approved')
             <p><strong>✅ Next Step: Pick up your Purok Clearance</strong></p>
             <p>Your request has been approved by the Purok President. Please visit the <strong>Purok President's residence</strong> during office hours to pick up your <strong>Purok Clearance</strong>.</p>
             <p><strong>📍 After getting your Purok Clearance:</strong></p>
             <ul style="margin: 10px 0; padding-left: 20px;">
                 <li>Bring the Purok Clearance to the Barangay Hall</li>
-                <li>Submit it for final processing of your <strong>{{ ucfirst(str_replace('_', ' ', $request->document_type)) }}</strong></li>
-                <li>The Barangay Office will review and approve your request</li>
+                <li>Submit it for final processing of your needed documents</li>
             </ul>
         @endif
 
@@ -182,8 +185,8 @@
 
         <p style="color: #6b7280; font-size: 14px;">
             <strong>Office Hours:</strong><br>
-            Monday - Friday: 8:00 AM - 5:00 PM<br>
-            Saturday: 8:00 AM - 12:00 PM
+            Monday: 8:00 AM - 5:00 PM<br>
+            Friday: 8:00 AM - 12:00 PM
         </p>
     </div>
 

@@ -25,6 +25,15 @@
         @if($officials->count() > 0)
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($officials as $official)
+                    @php
+                        $roleLabels = [
+                            'barangay_captain' => 'Barangay Captain',
+                            'barangay_kagawad' => 'Barangay Kagawad',
+                            'secretary' => 'Secretary',
+                            'sk_chairman' => 'SK Chairman',
+                        ];
+                        $roleLabel = $roleLabels[$official->role ?? ''] ?? format_label($official->role ?? 'barangay_official');
+                    @endphp
                     <div class="bg-white rounded-2xl shadow-xl p-6">
                         <div class="flex items-center mb-4">
                             <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mr-4">
@@ -34,25 +43,9 @@
                             </div>
                             <div class="flex-1">
                                 <h4 class="text-xl font-bold text-gray-800">{{ $official->name }}</h4>
-                                <p class="text-sm text-gray-600">Barangay Official</p>
+                                <p class="text-sm text-gray-600">{{ $roleLabel }}</p>
                             </div>
                         </div>
-                        @if($official->email)
-                            <div class="flex items-center text-gray-700 mb-2">
-                                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                </svg>
-                                <span class="text-sm">{{ $official->email }}</span>
-                            </div>
-                        @endif
-                        @if($official->contact_number)
-                            <div class="flex items-center text-gray-700">
-                                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                                </svg>
-                                <span class="text-sm">{{ $official->contact_number }}</span>
-                            </div>
-                        @endif
                     </div>
                 @endforeach
             </div>
@@ -81,22 +74,6 @@
                                 <p class="text-sm text-gray-600">{{ $leader->purok->name ?? 'Purok Leader' }}</p>
                             </div>
                         </div>
-                        @if($leader->email)
-                            <div class="flex items-center text-gray-700 mb-2">
-                                <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                                </svg>
-                                <span class="text-sm">{{ $leader->email }}</span>
-                            </div>
-                        @endif
-                        @if($leader->contact_number)
-                            <div class="flex items-center text-gray-700">
-                                <svg class="w-5 h-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                                </svg>
-                                <span class="text-sm">{{ $leader->contact_number }}</span>
-                            </div>
-                        @endif
                     </div>
                 @endforeach
             </div>

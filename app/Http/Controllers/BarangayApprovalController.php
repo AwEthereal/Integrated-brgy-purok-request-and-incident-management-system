@@ -6,6 +6,7 @@ use App\Models\Request;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class BarangayApprovalController extends Controller
 {
@@ -30,7 +31,12 @@ class BarangayApprovalController extends Controller
                 
             // Apply purok filter if selected
             if ($selectedPurok) {
-                $requestsQuery->where('purok_id', $selectedPurok);
+                $requestsQuery->where(function ($q) use ($selectedPurok) {
+                    $q->where('purok_id', $selectedPurok)
+                        ->orWhereHas('user', function ($u) use ($selectedPurok) {
+                            $u->where('purok_id', $selectedPurok);
+                        });
+                });
             }
             
             // Apply status filter if provided
@@ -39,11 +45,11 @@ class BarangayApprovalController extends Controller
             
             if ($showHistory) {
                 // Apply status filter if provided
-                $validStatuses = ['purok_approved', 'barangay_approved', 'in_progress', 'completed', 'rejected'];
+                $validStatuses = ['purok_approved', 'in_progress', 'completed', 'rejected'];
                 if ($request->has('request_status') && in_array($request->query('request_status'), $validStatuses)) {
                     $requestsQuery->where('status', $request->query('request_status'));
                 } else {
-                    $requestsQuery->whereIn('status', ['barangay_approved', 'rejected']);
+                    $requestsQuery->whereIn('status', ['purok_approved', 'completed', 'rejected']);
                 }
                 
                 // Add search functionality for history
@@ -115,7 +121,9 @@ class BarangayApprovalController extends Controller
             $request = Request::select([
                 'id', 'user_id', 'purok_id', 'status', 'form_type', 'purpose', 'purok_notes',
                 'valid_id_front_path', 'valid_id_back_path', 'created_at', 'purok_approved_by',
-                'barangay_approved_by', 'barangay_rejected_at', 'barangay_rejection_reason'
+                'barangay_approved_by', 'barangay_rejected_at', 'barangay_rejection_reason',
+                'contact_number', 'email', 'requester_name', 'birth_date', 'gender', 'civil_status',
+                'occupation', 'address', 'document_generated_at'
             ])->find($id);
             
             if (!$request) {
@@ -153,6 +161,29 @@ class BarangayApprovalController extends Controller
                 'barangayApprover:id,name,role',
                 'purokLeader:id,name,role,purok_id'
             ]);
+
+            // Normalize attachment paths so the blade can always render images
+            foreach (['valid_id_front_path', 'valid_id_back_path'] as $field) {
+                $path = $request->{$field};
+                if (!$path) {
+                    continue;
+                }
+                if (is_string($path) && str_starts_with($path, 'http')) {
+                    continue;
+                }
+                $clean = ltrim((string) $path, '/');
+                if (str_starts_with($clean, 'storage/')) {
+                    $request->{$field} = asset($clean);
+                } else {
+                    $request->{$field} = asset('storage/' . $clean);
+                }
+            }
+
+            $finalPdfUrl = null;
+            $finalPdfPath = 'clearances/' . $request->id . '.pdf';
+            if (Storage::disk('public')->exists($finalPdfPath)) {
+                $finalPdfUrl = Storage::disk('public')->url($finalPdfPath);
+            }
             
             // Debug logging after loading relationships
             \Log::debug('BarangayApprovalController@show - Request with relationships loaded', [
@@ -179,7 +210,10 @@ class BarangayApprovalController extends Controller
             ]);
             
             // Return the view with the request data
-            return view('barangay_official.show', compact('request'));
+            return view('barangay_official.show', [
+                'request' => $request,
+                'finalPdfUrl' => $finalPdfUrl,
+            ]);
             
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             \Log::error('BarangayApprovalController@show - Request not found', [

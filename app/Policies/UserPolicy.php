@@ -36,7 +36,12 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        return $user->isAdmin() || ($user->isPurokLeader() && $user->purok_id === $model->purok_id);
+        // Only Barangay Captain can edit Secretary's profile
+        if ($model->role === 'secretary') {
+            return $user->role === 'barangay_captain';
+        }
+        // Otherwise, only Secretary or Barangay Captain can edit profiles
+        return in_array($user->role, ['barangay_captain', 'secretary']);
     }
     
     /**

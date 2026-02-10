@@ -39,7 +39,7 @@
     
     <!-- Notification Sound Script -->
     @auth
-        @if(auth()->check() && auth()->user() && in_array(auth()->user()->role, ['purok_leader', 'purok_president']))
+        @if(auth()->check() && auth()->user() && (auth()->user()->role === 'purok_leader'))
             <script>
                 window.Laravel = {!! json_encode([
                     'user' => [

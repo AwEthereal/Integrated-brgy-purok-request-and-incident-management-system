@@ -32,6 +32,9 @@
             border: 1px solid #ddd; 
             padding: 5px; 
             text-align: left; 
+            vertical-align: top;
+            word-wrap: break-word;
+            white-space: normal;
         }
         th { 
             background-color: #f2f2f2;
@@ -73,6 +76,7 @@
             <tr>
                 <th>ID</th>
                 <th>Reporter</th>
+                <th>Contact Number</th>
                 <th>Incident Type</th>
                 <th>Description</th>
                 <th>Location</th>
@@ -85,19 +89,25 @@
                 <tr>
                     <td>#{{ $report->id }}</td>
                     <td>
-                        {{ $report->user->first_name ?? 'Unknown' }} {{ $report->user->last_name ?? '' }}<br>
-                        <small>{{ $report->user->email ?? 'N/A' }}</small>
+                        @php($reporterName = trim((string) ($report->reporter_name ?? (optional($report->user)->full_name ?: optional($report->user)->name))))
+                        {{ $reporterName !== '' ? $reporterName : ($report->is_anonymous ? 'Anonymous' : 'Unknown') }}
+                        @if(!empty(optional($report->user)->email))
+                            <br><small>{{ optional($report->user)->email }}</small>
+                        @endif
                     </td>
-                    <td>{{ $report->incident_type }}</td>
+                    <td>{{ $report->contact_number ?? optional($report->user)->contact_number ?? '' }}</td>
+                    <td>{{ $report->incident_type === 'other' ? ($report->incident_type_other ?? 'Other') : (\App\Models\IncidentReport::TYPES[$report->incident_type] ?? ucfirst(str_replace('_',' ', $report->incident_type))) }}</td>
                     <td>{{ Str::limit($report->description, 100) }}</td>
                     <td>
-                        {{ $report->purok->name ?? 'N/A' }}<br>
-                        <small>{{ $report->location ?? 'No specific location' }}</small>
+                        {{ $report->location ?? '' }}
+                        @if(!empty(optional($report->purok)->name))
+                            <br><small>{{ $report->purok->name }}</small>
+                        @endif
                     </td>
                     <td class="status-{{ $report->status }}">
                         {{ format_label($report->status) }}
                     </td>
-                    <td>{{ $report->created_at->format('M d, Y h:i A') }}</td>
+                    <td>{{ optional($report->created_at)->format('M d, Y h:i A') ?? 'N/A' }}</td>
                 </tr>
             @endforeach
         </tbody>

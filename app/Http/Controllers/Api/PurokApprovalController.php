@@ -19,7 +19,7 @@ class PurokApprovalController extends Controller
         $user = Auth::user();
         
         // Only purok leaders and presidents should see their pending requests
-        if (!in_array($user->role, ['purok_leader', 'purok_president'])) {
+        if ($user->role !== 'purok_leader') {
             return response()->json(['count' => 0]);
         }
 

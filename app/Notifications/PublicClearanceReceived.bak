@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Notifications;
+
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+use App\Models\Request as ServiceRequest;
+
+class PublicClearanceReceived extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    public function __construct(public ServiceRequest $request)
+    {
+        //
+    }
+
+    public function via(object $notifiable): array
+    {
+        return ['mail'];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        $app = config('app.name');
+        return (new MailMessage)
+            ->subject('We received your clearance request')
+            ->greeting('Thank you!')
+            ->line('Your request has been received by '.$app.'.')
+            ->line('Type: '.($this->request->form_type ?? 'N/A'))
+            ->line('Purpose: '.($this->request->purpose ?? 'N/A'))
+            ->line('We will review it as soon as possible and contact you if needed.')
+            ->salutation('— '.$app);
+    }
+}

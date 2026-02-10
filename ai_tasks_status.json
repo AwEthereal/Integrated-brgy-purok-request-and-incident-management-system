@@ -1,0 +1,25 @@
+{
+  "last_updated": "2026-01-30T10:11:00Z",
+  "tasks": [
+    { "id": "audit-1", "title": "System audit: routes/controllers/middleware map", "status": "completed", "priority": "high" },
+    { "id": "audit-2", "title": "Inventory views/JS and mark duplicates", "status": "completed", "priority": "high" },
+
+    { "id": "t1", "title": "Create feature branch; backups; baseline commit", "status": "completed", "priority": "high" },
+    { "id": "t2", "title": "DB migrations: staff username, public-request fields, incident phone, audit logs", "status": "completed", "priority": "high" },
+    { "id": "t3", "title": "Auth updates: numeric username login for staff; roles/permissions; Super Admin elevation", "status": "completed", "priority": "high" },
+    { "id": "t4", "title": "Routes split: /superadmin, /admin, /purok; remove public login button; public routes with throttling", "status": "completed", "priority": "high" },
+    { "id": "t5", "title": "Public controllers/views: clearance + incident (FormRequests, storage, honeypot/CAPTCHA)", "status": "completed", "priority": "high" },
+    { "id": "t6", "title": "Security hardening: MIME/size limits, sanitization, throttles", "status": "in_progress", "priority": "high" },
+    { "id": "t7", "title": "Clearance workflow: Purok Leader is final; email/attachment or downloadable link (no QR)", "status": "pending", "priority": "high" },
+    { "id": "t8", "title": "PDF + branding: template, logo/header, Purok field, preview-before-download", "status": "pending", "priority": "medium" },
+    { "id": "t9", "title": "Resident masterlist CRUD: Purok-scoped + Barangay-wide; optional email", "status": "pending", "priority": "high" },
+    { "id": "t10", "title": "Purok Leader account mgmt by Barangay Official: add/edit/photo/delete + personal info + audit logs", "status": "pending", "priority": "high" },
+    { "id": "t11", "title": "Admin parity for relevant Purok features", "status": "pending", "priority": "medium" },
+    { "id": "t12", "title": "Analytics charts (monthly/quarterly/annual)", "status": "pending", "priority": "medium" },
+    { "id": "t13", "title": "UI polish: live search, pagination, filters; wording change to closed/completed", "status": "pending", "priority": "medium" },
+    { "id": "t14", "title": "Cleanup: remove old resident auth and barangay-final flows", "status": "pending", "priority": "low" },
+    { "id": "t15", "title": "Docs: update README/admin guide; config notes (email/queue/roles)", "status": "pending", "priority": "low" },
+    { "id": "t16", "title": "QA: E2E tests for public forms, approvals, emails, downloads; UAT checklist", "status": "pending", "priority": "high" }
+  ],
+  "notes": "Update this file after each step; keep in Git so future AIs can continue reliably."
+}

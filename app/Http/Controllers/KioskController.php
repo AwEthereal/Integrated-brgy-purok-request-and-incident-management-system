@@ -56,13 +56,13 @@ class KioskController extends Controller
     public function officials()
     {
         // Get barangay officials
-        $officials = User::where('role', 'barangay_official')
-            ->select('name', 'email', 'contact_number')
+        $officials = User::whereIn('role', ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman'])
+            ->select('name', 'role')
             ->get();
 
         // Get purok leaders
-        $purokLeaders = User::whereIn('role', ['purok_leader', 'purok_president'])
-            ->select('name', 'email', 'contact_number', 'purok_id')
+        $purokLeaders = User::where('role', 'purok_leader')
+            ->select('name', 'purok_id')
             ->with('purok:id,name')
             ->orderBy('purok_id')
             ->get();
@@ -119,8 +119,8 @@ class KioskController extends Controller
                     'Cedula (Community Tax Certificate)',
                     '1x1 ID Picture (2 copies)',
                 ],
-                'fee' => '₱50.00',
-                'processing_time' => '3-5 business days'
+                'fee' => '₱100.00',
+                'processing_time' => '1-2 business days'
             ],
             'business_clearance' => [
                 'name' => 'Business Clearance',
@@ -132,7 +132,7 @@ class KioskController extends Controller
                     'Cedula',
                 ],
                 'fee' => '₱100.00',
-                'processing_time' => '5-7 business days'
+                'processing_time' => '1-2 business days'
             ],
             'certificate_of_residency' => [
                 'name' => 'Certificate of Residency',
@@ -141,8 +141,8 @@ class KioskController extends Controller
                     'Purok Clearance',
                     'Proof of Residency (Utility Bill)',
                 ],
-                'fee' => '₱30.00',
-                'processing_time' => '2-3 business days'
+                'fee' => '₱100.00',
+                'processing_time' => '1-2 business days'
             ],
             'indigency' => [
                 'name' => 'Certificate of Indigency',
@@ -151,8 +151,8 @@ class KioskController extends Controller
                     'Purok Clearance',
                     'Proof of Income (if applicable)',
                 ],
-                'fee' => 'Free',
-                'processing_time' => '2-3 business days'
+                'fee' => '₱70.00',
+                'processing_time' => '1-2 business days'
             ],
         ];
 

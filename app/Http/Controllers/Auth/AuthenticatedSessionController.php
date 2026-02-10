@@ -52,7 +52,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         // Redirect based on role
-        if ($user->role === 'purok_leader' || $user->role === 'purok_president') {
+        if ($user->role === 'purok_leader') {
             return redirect()->route('purok_leader.dashboard');
         }
         return redirect()->intended(route('dashboard', absolute: false));

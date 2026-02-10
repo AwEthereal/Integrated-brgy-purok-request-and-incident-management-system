@@ -1,0 +1,251 @@
+[2026-02-09 00:02:40] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 00:02:41] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:02:43] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 00:02:43] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:03:37] local.DEBUG: BarangayApprovalController@index - Starting {"user_id":17,"user_role":"barangay_captain","can_barangay_actions":true,"request_query":[]} 
+[2026-02-09 00:03:37] local.DEBUG: BarangayApprovalController@index - Data loaded {"requests_count":0,"puroks_count":18,"selected_purok":null} 
+[2026-02-09 00:05:37] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 00:07:58] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 00:07:59] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:08:07] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:08:11] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 00:08:17] local.DEBUG: BarangayApprovalController@index - Starting {"user_id":17,"user_role":"barangay_captain","can_barangay_actions":true,"request_query":[]} 
+[2026-02-09 00:08:17] local.DEBUG: BarangayApprovalController@index - Data loaded {"requests_count":0,"puroks_count":18,"selected_purok":null} 
+[2026-02-09 00:08:19] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:08:26] local.DEBUG: BarangayApprovalController@index - Starting {"user_id":17,"user_role":"barangay_captain","can_barangay_actions":true,"request_query":[]} 
+[2026-02-09 00:08:26] local.DEBUG: BarangayApprovalController@index - Data loaded {"requests_count":0,"puroks_count":18,"selected_purok":null} 
+[2026-02-09 00:10:08] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 00:10:10] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:12:39] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:12:42] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:12:54] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:13:01] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:13:28] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:14:00] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin","barangay_kagawad"],"path":"admin/users"} 
+[2026-02-09 00:14:19] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:17:53] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 00:18:40] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 00:18:43] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:20:19] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 00:20:21] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 00:20:38] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 00:21:59] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["secretary","barangay_captain","barangay_kagawad","admin"],"path":"official/requests/140/document"} 
+[2026-02-09 00:23:43] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 01:12:38] local.DEBUG: BarangayApprovalController@index - Starting {"user_id":17,"user_role":"barangay_captain","can_barangay_actions":true,"request_query":[]} 
+[2026-02-09 01:12:39] local.DEBUG: BarangayApprovalController@index - Data loaded {"requests_count":0,"puroks_count":18,"selected_purok":null} 
+[2026-02-09 01:20:23] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["secretary","barangay_captain","barangay_kagawad","admin"],"path":"official/requests/140/document"} 
+[2026-02-09 01:20:29] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 01:23:46] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin","barangay_kagawad"],"path":"admin/users"} 
+[2026-02-09 01:23:57] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 01:27:16] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:31:16] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:33:17] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:33:20] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:33:21] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:38:52] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:38:57] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:38:57] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:38:59] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:45:00] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 01:45:44] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:46:03] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:46:19] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 01:46:34] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:32:22] local.ERROR: Error in CheckForPendingFeedback: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'resolved_at' in 'order clause' (Connection: mysql, SQL: select * from `incident_reports` where `user_id` = 20 and `status` = resolved and `feedback_skipped` = 0 and `feedback_submitted_at` is null and `feedback_dismissed_at` is null order by `resolved_at` desc limit 1)  
+[2026-02-09 10:34:23] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:34:32] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:36:34] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/preview/incident-reports"} 
+[2026-02-09 10:37:10] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/preview/incident-reports"} 
+[2026-02-09 10:37:51] local.ERROR: Error in CheckForPendingFeedback: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'resolved_at' in 'order clause' (Connection: mysql, SQL: select * from `incident_reports` where `user_id` = 17 and `status` = resolved and `feedback_skipped` = 0 and `feedback_submitted_at` is null and `feedback_dismissed_at` is null order by `resolved_at` desc limit 1)  
+[2026-02-09 10:38:41] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:39:07] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:39:28] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:39:36] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:40:22] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 10:40:24] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:42:26] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:45:08] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 10:45:37] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records"} 
+[2026-02-09 10:47:00] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 10:47:09] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:47:16] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 10:47:34] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:51:10] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 10:51:15] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 10:51:17] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:01:36] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:04:09] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 11:10:18] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:10:20] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 11:10:25] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 11:19:09] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:19:12] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:19:26] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:19:29] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:25:48] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:25:52] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:25:58] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:26:06] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 11:26:50] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","admin"],"path":"secretary/purok-leaders/55"} 
+[2026-02-09 11:26:53] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:27:44] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:27:47] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:28:11] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:28:40] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 11:30:33] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 11:30:40] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries/46/edit"} 
+[2026-02-09 11:30:45] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 11:30:50] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 11:30:51] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/5/edit"} 
+[2026-02-09 11:31:01] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 11:35:54] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 11:35:55] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 11:35:56] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:38:27] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 11:39:20] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 11:42:07] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:42:10] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/residents"} 
+[2026-02-09 11:43:59] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/residents"} 
+[2026-02-09 11:44:00] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 11:44:01] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:44:46] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/residents"} 
+[2026-02-09 11:44:48] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 11:44:50] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:44:54] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/residents"} 
+[2026-02-09 11:44:57] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 11:45:01] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:45:37] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:45:50] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 11:46:00] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 11:46:09] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 11:47:33] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records"} 
+[2026-02-09 11:47:35] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 11:47:46] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:47:55] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:48:06] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:48:08] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/residents"} 
+[2026-02-09 11:48:20] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/9"} 
+[2026-02-09 11:48:41] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/residents"} 
+[2026-02-09 11:48:46] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 11:48:47] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:49:06] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:49:23] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 11:49:25] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:49:28] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 11:49:30] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:49:35] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 11:49:41] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/personal-info"} 
+[2026-02-09 11:50:31] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/personal-info"} 
+[2026-02-09 11:51:11] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:51:14] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 11:51:27] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 11:51:28] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/9/edit"} 
+[2026-02-09 11:52:35] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 11:54:59] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 11:55:12] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 11:55:57] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:56:16] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 11:56:20] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/9/edit"} 
+[2026-02-09 12:03:00] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 12:03:06] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 12:03:07] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 12:03:08] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 12:03:09] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/9/edit"} 
+[2026-02-09 12:03:10] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 12:03:12] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 12:03:16] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 12:03:17] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/9/edit"} 
+[2026-02-09 12:03:28] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 12:03:34] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/residents"} 
+[2026-02-09 12:03:54] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 12:05:41] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 12:05:56] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 12:05:59] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/preview/incident-reports"} 
+[2026-02-09 12:06:15] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 12:11:32] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 12:11:50] local.ERROR: Command "queue:wrok" is not defined.
+
+Did you mean one of these?
+    queue:batches-table
+    queue:clear
+    queue:failed
+    queue:failed-table
+    queue:flush
+    queue:forget
+    queue:listen
+    queue:monitor
+    queue:prune-batches
+    queue:prune-failed
+    queue:restart
+    queue:retry
+    queue:retry-batch
+    queue:table
+    queue:work {"exception":"[object] (Symfony\\Component\\Console\\Exception\\CommandNotFoundException(code: 0): Command \"queue:wrok\" is not defined.
+
+Did you mean one of these?
+    queue:batches-table
+    queue:clear
+    queue:failed
+    queue:failed-table
+    queue:flush
+    queue:forget
+    queue:listen
+    queue:monitor
+    queue:prune-batches
+    queue:prune-failed
+    queue:restart
+    queue:retry
+    queue:retry-batch
+    queue:table
+    queue:work at C:/Users/PC/Documents/Capstone/Capstone System/kalawag_brgy_system/vendor/symfony/console/Application.php:759)
+[stacktrace]
+#0 C:/Users/PC/Documents/Capstone/Capstone System/kalawag_brgy_system/vendor/symfony/console/Application.php(298): Symfony/Component/Console/Application->find('queue:wrok')
+#1 C:/Users/PC/Documents/Capstone/Capstone System/kalawag_brgy_system/vendor/symfony/console/Application.php(195): Symfony/Component/Console/Application->doRun(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#2 C:/Users/PC/Documents/Capstone/Capstone System/kalawag_brgy_system/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(198): Symfony/Component/Console/Application->run(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#3 C:/Users/PC/Documents/Capstone/Capstone System/kalawag_brgy_system/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(1235): Illuminate/Foundation/Console/Kernel->handle(Object(Symfony/Component/Console/Input/ArgvInput), Object(Symfony/Component/Console/Output/ConsoleOutput))
+#4 C:/Users/PC/Documents/Capstone/Capstone System/kalawag_brgy_system/artisan(16): Illuminate/Foundation/Application->handleCommand(Object(Symfony/Component/Console/Input/ArgvInput))
+#5 {main}
+"} 
+[2026-02-09 12:15:32] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
+[2026-02-09 12:15:33] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 12:15:37] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 21:33:08] local.ERROR: Error in CheckForPendingFeedback: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'resolved_at' in 'order clause' (Connection: mysql, SQL: select * from `incident_reports` where `user_id` = 20 and `status` = resolved and `feedback_skipped` = 0 and `feedback_submitted_at` is null and `feedback_dismissed_at` is null order by `resolved_at` desc limit 1)  
+[2026-02-09 21:34:05] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 21:36:16] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 21:36:18] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 21:36:20] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 21:36:21] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 21:43:08] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 21:44:41] local.ERROR: Error in CheckForPendingFeedback: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'resolved_at' in 'order clause' (Connection: mysql, SQL: select * from `incident_reports` where `user_id` = 17 and `status` = resolved and `feedback_skipped` = 0 and `feedback_submitted_at` is null and `feedback_dismissed_at` is null order by `resolved_at` desc limit 1)  
+[2026-02-09 21:44:57] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 21:45:13] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 21:45:17] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 21:45:20] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/purok-leaders"} 
+[2026-02-09 21:45:37] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["secretary","barangay_captain","admin"],"path":"secretary/purok-leaders/55/edit"} 
+[2026-02-09 21:45:40] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 21:45:41] local.DEBUG: CheckRole: Checking access {"user_id":20,"user_role":"secretary","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/9/edit"} 
+[2026-02-09 21:46:45] local.WARNING: Unauthorized access attempt to dashboard {"user_id":46,"role":"purok_leader","allowed_roles":["barangay_captain","barangay_kagawad","secretary","sk_chairman","admin","resident"]} 
+[2026-02-09 21:46:45] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 22:59:27] local.INFO: PurokLeaderMiddleware - User check {"user_id":46,"user_role":"purok_leader","purok_id":3,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-09 22:59:32] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records"} 
+[2026-02-09 22:59:41] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/4"} 
+[2026-02-09 22:59:44] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/4/edit"} 
+[2026-02-09 22:59:54] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/4"} 
+[2026-02-09 23:00:17] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries/create"} 
+[2026-02-09 23:00:52] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 23:00:53] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries/create"} 
+[2026-02-09 23:01:05] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 23:01:06] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/create"} 
+[2026-02-09 23:02:16] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records"} 
+[2026-02-09 23:02:16] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 23:02:40] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries/56"} 
+[2026-02-09 23:02:40] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","admin"],"path":"captain/secretaries"} 
+[2026-02-09 23:02:45] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 23:02:53] local.DEBUG: CheckRole: Checking access {"user_id":17,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","admin"],"path":"reports/incident-reports"} 
+[2026-02-09 23:09:26] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/4"} 
+[2026-02-09 23:14:51] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/4"} 
+[2026-02-09 23:16:25] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/4"} 
+[2026-02-09 23:17:20] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/4"} 
+[2026-02-09 23:18:03] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/4"} 
+[2026-02-09 23:23:24] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/4"} 
+[2026-02-09 23:25:28] local.DEBUG: CheckRole: Checking access {"user_id":46,"user_role":"purok_leader","allowed_roles":["purok_leader","secretary","barangay_captain","barangay_kagawad","admin"],"path":"purok-leader/resident-records/4"} 

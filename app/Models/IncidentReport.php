@@ -47,7 +47,11 @@ class IncidentReport extends Model
     protected $fillable = [
         'user_id',
         'purok_id',
+        'reporter_name',
+        'contact_number',
+        'email',
         'incident_type',
+        'incident_type_other',
         'description',
         'photo_path',
         'photo_paths',

@@ -5,7 +5,7 @@
 @php
     $status = request('status', 'pending');
     $isPendingView = $status !== 'completed';
-    $title = $isPendingView ? 'Pending Barangay Clearance Requests' : 'Request History';
+    $title = $isPendingView ? 'Pending Barangay Clearance Requests' : 'Purok Clearance History';
     $pendingCount = isset($requests) && !$isPendingView ? \App\Models\Request::where('status', 'purok_approved')->count() : 0;
 @endphp
 
@@ -44,6 +44,17 @@
                     </span>
                 </div>
             </div>
+
+            @if(!$isPendingView)
+                <div class="flex justify-end gap-2 mb-4">
+                    <button type="button" onclick="printAllApprovalsHistory()" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition ease-in-out duration-150">
+                        Print All
+                    </button>
+                    <button type="button" onclick="printSelectedApprovalsHistory()" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition ease-in-out duration-150">
+                        Print Selected
+                    </button>
+                </div>
+            @endif
 
             @if(session('success'))
                 <div class="mb-6 p-4 bg-green-900 border-l-4 border-green-500 text-green-200 rounded" role="alert">
@@ -88,7 +99,8 @@
                                name="search" 
                                value="{{ request('search') }}"
                                placeholder="Search by ID, resident name..."
-                               class="w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-green-500 focus:ring-green-500">
+                               class="w-full rounded-md bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:border-green-500 focus:ring-green-500"
+                               oninput="filterApprovalsTable()">
                     </div>
 
                     <!-- Purok Filter -->
@@ -96,7 +108,8 @@
                         <label for="purok" class="block text-sm font-medium text-gray-300 mb-2">Purok</label>
                         <select id="purok" 
                                 name="purok" 
-                                class="w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-green-500 focus:ring-green-500">
+                                class="w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-green-500 focus:ring-green-500"
+                                onchange="filterApprovalsTable()">
                             <option value="">All Puroks</option>
                             @foreach($puroks as $purok)
                                 <option value="{{ $purok->id }}" {{ request('purok') == $purok->id ? 'selected' : '' }}>
@@ -112,10 +125,10 @@
                             <label for="request_status" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
                             <select id="request_status" 
                                     name="request_status" 
-                                    class="w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-green-500 focus:ring-green-500">
+                                    class="w-full rounded-md bg-gray-700 border-gray-600 text-white focus:border-green-500 focus:ring-green-500"
+                                    onchange="filterApprovalsTable()">
                                 <option value="">All Status</option>
                                 <option value="purok_approved" {{ request('request_status') == 'purok_approved' ? 'selected' : '' }}>Purok Approved</option>
-                                <option value="barangay_approved" {{ request('request_status') == 'barangay_approved' ? 'selected' : '' }}>Barangay Approved</option>
                                 <option value="in_progress" {{ request('request_status') == 'in_progress' ? 'selected' : '' }}>In Progress</option>
                                 <option value="completed" {{ request('request_status') == 'completed' ? 'selected' : '' }}>Completed</option>
                                 <option value="rejected" {{ request('request_status') == 'rejected' ? 'selected' : '' }}>Rejected</option>
@@ -153,4 +166,63 @@
         </div>
     </div>
 </div>
+
+<script>
+function filterApprovalsTable() {
+    const input = document.getElementById('search');
+    if (!input) return;
+    const filter = (input.value || '').toLowerCase();
+    const purokSelect = document.getElementById('purok');
+    const selectedPurok = purokSelect ? (purokSelect.value || '') : '';
+    const statusSelect = document.getElementById('request_status');
+    const selectedStatus = statusSelect ? (statusSelect.value || '') : '';
+    const tables = document.querySelectorAll('table');
+    if (!tables.length) return;
+
+    // Filter all tbody rows in the included tables
+    tables.forEach(function(table){
+        const tbody = table.querySelector('tbody');
+        if (!tbody) return;
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(function(row){
+            // Skip empty-state row (colspan)
+            const isEmptyState = row.querySelector('td[colspan]');
+            if (isEmptyState) return;
+            const text = (row.textContent || row.innerText || '').toLowerCase();
+            const rowPurok = row.getAttribute('data-purok-id') || '';
+            const rowStatus = row.getAttribute('data-status') || '';
+
+            const matchesSearch = filter === '' || text.indexOf(filter) !== -1;
+            const matchesPurok = selectedPurok === '' || rowPurok === selectedPurok;
+            const matchesStatus = selectedStatus === '' || rowStatus === selectedStatus;
+            row.style.display = (matchesSearch && matchesPurok && matchesStatus) ? '' : 'none';
+        });
+    });
+}
+
+function toggleAllHistory(source) {
+    const boxes = document.querySelectorAll('.history-checkbox');
+    boxes.forEach(function(cb){ cb.checked = source.checked; });
+}
+
+function printAllApprovalsHistory() {
+    const url = "{{ route('reports.preview.purok-clearance') }}";
+    window.open(url, '_blank');
+}
+
+function printSelectedApprovalsHistory() {
+    const selected = Array.from(document.querySelectorAll('.history-checkbox:checked')).map(cb => cb.value);
+    if (selected.length === 0) {
+        alert('Please select at least one request to preview.');
+        return;
+    }
+    const url = "{{ route('reports.preview.purok-clearance') }}" + '?ids=' + selected.join(',');
+    window.open(url, '_blank');
+}
+
+// Run once on page load if there's an initial query
+document.addEventListener('DOMContentLoaded', function(){
+    filterApprovalsTable();
+});
+</script>
 @endsection

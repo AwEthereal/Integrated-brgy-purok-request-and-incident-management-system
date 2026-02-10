@@ -30,7 +30,7 @@ class DashboardController extends Controller
                 'allowed_roles' => $allowedRoles
             ]);
             
-            if ($user->role === 'purok_leader' || $user->role === 'purok_president') {
+            if ($user->role === 'purok_leader') {
                 return redirect()->route('purok_leader.dashboard');
             }
             
@@ -41,8 +41,8 @@ class DashboardController extends Controller
             return redirect('/')->with('error', 'You do not have permission to access this page.');
         }
 
-        // Redirect admin to admin dashboard
-        if ($user->role === 'admin') {
+        // Redirect admin or barangay captain to admin dashboard
+        if (in_array($user->role, ['admin', 'barangay_captain'])) {
             return app(\App\Http\Controllers\Admin\AdminDashboardController::class)->index();
         }
 
@@ -59,7 +59,9 @@ class DashboardController extends Controller
             if ($selectedPurok) {
                 $incidentsQuery->where('purok_id', $selectedPurok);
             }
-            
+
+            $activeIncidentsCount = (clone $incidentsQuery)->count();
+
             $incidents = $incidentsQuery->orderByRaw(
                 "CASE 
                     WHEN status = 'pending' THEN 1 
@@ -67,23 +69,34 @@ class DashboardController extends Controller
                     ELSE 3 
                 END"
             )->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(5, ['*'], 'incidents_page')
+            ->appends($request->query());
             
-            // Get pending service requests (purok_approved only)
+            $approvedClearanceFormTypes = array_values(array_diff(array_keys(ServiceRequest::FORM_TYPES), ['other']));
+
+            // Get recently approved clearances (barangay_approved / completed)
             $pendingRequestsQuery = ServiceRequest::with(['user', 'purok'])
-                ->where('status', 'purok_approved');
+                ->whereIn('form_type', $approvedClearanceFormTypes)
+                ->whereIn('status', ['barangay_approved', 'completed']);
             
             if ($selectedPurok) {
                 $pendingRequestsQuery->where('purok_id', $selectedPurok);
             }
-            
-            $pendingRequests = $pendingRequestsQuery->orderBy('created_at', 'desc')->get();
+
+            $approvedClearancesCount = (clone $pendingRequestsQuery)->count();
+
+            $pendingRequests = $pendingRequestsQuery
+                ->orderByRaw('COALESCE(barangay_approved_at, updated_at) DESC')
+                ->paginate(5, ['*'], 'clearances_page')
+                ->appends($request->query());
             
             return view('barangay_official.dashboard', [
                 'pendingRequests' => $pendingRequests,
                 'incidents' => $incidents,
                 'puroks' => $puroks,
-                'selectedPurok' => $selectedPurok
+                'selectedPurok' => $selectedPurok,
+                'approvedClearancesCount' => $approvedClearancesCount,
+                'activeIncidentsCount' => $activeIncidentsCount,
             ]);
         }
         

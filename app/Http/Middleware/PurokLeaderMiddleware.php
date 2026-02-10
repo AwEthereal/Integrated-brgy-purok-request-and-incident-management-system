@@ -22,10 +22,10 @@ class PurokLeaderMiddleware
             'user_id' => $user ? $user->id : null,
             'user_role' => $user ? $user->role : 'not logged in',
             'purok_id' => $user ? $user->purok_id : null,
-            'allowed_roles' => ['purok_leader', 'purok_president']
+            'allowed_roles' => ['purok_leader', 'admin']
         ]);
 
-        if (!$user || !in_array($user->role, ['purok_leader', 'purok_president'])) {
+        if (!$user || !in_array($user->role, ['purok_leader', 'admin'])) {
             \Log::warning('PurokLeaderMiddleware - Access denied', [
                 'user_id' => $user ? $user->id : null,
                 'user_role' => $user ? $user->role : 'not logged in'
@@ -34,11 +34,11 @@ class PurokLeaderMiddleware
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized. You must be a Purok Leader or Purok President to access this page.'
+                    'message' => 'Unauthorized. You must be a Purok Leader to access this page.'
                 ], 403);
             }
             
-            abort(403, 'Unauthorized. You must be a Purok Leader or Purok President to access this page.');
+            abort(403, 'Unauthorized. You must be a Purok Leader to access this page.');
         }
 
         return $next($request);

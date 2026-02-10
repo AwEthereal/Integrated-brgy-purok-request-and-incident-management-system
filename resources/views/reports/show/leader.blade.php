@@ -8,7 +8,7 @@
         <!-- Header with Back Button -->
         <div class="mb-6 flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Purok Leader Profile</h1>
+                <h1 class="text-3xl font-bold color:black">Purok Leader Profile</h1>
                 <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">View detailed purok leader information</p>
             </div>
             <a href="{{ route('reports.purok-leaders') }}" class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white font-medium rounded-md transition-colors duration-150">
@@ -33,7 +33,7 @@
                     </div>
                     <div class="ml-6">
                         <h2 class="text-2xl font-bold text-white">{{ $user->name }}</h2>
-                        <p class="text-purple-100">Purok President</p>
+                        <p class="text-purple-100">Purok Leader</p>
                         <p class="text-purple-100 text-sm mt-1">{{ $user->purok->name ?? 'No Purok Assigned' }}</p>
                         <div class="mt-2">
                             @if($user->is_approved)
@@ -78,17 +78,19 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Date of Birth</label>
                         <p class="mt-1 text-sm text-gray-900 dark:text-white">
-                            {{ $user->birth_date ? \Carbon\Carbon::parse($user->birth_date)->format('F d, Y') : 'N/A' }}
-                            @if($user->birth_date)
+                            @php($dob = $user->birth_date ?? ($user->date_of_birth ?? null))
+                            {{ $dob ? \Carbon\Carbon::parse($dob)->format('F d, Y') : 'N/A' }}
+                            @if($dob)
                                 <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                                    ({{ \Carbon\Carbon::parse($user->birth_date)->age }} years old)
+                                    ({{ \Carbon\Carbon::parse($dob)->age }} years old)
                                 </span>
                             @endif
                         </p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Gender</label>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ $user->gender ? ucfirst($user->gender) : 'N/A' }}</p>
+                        @php($gender = $user->gender ?? ($user->sex ?? null))
+                        <p class="mt-1 text-sm text-gray-900 dark:text-white">{{ $gender ? ucfirst($gender) : 'N/A' }}</p>
                     </div>
                 </div>
             </div>
@@ -143,7 +145,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Position</label>
-                        <p class="mt-1 text-sm text-gray-900 dark:text-white font-semibold">Purok President</p>
+                        <p class="mt-1 text-sm text-gray-900 dark:text-white font-semibold">Purok Leader</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-500 dark:text-gray-400">Account Status</label>

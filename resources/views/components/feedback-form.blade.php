@@ -8,15 +8,15 @@
     ];
     
     $questions = [
-        'sqd0_rating' => 'I am satisfied with the service that I availed.',
-        'sqd1_rating' => 'I spent an acceptable amount of time for my transaction.',
-        'sqd2_rating' => 'The office accurately informed me and followed the transaction\'s requirements and steps.',
-        'sqd3_rating' => 'My online transaction (including steps and payment) was simple and convenient.',
-        'sqd4_rating' => 'I easily found information about my transaction from the office or its website.',
-        'sqd5_rating' => 'I paid an acceptable amount of fees for my transaction.',
-        'sqd6_rating' => 'I am confident that my online transaction was secure.',
-        'sqd7_rating' => 'The office\'s online support was available, or (if asked questions) was quick to respond.',
-        'sqd8_rating' => 'I got what I needed from the government office.'
+        'sqd0_rating' => 'I am satisfied with the service I received.',
+        'sqd1_rating' => 'Submitting my request or report took an acceptable amount of time.',
+        'sqd2_rating' => 'The office clearly explained and followed the service requirements and steps.',
+        'sqd3_rating' => 'The process for submitting requests or reports was simple and convenient.',
+        'sqd4_rating' => 'I easily obtained the information I needed from the kiosk.',
+        'sqd5_rating' => 'The process for accessing the service was straightforward.',
+        'sqd6_rating' => 'I am confident that using the system was secure.',
+        'sqd7_rating' => 'The office staff responded quickly when I asked questions.',
+        'sqd8_rating' => 'I received what I needed from the office.',
     ];
     
     $type = $type ?? 'request';

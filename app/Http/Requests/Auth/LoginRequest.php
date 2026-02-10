@@ -27,7 +27,7 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -41,11 +41,15 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        $email = $this->input('email');
+        $identifier = $this->input('email');
         $password = $this->input('password');
 
-        // Find user by email case-insensitive
-        $user = \App\Models\User::whereRaw('LOWER(email) = ?', [strtolower($email)])->first();
+        $user = null;
+        if (preg_match('/^\d+$/', $identifier)) {
+            $user = \App\Models\User::where('username', $identifier)->first();
+        } elseif (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+            $user = \App\Models\User::whereRaw('LOWER(email) = ?', [strtolower($identifier)])->first();
+        }
 
         if (! $user || ! \Illuminate\Support\Facades\Hash::check($password, $user->password)) {
             RateLimiter::hit($this->throttleKey());

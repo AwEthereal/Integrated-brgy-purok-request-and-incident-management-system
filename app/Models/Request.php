@@ -34,10 +34,12 @@ class Request extends Model
         'barangay_notes',
         'contact_number',
         'email',
+        'requester_name',
         'birth_date',
         'gender',
         'civil_status',
         'occupation',
+        'address',
         'address_line1',
         'address_line2',
         'city',
@@ -120,7 +122,7 @@ class Request extends Model
         
         // If no purok approver is set, try to find the purok leader for this purok
         return $this->belongsTo(User::class, 'purok_id', 'purok_id')
-            ->whereIn('role', ['purok_leader', 'purok_president'])
+            ->where('role', 'purok_leader')
             ->withDefault(function () {
                 return new User([
                     'name' => 'No Purok Leader Assigned',

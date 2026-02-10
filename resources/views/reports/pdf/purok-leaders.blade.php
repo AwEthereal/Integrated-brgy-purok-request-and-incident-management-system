@@ -67,25 +67,23 @@
     <table>
         <thead>
             <tr>
-                <th>No.</th>
-                <th>Full Name</th>
+                <th>Name</th>
                 <th>Purok</th>
-                <th>Contact Info</th>
-                <th>Address</th>
-                <th>Appointed</th>
+                <th>Contact Number</th>
+                <th>DOB</th>
+                <th>Sex</th>
+                <th>Date Assigned</th>
             </tr>
         </thead>
         <tbody>
             @foreach($leaders as $index => $leader)
+                @php($rbi = $leader->latestResidentRecord)
                 <tr>
-                    <td>{{ $index + 1 }}</td>
-                    <td>{{ $leader->first_name }} {{ $leader->middle_name }} {{ $leader->last_name }}</td>
+                    <td>{{ $rbi?->first_name ?? $leader->first_name }} {{ $rbi?->middle_name ?? $leader->middle_name }} {{ $rbi?->last_name ?? $leader->last_name }}</td>
                     <td>{{ $leader->purok->name ?? 'N/A' }}</td>
-                    <td>
-                        {{ $leader->email }}<br>
-                        <small>{{ $leader->contact_number ?? $leader->phone_number ?? 'N/A' }}</small>
-                    </td>
-                    <td>{{ $leader->address ?? $leader->street_address ?? 'N/A' }}</td>
+                    <td>{{ $rbi?->contact_number ?? $leader->contact_number ?? $leader->phone_number ?? 'N/A' }}</td>
+                    <td>{{ $rbi?->birth_date?->format('Y-m-d') ?? ($leader->birth_date ? $leader->birth_date->format('Y-m-d') : ($leader->date_of_birth ?? 'N/A')) }}</td>
+                    <td>{{ $rbi?->sex ?? $leader->sex ?? $leader->gender ?? 'N/A' }}</td>
                     <td>{{ $leader->created_at->format('M d, Y') }}</td>
                 </tr>
             @endforeach

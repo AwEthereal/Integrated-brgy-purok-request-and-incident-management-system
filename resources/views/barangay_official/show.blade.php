@@ -43,9 +43,9 @@
                 <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Resident Information</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        <div class="font-medium">{{ $request->user->name ?? 'N/A' }}</div>
-                        <div class="text-gray-500">{{ $request->user->email ?? 'N/A' }}</div>
-                        <div class="text-gray-500">{{ $request->user->contact_number ?? 'N/A' }}</div>
+                        <div class="font-medium">{{ $request->requester_name ?? optional($request->user)->name ?? 'N/A' }}</div>
+                        <div class="text-gray-500">{{ $request->email ?? optional($request->user)->email ?? 'N/A' }}</div>
+                        <div class="text-gray-500">{{ $request->contact_number ?? optional($request->user)->contact_number ?? 'N/A' }}</div>
                     </dd>
                 </div>
 
@@ -66,11 +66,34 @@
                             <span class="ml-2">{{ $request->purpose }}</span>
                         </div>
                         <div>
+                            <span class="font-medium">Gender:</span>
+                            <span class="ml-2">{{ $request->gender ?? 'N/A' }}</span>
+                        </div>
+                        <div>
+                            <span class="font-medium">Birth Date:</span>
+                            <span class="ml-2">{{ $request->birth_date ? $request->birth_date->format('F j, Y') : 'N/A' }}</span>
+                        </div>
+                        <div>
+                            <span class="font-medium">Address:</span>
+                            <span class="ml-2">{{ $request->address ?? 'N/A' }}</span>
+                        </div>
+                        <div>
                             <span class="font-medium">Requested On:</span>
                             <span class="ml-2">{{ $request->created_at->format('F j, Y \a\t g:i A') }}</span>
                         </div>
                     </dd>
                 </div>
+
+                @if(!empty($finalPdfUrl))
+                <div class="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6 bg-purple-50">
+                    <dt class="text-sm font-medium text-purple-700">Finalized Purok Clearance</dt>
+                    <dd class="mt-1 text-sm text-purple-700 sm:mt-0 sm:col-span-2">
+                        <a href="{{ $finalPdfUrl }}" target="_blank" class="inline-flex items-center px-3 py-2 rounded-md bg-purple-600 text-white hover:bg-purple-700">
+                            Open Final PDF
+                        </a>
+                    </dd>
+                </div>
+                @endif
 
                 <!-- Purok Leader Notes -->
                 @if($request->purok_notes)
@@ -92,7 +115,7 @@
                                 <div class="border border-gray-200 rounded-md p-2">
                                     <div class="font-medium text-sm text-center text-gray-700 mb-1">Front of ID</div>
                                     <div class="h-40 overflow-hidden flex items-center justify-center bg-gray-50 rounded">
-                                        <img src="{{ asset($request->valid_id_front_path) }}" 
+                                        <img src="{{ $request->valid_id_front_path }}" 
                                              alt="Front of ID" 
                                              class="max-h-full max-w-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
                                              onclick="previewImage(this.src, 'Front of ID')">
@@ -103,7 +126,7 @@
                                 <div class="border border-gray-200 rounded-md p-2">
                                     <div class="font-medium text-sm text-center text-gray-700 mb-1">Back of ID</div>
                                     <div class="h-40 overflow-hidden flex items-center justify-center bg-gray-50 rounded">
-                                        <img src="{{ asset($request->valid_id_back_path) }}" 
+                                        <img src="{{ $request->valid_id_back_path }}" 
                                              alt="Back of ID" 
                                              class="max-h-full max-w-full object-contain cursor-pointer hover:opacity-90 transition-opacity"
                                              onclick="previewImage(this.src, 'Back of ID')">
@@ -153,11 +176,16 @@
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
                         </svg>
                         Rejected
-                    @elseif($request->status === 'barangay_approved')
+                    @elseif($request->status === 'completed')
                         <svg class="-ml-1 mr-2 h-5 w-5 text-green-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
                         </svg>
-                        Approved
+                        Completed
+                    @elseif($request->status === 'purok_approved')
+                        <svg class="-ml-1 mr-2 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v4a1 1 0 00.293.707l2 2a1 1 0 001.414-1.414L11 10.586V7z" clip-rule="evenodd" />
+                        </svg>
+                        Purok Approved
                     @endif
                 </span>
             @endif

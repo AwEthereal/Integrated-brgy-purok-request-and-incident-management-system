@@ -117,7 +117,7 @@
                                             {{ $report->created_at->format('M d, Y h:i A') }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                            <a href="{{ route('incident_reports.show', $report->id) }}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">View</a>
+                                            <a href="{{ route('incident_reports.show', ['id' => $report->id, 'redirect_to' => url()->full()]) }}" class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">View</a>
                                         </td>
                                     </tr>
                                 @endforeach

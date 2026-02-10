@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\IncidentReport;
+use App\Models\ResidentRecord;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -24,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'last_name',
         'suffix',
         'email',
+        'username',
         'contact_number',
         'purok_id',
         'password',
@@ -81,7 +83,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 'barangay_kagawad' => ['view_dashboard', 'view_requests', 'approve_requests', 'view_reports'],
                 'secretary' => ['view_dashboard', 'manage_requests', 'view_reports'],
                 'sk_chairman' => ['view_dashboard', 'view_requests', 'view_reports'],
-                'purok_president' => ['view_dashboard', 'view_own_purok_requests', 'approve_own_purok_requests'],
+                'purok_leader' => ['view_dashboard', 'view_own_purok_requests', 'approve_own_purok_requests'],
                 'resident' => ['view_own_requests', 'create_requests'],
             ];
             
@@ -103,7 +105,15 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isAdmin()
     {
-        return $this->role === 'admin' || $this->role === 'administrator';
+        return $this->role === 'admin' || $this->role === 'administrator' || $this->role === 'barangay_captain';
+    }
+
+    /**
+     * Helper: treat barangay_captain as admin-level access
+     */
+    public function hasAdminAccess(): bool
+    {
+        return in_array($this->role, ['admin', 'administrator', 'barangay_captain'], true);
     }
     
     /**
@@ -118,7 +128,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function isPurokLeader()
     {
-        return in_array($this->role, ['purok_leader', 'purok_president']);
+        return $this->role === 'purok_leader';
     }
     
     /**
@@ -189,7 +199,6 @@ class User extends Authenticatable implements MustVerifyEmail
             'secretary',
             'sk_chairman',
             'purok_leader',
-            'purok_president'
         ];
 
         // Exempt roles are automatically verified
@@ -233,6 +242,19 @@ class User extends Authenticatable implements MustVerifyEmail
     }
     
     /**
+     * Resident records filled by Purok Leaders.
+     */
+    public function residentRecords()
+    {
+        return $this->hasMany(\App\Models\ResidentRecord::class);
+    }
+
+    public function latestResidentRecord()
+    {
+        return $this->hasOne(ResidentRecord::class)->latestOfMany();
+    }
+    
+    /**
      * Get the user's full name.
      *
      * @return string
@@ -240,6 +262,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getFullNameAttribute()
     {
         return trim("{$this->first_name} {$this->middle_name} {$this->last_name}");
+    }
+    
+    /**
+     * Display-friendly role label (map captain to Admin)
+     */
+    public function getRoleDisplayAttribute(): string
+    {
+        if (in_array($this->role, ['admin', 'administrator', 'barangay_captain'], true)) {
+            return 'Admin';
+        }
+        if ($this->role === 'purok_leader') {
+            return 'Purok Leader';
+        }
+        return ucwords(str_replace('_', ' ', (string) $this->role));
     }
     
     /**

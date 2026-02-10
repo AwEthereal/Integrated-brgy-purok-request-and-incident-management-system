@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Feedback;
 use App\Models\User;
 use App\Models\Request as ServiceRequest;
 use App\Models\IncidentReport;
 use App\Models\Purok;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminDashboardController extends Controller
 {
@@ -33,7 +35,7 @@ class AdminDashboardController extends Controller
         $residents = User::where('role', 'resident')->count();
         $approvedUsers = User::where('is_approved', true)->count();
         $pendingApproval = User::where('is_approved', false)->count();
-        $purokLeaders = User::whereIn('role', ['purok_leader', 'purok_president'])->count();
+        $purokLeaders = User::where('role', 'purok_leader')->count();
         $barangayOfficials = User::whereIn('role', ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman'])->count();
         $admins = User::where('role', 'admin')->count();
         
@@ -49,10 +51,10 @@ class AdminDashboardController extends Controller
         // Get recent users (last 5)
         $recentUsers = User::orderBy('created_at', 'desc')->take(5)->get();
         
-        // Get recent requests (last 5)
+        // Get recent requests (last 4)
         $recentRequests = ServiceRequest::with(['user', 'purok'])
             ->orderBy('created_at', 'desc')
-            ->take(5)
+            ->take(4)
             ->get();
         
         // Monthly trends (last 6 months)
@@ -97,5 +99,33 @@ class AdminDashboardController extends Controller
             'monthlyRequests',
             'monthlyIncidents'
         ));
+    }
+
+    public function purgeData(Request $request)
+    {
+        $request->validate([
+            'confirm' => ['required', 'string'],
+        ]);
+
+        if (trim((string) $request->input('confirm')) !== 'DELETE ALL DATA') {
+            return back()->with('error', 'Confirmation phrase mismatch. Type "DELETE ALL DATA" to proceed.');
+        }
+
+        try {
+            DB::transaction(function () {
+                Feedback::query()->update([
+                    'request_id' => null,
+                    'incident_report_id' => null,
+                ]);
+
+                ServiceRequest::query()->delete();
+                IncidentReport::query()->delete();
+            });
+
+            return back()->with('success', 'Purge completed. All requests and incident reports were deleted.');
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Purge failed. Please try again.');
+        }
     }
 }

@@ -1,0 +1,12 @@
+﻿
+FullName                                                                                                 
+--------                                                                                                 
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\resources\js\app.js                   
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\resources\js\bootstrap.js             
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\resources\js\feedback.js              
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\resources\js\global-notifications.js  
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\resources\js\incident-report.js       
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\resources\js\purok-notifications.js   
+C:\Users\PC\Documents\Capstone\Capstone System\kalawag_brgy_system\resources\js\resident-notifications.js
+
+

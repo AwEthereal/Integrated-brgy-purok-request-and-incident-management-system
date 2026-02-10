@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Models\PurokChangeRequest;
 use App\Models\Request as RequestModel;
 use App\Models\User;
-use App\Models\Purok;
-use App\Models\PurokChangeRequest;
+use App\Models\ResidentRecord;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -182,6 +182,9 @@ class PurokLeaderController extends Controller
         $search = request()->query('search');
         $statusFilter = request()->query('status_filter');
         $formTypeFilter = request()->query('form_type_filter');
+        if ($formTypeFilter === null || $formTypeFilter === '') {
+            $formTypeFilter = 'barangay_clearance';
+        }
         $dateFrom = request()->query('date_from');
         $dateTo = request()->query('date_to');
         $sortBy = request()->query('sort_by', 'created_at');
@@ -261,8 +264,32 @@ class PurokLeaderController extends Controller
         
         // Get all form types for filter dropdown
         $formTypes = RequestModel::FORM_TYPES;
+        $formTypes['barangay_clearance'] = 'Purok Clearance';
             
         // Get statistics
+        $rbiRecordsQuery = ResidentRecord::query()
+            ->where('purok_id', $purokId)
+            ->whereNull('deleted_at');
+
+        $rbiLinkedUsersCount = (clone $rbiRecordsQuery)
+            ->whereNotNull('user_id')
+            ->distinct('user_id')
+            ->count('user_id');
+
+        $rbiUnlinkedCount = (clone $rbiRecordsQuery)
+            ->whereNull('user_id')
+            ->count();
+
+        $residentUsersWithoutRbiCount = User::query()
+            ->where('purok_id', $purokId)
+            ->where('role', 'resident')
+            ->whereDoesntHave('residentRecords', function ($q) {
+                $q->whereNull('deleted_at');
+            })
+            ->count();
+
+        $totalResidentsInPurok = $rbiLinkedUsersCount + $rbiUnlinkedCount + $residentUsersWithoutRbiCount;
+
         $stats = [
             'total_requests' => RequestModel::where('purok_id', $purokId)->count(),
             'pending_requests' => RequestModel::where('purok_id', $purokId)
@@ -280,9 +307,7 @@ class PurokLeaderController extends Controller
             'rejected_requests' => RequestModel::where('purok_id', $purokId)
                                         ->where('status', 'rejected')
                                         ->count(),
-            'residents_count' => User::where('purok_id', $purokId)
-                                ->where('role', 'resident')
-                                ->count(),
+            'residents_count' => $totalResidentsInPurok,
             'pending_residents' => User::where('purok_id', $purokId)
                                 ->where('role', 'resident')
                                 ->where('is_approved', false)

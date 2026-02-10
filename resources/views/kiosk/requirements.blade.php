@@ -80,10 +80,7 @@
                         <span class="mr-2">•</span>
                         <span>Processing time may vary depending on document availability</span>
                     </li>
-                    <li class="flex items-start">
-                        <span class="mr-2">•</span>
-                        <span>You can submit requests online to save time</span>
-                    </li>
+                    
                 </ul>
             </div>
         </div>

@@ -18,11 +18,11 @@
                 </div>
                 <div class="grid grid-cols-2 gap-4 w-full md:w-auto">
                     <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4 text-center">
-                        <p class="text-2xl font-bold">{{ count($pendingRequests) }}</p>
-                        <p class="text-sm">Pending Approval</p>
+                        <p class="text-2xl font-bold">{{ $approvedClearancesCount ?? count($pendingRequests) }}</p>
+                        <p class="text-sm">Recently Approved Clearances</p>
                     </div>
                     <div class="bg-white bg-opacity-20 backdrop-blur-sm rounded-lg p-4 text-center">
-                        <p class="text-2xl font-bold">{{ $incidents->whereIn('status', ['pending', 'in_progress'])->count() }}</p>
+                        <p class="text-2xl font-bold">{{ $activeIncidentsCount ?? count($incidents) }}</p>
                         <p class="text-sm">Active Incidents</p>
                     </div>
                 </div>
@@ -32,6 +32,151 @@
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
+        <!-- Clearance Analytics (Collapsible) -->
+        <div class="bg-white rounded-lg shadow-sm p-2 mb-3 analytics-card">
+            <details id="bo-clearance-analytics">
+                <summary class="cursor-pointer text-sm md:text-base font-semibold text-gray-900">Clearance Analytics</summary>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 mt-3">
+                    <div>
+                        <label class="block text-[11px] text-gray-600 mb-1">Period</label>
+                        <select id="bo-analytics-period" class="w-full border rounded p-2 text-sm">
+                            <option value="monthly" selected>Monthly (last 12)</option>
+                            <option value="quarterly">Quarterly (last 4)</option>
+                            <option value="annual">Annual (last 5)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-600 mb-1">Grouping</label>
+                        <select id="bo-analytics-group" class="w-full border rounded p-2 text-sm">
+                            <option value="total" selected>Total</option>
+                            <option value="per_purok">Per Purok</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-600 mb-1">Year</label>
+                        <input type="number" id="bo-analytics-year" class="w-full border rounded p-2 text-sm" value="{{ now()->year }}" />
+                    </div>
+                </div>
+                <div class="relative" style="height: 200px;">
+                    <canvas id="boAnalyticsBarChart"></canvas>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const el = document.getElementById('boAnalyticsBarChart');
+                        if (!el) return;
+                        let chart = null;
+                        function buildUrl() {
+                            const url = new URL(`${window.location.origin}/analytics/clearances`);
+                            url.searchParams.set('period', document.getElementById('bo-analytics-period').value);
+                            url.searchParams.set('group', document.getElementById('bo-analytics-group').value);
+                            url.searchParams.set('year', document.getElementById('bo-analytics-year').value);
+                            return url.toString();
+                        }
+                        async function load() {
+                            try {
+                                const res = await fetch(buildUrl(), { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+                                const payload = await res.json();
+                                const ds = (payload.datasets && payload.datasets[0]) || { label: 'Data', data: [] };
+                                const data = {
+                                    labels: payload.labels || [],
+                                    datasets: [{
+                                        label: ds.label || 'Clearances',
+                                        data: ds.data || [],
+                                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                                        borderColor: 'rgba(34, 197, 94, 1)',
+                                        borderWidth: 1
+                                    }]
+                                };
+                                const options = { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } };
+                                if (chart) chart.destroy();
+                                chart = new Chart(el.getContext('2d'), { type: 'bar', data, options });
+                            } catch (e) {
+                                console.error('Failed to load clearance analytics', e);
+                            }
+                        }
+                        ['bo-analytics-period','bo-analytics-group','bo-analytics-year'].forEach(id => {
+                            const c = document.getElementById(id);
+                            if (c) c.addEventListener('change', load);
+                        });
+                        load();
+                    });
+                </script>
+            </details>
+        </div>
+
+        <!-- Incident Analytics (Collapsible) -->
+        <div class="bg-white rounded-lg shadow-sm p-2 mb-3 analytics-card">
+            <details id="bo-incident-analytics">
+                <summary class="cursor-pointer text-sm md:text-base font-semibold text-gray-900">Incident Analytics</summary>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3 mt-3">
+                    <div>
+                        <label class="block text-[11px] text-gray-600 mb-1">Period</label>
+                        <select id="bo-inc-period" class="w-full border rounded p-2 text-sm">
+                            <option value="monthly" selected>Monthly (last 12)</option>
+                            <option value="quarterly">Quarterly (last 4)</option>
+                            <option value="annual">Annual (last 5)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-600 mb-1">Grouping</label>
+                        <select id="bo-inc-group" class="w-full border rounded p-2 text-sm">
+                            <option value="total" selected>Total</option>
+                            <option value="per_type">Per Type</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-gray-600 mb-1">Year</label>
+                        <input type="number" id="bo-inc-year" class="w-full border rounded p-2 text-sm" value="{{ now()->year }}" />
+                    </div>
+                </div>
+                <div class="relative" style="height: 200px;">
+                    <canvas id="boIncidentsBarChart"></canvas>
+                </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const el = document.getElementById('boIncidentsBarChart');
+                        if (!el) return;
+                        let chart = null;
+                        function buildUrl() {
+                            const url = new URL(`${window.location.origin}/analytics/incidents`);
+                            url.searchParams.set('period', document.getElementById('bo-inc-period').value);
+                            url.searchParams.set('group', document.getElementById('bo-inc-group').value);
+                            url.searchParams.set('year', document.getElementById('bo-inc-year').value);
+                            return url.toString();
+                        }
+                        async function load() {
+                            try {
+                                const res = await fetch(buildUrl(), { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+                                const payload = await res.json();
+                                const ds = (payload.datasets && payload.datasets[0]) || { label: 'Data', data: [] };
+                                const data = {
+                                    labels: payload.labels || [],
+                                    datasets: [{
+                                        label: ds.label || 'Incidents',
+                                        data: ds.data || [],
+                                        backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                                        borderColor: 'rgba(99, 102, 241, 1)',
+                                        borderWidth: 1
+                                    }]
+                                };
+                                const options = { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } };
+                                if (chart) chart.destroy();
+                                chart = new Chart(el.getContext('2d'), { type: 'bar', data, options });
+                            } catch (e) {
+                                console.error('Failed to load incident analytics', e);
+                            }
+                        }
+                        ['bo-inc-period','bo-inc-group','bo-inc-year'].forEach(id => {
+                            const c = document.getElementById(id);
+                            if (c) c.addEventListener('change', load);
+                        });
+                        load();
+                    });
+                </script>
+            </details>
+        </div>
+
         <!-- Purok Filter Section -->
         <div class="mb-8 bg-white rounded-lg shadow-sm p-4">
             @include('barangay_official.partials.purok_filter', ['puroks' => $puroks, 'selectedPurok' => $selectedPurok])
@@ -39,18 +184,18 @@
 
         <!-- Dashboard Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 items-start">
-            <!-- Pending Requests Section -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-200">
+            <!-- Approved Purok Clearances Section -->
+            <div id="approvedClearancesSection" class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-200">
                 <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
                     <h2 class="text-lg font-semibold text-white flex items-center">
                         <svg class="h-5 w-5 mr-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
-                        Pending Approval
-                        @if(count($pendingRequests) > 0)
+                        Recently Approved Clearances
+                        @if(($approvedClearancesCount ?? count($pendingRequests)) > 0)
                             <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white bg-opacity-20 text-white">
-                                {{ count($pendingRequests) }} {{ Str::plural('request', count($pendingRequests)) }}
+                                {{ $approvedClearancesCount ?? count($pendingRequests) }} {{ Str::plural('request', $approvedClearancesCount ?? count($pendingRequests)) }}
                             </span>
                         @endif
                     </h2>
@@ -75,7 +220,7 @@
                                     @endif
                                     <div class="flex items-center justify-between">
                                         <div class="w-1/3">
-                                            <p class="text-sm font-medium text-gray-800 truncate">{{ $request->user->name }}</p>
+                                            <p class="text-sm font-medium text-gray-800 truncate">{{ optional($request->user)->name ?? ($request->requester_name ?? 'Public Applicant') }}</p>
                                         </div>
                                         <div class="flex-1 text-center">
                                             <span class="px-3 py-1 text-xs font-semibold rounded-full {{ $request->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' }}">
@@ -83,7 +228,7 @@
                                             </span>
                                         </div>
                                         <div class="w-1/3 flex justify-end">
-                                            <a href="{{ route('requests.show', $request->id) }}" class="text-gray-400 hover:text-green-600" title="View Details">
+                                            <a href="{{ route('official.clearance.view', $request->id) }}" class="text-gray-400 hover:text-green-600" title="View Details">
                                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -93,7 +238,7 @@
                                     </div>
                                     <div class="flex items-center space-x-2 mt-2">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                            {{ \App\Models\Request::FORM_TYPES[$request->form_type] ?? format_label($request->form_type) }}
+                                            Purok Clearance
                                         </span>
                                         <span class="text-xs text-gray-500" title="{{ $request->created_at->format('M d, Y h:i A') }}">
                                             {{ $request->created_at->diffForHumans() }}
@@ -102,20 +247,25 @@
                                 </div>
                             @endforeach
                         </div>
+                        @if($pendingRequests->hasPages())
+                            <div class="mt-4 flex justify-center">
+                                {{ $pendingRequests->onEachSide(1)->links() }}
+                            </div>
+                        @endif
                     @else
                         <div class="text-center py-8">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
                                     d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                             </svg>
-                            <p class="mt-2 text-sm text-gray-500">No pending clearance requests found.</p>
+                            <p class="mt-2 text-sm text-gray-500">No recently approved clearances found.</p>
                         </div>
                     @endif
                 </div>
             </div>
 
             <!-- Active Incidents Section -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-200">
+            <div id="activeIncidentsSection" class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition-shadow duration-200">
                 <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                     <h2 class="text-lg font-semibold text-white flex items-center">
                         <svg class="h-5 w-5 mr-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -123,9 +273,9 @@
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                         Active Incidents
-                        @if(count($incidents) > 0)
+                        @if(($activeIncidentsCount ?? count($incidents)) > 0)
                             <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white bg-opacity-20 text-white">
-                                {{ count($incidents) }} {{ Str::plural('incident', count($incidents)) }}
+                                {{ $activeIncidentsCount ?? count($incidents) }} {{ Str::plural('incident', $activeIncidentsCount ?? count($incidents)) }}
                             </span>
                         @endif
                     </h2>
@@ -151,7 +301,7 @@
                                     @endif
                                     <div class="flex items-center justify-between">
                                         <div class="w-1/3">
-                                            <p class="text-sm font-medium text-gray-800 truncate">{{ $incident->user->name }}</p>
+                                            <p class="text-sm font-medium text-gray-800 truncate">{{ optional($incident->user)->name ?? ($incident->reporter_name ?? 'Public Reporter') }}</p>
                                         </div>
                                         <div class="flex-1 text-center">
                                             <span class="px-3 py-1 text-xs font-semibold rounded-full {{ $incident->status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800' }}">
@@ -159,7 +309,7 @@
                                             </span>
                                         </div>
                                         <div class="w-1/3 flex justify-end">
-                                            <a href="{{ route('incident_reports.show', $incident->id) }}" class="text-gray-400 hover:text-blue-600" title="View Details">
+                                            <a href="{{ route('incident_reports.show', ['id' => $incident->id, 'redirect_to' => url()->full()]) }}" class="text-gray-400 hover:text-blue-600" title="View Details">
                                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -169,7 +319,7 @@
                                     </div>
                                     <div class="flex items-center space-x-2 mt-2">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-                                            {{ \App\Models\IncidentReport::TYPES[$incident->incident_type] ?? format_label($incident->incident_type) }}
+                                            {{ $incident->incident_type === 'other' ? ($incident->incident_type_other ?? 'Other') : (\App\Models\IncidentReport::TYPES[$incident->incident_type] ?? format_label($incident->incident_type)) }}
                                         </span>
                                         <span class="text-xs text-gray-500" title="{{ $incident->created_at->format('M d, Y h:i A') }}">
                                             {{ $incident->created_at->diffForHumans() }}
@@ -178,6 +328,11 @@
                                 </div>
                             @endforeach
                         </div>
+                        @if($incidents->hasPages())
+                            <div class="mt-4 flex justify-center">
+                                {{ $incidents->onEachSide(1)->links() }}
+                            </div>
+                        @endif
                     @else
                         <div class="text-center py-8">
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -202,11 +357,90 @@
                             outline-offset: 2px;
                             border-radius: 0.25rem;
                         }
+
+                        /* Scoped pagination styling (dashboard only) */
+                        #approvedClearancesSection nav[aria-label="Pagination Navigation"] a,
+                        #approvedClearancesSection nav[aria-label="Pagination Navigation"] span {
+                            background-color: rgba(255, 255, 255, 0.65) !important;
+                            border-color: rgba(16, 185, 129, 0.45) !important; /* emerald */
+                            color: rgba(6, 95, 70, 0.95) !important;
+                            backdrop-filter: blur(4px);
+                        }
+                        #approvedClearancesSection nav[aria-label="Pagination Navigation"] a:hover {
+                            background-color: rgba(236, 253, 245, 0.95) !important;
+                            border-color: rgba(16, 185, 129, 0.75) !important;
+                        }
+                        #approvedClearancesSection nav[aria-label="Pagination Navigation"] span[aria-current="page"] span {
+                            background-color: rgba(16, 185, 129, 0.95) !important;
+                            border-color: rgba(16, 185, 129, 0.95) !important;
+                            color: #ffffff !important;
+                        }
+
+                        #activeIncidentsSection nav[aria-label="Pagination Navigation"] a,
+                        #activeIncidentsSection nav[aria-label="Pagination Navigation"] span {
+                            background-color: rgba(255, 255, 255, 0.65) !important;
+                            border-color: rgba(59, 130, 246, 0.45) !important; /* blue */
+                            color: rgba(30, 64, 175, 0.95) !important;
+                            backdrop-filter: blur(4px);
+                        }
+                        #activeIncidentsSection nav[aria-label="Pagination Navigation"] a:hover {
+                            background-color: rgba(239, 246, 255, 0.95) !important;
+                            border-color: rgba(59, 130, 246, 0.75) !important;
+                        }
+                        #activeIncidentsSection nav[aria-label="Pagination Navigation"] span[aria-current="page"] span {
+                            background-color: rgba(59, 130, 246, 0.95) !important;
+                            border-color: rgba(59, 130, 246, 0.95) !important;
+                            color: #ffffff !important;
+                        }
                     </style>
                 @endpush
 
                 @push('scripts')
                     <script>
+                        async function fetchAndReplaceSection(url, sectionId) {
+                            const res = await fetch(url, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                },
+                            });
+
+                            if (!res.ok) {
+                                window.location.href = url;
+                                return;
+                            }
+
+                            const html = await res.text();
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const newSection = doc.getElementById(sectionId);
+                            const currentSection = document.getElementById(sectionId);
+
+                            if (!newSection || !currentSection) {
+                                window.location.href = url;
+                                return;
+                            }
+
+                            currentSection.replaceWith(newSection);
+                            window.history.pushState({}, '', url);
+                        }
+
+                        document.addEventListener('click', function (e) {
+                            const a = e.target.closest('a');
+                            if (!a) return;
+
+                            const clearancesSection = a.closest('#approvedClearancesSection');
+                            const incidentsSection = a.closest('#activeIncidentsSection');
+                            if (!clearancesSection && !incidentsSection) return;
+
+                            const href = a.getAttribute('href');
+                            if (!href || href === '#') return;
+
+                            if (!a.closest('nav[aria-label="Pagination Navigation"]')) return;
+
+                            e.preventDefault();
+                            fetchAndReplaceSection(href, clearancesSection ? 'approvedClearancesSection' : 'activeIncidentsSection');
+                        });
+
                         // Add ARIA attributes for better accessibility
                         document.addEventListener('DOMContentLoaded', function() {
                             // Add aria-live to dynamic content areas
@@ -528,7 +762,7 @@
             function openRejectModal(requestId) {
                 const modal = document.getElementById('rejectModal');
                 const form = document.getElementById('rejectForm');
-                form.action = `/requests/${requestId}/reject`;
+                form.action = '{{ route("requests.reject", "") }}' + '/' + requestId;
                 modal.classList.remove('hidden');
             }
 

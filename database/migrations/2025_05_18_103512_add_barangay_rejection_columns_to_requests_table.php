@@ -12,9 +12,12 @@ return new class extends Migration
     public function up()
     {
         Schema::table('requests', function (Blueprint $table) {
-            $table->timestamp('barangay_rejected_at')->nullable()->after('barangay_approved_by');
-            $table->foreignId('barangay_rejected_by')->nullable()->after('barangay_rejected_at')
-                  ->constrained('users')->nullOnDelete();
+            if (!Schema::hasColumn('requests', 'barangay_rejected_at')) {
+                $table->timestamp('barangay_rejected_at')->nullable();
+            }
+            if (!Schema::hasColumn('requests', 'barangay_rejected_by')) {
+                $table->foreignId('barangay_rejected_by')->nullable()->constrained('users')->nullOnDelete();
+            }
         });
     }
 

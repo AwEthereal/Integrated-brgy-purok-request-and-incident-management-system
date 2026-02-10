@@ -19,7 +19,7 @@
                         <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                         </svg>
-                        Purok President Dashboard
+                        Purok Leader Dashboard
                     </h1>
                     <p class="text-purple-100 mt-2">Welcome back! Managing <span class="font-semibold">{{ $purokName }}</span></p>
                 </div>
@@ -38,13 +38,76 @@
     </div>
 
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Clearance Analytics (Collapsible) -->
+        <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <details>
+                <summary class="cursor-pointer text-lg font-semibold text-gray-900">Clearance Analytics</summary>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 mt-4">
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">Period</label>
+                        <select id="pl-analytics-period" class="w-full border rounded p-2">
+                            <option value="monthly" selected>Monthly (last 12)</option>
+                            <option value="quarterly">Quarterly (last 4)</option>
+                            <option value="annual">Annual (last 5)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-600 mb-1">Year</label>
+                        <input type="number" id="pl-analytics-year" class="w-full border rounded p-2" value="{{ now()->year }}" />
+                    </div>
+                </div>
+                <div class="relative" style="height: 300px;">
+                    <canvas id="plAnalyticsBarChart"></canvas>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const el = document.getElementById('plAnalyticsBarChart');
+                        if (!el) return;
+                        let chart = null;
+                        function buildUrl() {
+                            const url = new URL(`${window.location.origin}/analytics/clearances`);
+                            url.searchParams.set('period', document.getElementById('pl-analytics-period').value);
+                            url.searchParams.set('year', document.getElementById('pl-analytics-year').value);
+                            return url.toString();
+                        }
+                        async function load() {
+                            try {
+                                const res = await fetch(buildUrl(), { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+                                const payload = await res.json();
+                                const ds = (payload.datasets && payload.datasets[0]) || { label: 'Data', data: [] };
+                                const data = {
+                                    labels: payload.labels || [],
+                                    datasets: [{
+                                        label: ds.label || 'Clearances',
+                                        data: ds.data || [],
+                                        backgroundColor: 'rgba(168, 85, 247, 0.8)',
+                                        borderColor: 'rgba(168, 85, 247, 1)',
+                                        borderWidth: 1
+                                    }]
+                                };
+                                const options = { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } };
+                                if (chart) chart.destroy();
+                                chart = new Chart(el.getContext('2d'), { type: 'bar', data, options });
+                            } catch (e) {
+                                console.error('Failed to load clearance analytics', e);
+                            }
+                        }
+                        ['pl-analytics-period','pl-analytics-year'].forEach(id => {
+                            const c = document.getElementById(id);
+                            if (c) c.addEventListener('change', load);
+                        });
+                        load();
+                    });
+                </script>
+            </details>
+        </div>
         <!-- Role Badges -->
         <div class="flex flex-wrap items-center gap-2 mb-6">
 
             @php
                 $roleLabels = [
-                    'purok_leader' => 'Purok President',
-                    'purok_president' => 'Purok President',
+                    'purok_leader' => 'Purok Leader',
                     'admin' => 'Admin',
                     'barangay_kagawad' => 'Barangay Official',
                     'barangay_captain' => 'Barangay Captain',
@@ -68,6 +131,14 @@
                 </svg>
                 {{ $displayRole }}
             </span>
+
+            <a href="{{ route('feedback.general') }}"
+               class="ml-auto inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.77 9.77 0 01-4-.8L3 20l1.2-3.6A7.37 7.37 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                Feedback
+            </a>
         </div>
 
         <!-- Stats Cards -->
@@ -253,7 +324,7 @@
             <!-- Search and Filter Section -->
             <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
                 <form method="GET" action="{{ route('purok_leader.dashboard') }}" class="space-y-4">
-                    <!-- Search Bar -->
+                    <input type="hidden" name="form_type_filter" value="barangay_clearance">
                     <div class="flex flex-col md:flex-row gap-3">
                         <div class="flex-1">
                             <div class="relative">
@@ -264,21 +335,26 @@
                                 </div>
                                 <input type="text" 
                                        name="search" 
+                                       id="purokLiveSearch"
                                        value="{{ $search ?? '' }}" 
-                                       placeholder="Search by ID, name, address, or purpose..." 
+                                       placeholder="Live search: ID, name, address, or purpose..." 
                                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent sm:text-sm">
                             </div>
                         </div>
+
+                        <div class="w-full md:w-56">
+                            <select name="status_filter"
+                                    id="purokStatusFilter"
+                                    class="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-lg">
+                                <option value="all" {{ ($statusFilter ?? 'all') == 'all' ? 'selected' : '' }}>All</option>
+                                <option value="pending" {{ ($statusFilter ?? '') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="approved" {{ ($statusFilter ?? '') == 'approved' ? 'selected' : '' }}>Approved</option>
+                            </select>
+                        </div>
+
                         <div class="flex gap-2">
-                            <button type="submit" 
-                                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors">
-                                <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                </svg>
-                                Search
-                            </button>
-                            @if($search || $statusFilter || $formTypeFilter || $dateFrom || $dateTo)
-                                <a href="{{ route('purok_leader.dashboard') }}" 
+                            @if($search || ($statusFilter ?? 'all') !== 'all')
+                                <a href="{{ route('purok_leader.dashboard') }}"
                                    class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors">
                                     <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -288,110 +364,7 @@
                             @endif
                         </div>
                     </div>
-                    
-                    <!-- Advanced Filters -->
-                    <details class="group" {{ ($statusFilter || $formTypeFilter || $dateFrom || $dateTo) ? 'open' : '' }}>
-                        <summary class="cursor-pointer text-sm font-medium text-gray-700 hover:text-purple-600 flex items-center gap-2 select-none">
-                            <svg class="w-4 h-4 transform transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                            Advanced Filters
-                            @if($statusFilter || $formTypeFilter || $dateFrom || $dateTo)
-                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                                    Active
-                                </span>
-                            @endif
-                        </summary>
-                        
-                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- Status Filter -->
-                            <div>
-                                <label for="status_filter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                                <select name="status_filter" 
-                                        id="status_filter" 
-                                        class="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-lg">
-                                    <option value="all" {{ ($statusFilter ?? 'all') == 'all' ? 'selected' : '' }}>All Statuses</option>
-                                    <option value="pending" {{ ($statusFilter ?? '') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="purok_approved" {{ ($statusFilter ?? '') == 'purok_approved' ? 'selected' : '' }}>Purok Approved</option>
-                                    <option value="barangay_approved" {{ ($statusFilter ?? '') == 'barangay_approved' ? 'selected' : '' }}>Barangay Approved</option>
-                                    <option value="approved" {{ ($statusFilter ?? '') == 'approved' ? 'selected' : '' }}>All Approved</option>
-                                    <option value="rejected" {{ ($statusFilter ?? '') == 'rejected' ? 'selected' : '' }}>Rejected</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Form Type Filter -->
-                            <div>
-                                <label for="form_type_filter" class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
-                                <select name="form_type_filter" 
-                                        id="form_type_filter" 
-                                        class="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm rounded-lg">
-                                    <option value="all" {{ ($formTypeFilter ?? 'all') == 'all' ? 'selected' : '' }}>All Types</option>
-                                    @foreach($formTypes as $key => $label)
-                                        <option value="{{ $key }}" {{ ($formTypeFilter ?? '') == $key ? 'selected' : '' }}>{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            
-                            <!-- Date From -->
-                            <div>
-                                <label for="date_from" class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
-                                <input type="date" 
-                                       name="date_from" 
-                                       id="date_from" 
-                                       value="{{ $dateFrom ?? '' }}" 
-                                       class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                            </div>
-                            
-                            <!-- Date To -->
-                            <div>
-                                <label for="date_to" class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
-                                <input type="date" 
-                                       name="date_to" 
-                                       id="date_to" 
-                                       value="{{ $dateTo ?? '' }}" 
-                                       class="block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm">
-                            </div>
-                        </div>
-                    </details>
                 </form>
-                
-                <!-- Active Filters Display -->
-                @if($search || $statusFilter || $formTypeFilter || $dateFrom || $dateTo)
-                    <div class="mt-3 flex flex-wrap gap-2">
-                        <span class="text-sm font-medium text-gray-600">Active filters:</span>
-                        @if($search)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                Search: "{{ $search }}"
-                            </span>
-                        @endif
-                        @if($statusFilter && $statusFilter !== 'all')
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Status: {{ ucfirst(str_replace('_', ' ', $statusFilter)) }}
-                            </span>
-                        @endif
-                        @if($formTypeFilter && $formTypeFilter !== 'all')
-                            @php
-                                $formTypeLabel = ucfirst(str_replace('_', ' ', $formTypeFilter));
-                                if (isset($formTypes) && is_array($formTypes) && array_key_exists($formTypeFilter, $formTypes)) {
-                                    $formTypeLabel = $formTypes[$formTypeFilter];
-                                }
-                            @endphp
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Type: {{ $formTypeLabel }}
-                            </span>
-                        @endif
-                        @if($dateFrom)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                From: {{ $dateFrom }}
-                            </span>
-                        @endif
-                        @if($dateTo)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                To: {{ $dateTo }}
-                            </span>
-                        @endif
-                    </div>
-                @endif
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
@@ -412,7 +385,7 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Purpose
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status
                             </th>
                             <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -443,11 +416,18 @@
                                     {{ $request->created_at->format('F j, Y') }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-900">
-                                    {{ $request->user->name ?? 'N/A' }}
+                                    {{ $request->requester_name ?: ($request->user->name ?? 'N/A') }}
                                 </td>
                                 <td class="px-6 py-4 text-sm text-gray-700">
                                     @php
-                                        $formTypeLabel = \App\Models\Request::FORM_TYPES[$request->form_type] ?? ucfirst(str_replace('_', ' ', $request->form_type));
+                                        $formTypeLabel = ucfirst(str_replace('_', ' ', $request->form_type));
+                                        if (isset($formTypes) && is_array($formTypes) && array_key_exists($request->form_type, $formTypes)) {
+                                            $formTypeLabel = $formTypes[$request->form_type];
+                                        } elseif ($request->form_type === 'barangay_clearance') {
+                                            $formTypeLabel = 'Purok Clearance';
+                                        } else {
+                                            $formTypeLabel = \App\Models\Request::FORM_TYPES[$request->form_type] ?? $formTypeLabel;
+                                        }
                                     @endphp
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
                                         {{ $formTypeLabel }}
@@ -456,13 +436,13 @@
                                 <td class="px-6 py-4 text-sm text-gray-700">
                                     {{ $request->purpose }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
                                     @php
                                         $statusColors = [
                                             'pending' => 'bg-yellow-100 text-yellow-800',
                                             'purok_approved' => 'bg-blue-100 text-blue-800',
                                             'barangay_approved' => 'bg-green-100 text-green-800',
-                                            'completed' => 'bg-purple-100 text-purple-800',
+                                            'completed' => 'bg-blue-100 text-blue-800',
                                             'rejected' => 'bg-red-100 text-red-800',
                                             'cancelled' => 'bg-gray-100 text-gray-800'
                                         ];
@@ -471,24 +451,38 @@
                                             'pending' => 'Pending',
                                             'purok_approved' => 'Purok Approved',
                                             'barangay_approved' => 'Barangay Approved',
-                                            'completed' => 'Completed',
+                                            'completed' => 'Purok Approved',
                                             'rejected' => 'Rejected',
                                             'cancelled' => 'Cancelled'
                                         ][$request->status] ?? format_label($request->status);
                                     @endphp
-                                    <span class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full {{ $color }}">
+                                    <span class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full {{ $color }} justify-center">
                                         {{ $statusLabel }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
-                                    <a href="{{ route('requests.show', $request) }}"
-                                        class="inline-flex items-center justify-center p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-150"
-                                        title="View Details">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                        </svg>
-                                    </a>
+                                    @php
+                                        $isClearance = in_array($request->form_type, ['barangay_clearance','business_clearance','certificate_of_residency','certificate_of_indigency']);
+                                    @endphp
+                                    @if($isClearance)
+                                        <a href="{{ route('purok_leader.clearance.view', $request) }}"
+                                            class="inline-flex items-center justify-center p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-150"
+                                            title="View Clearance">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </a>
+                                    @else
+                                        <a href="{{ route('requests.show', $request) }}"
+                                            class="inline-flex items-center justify-center p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-150"
+                                            title="View Details">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
@@ -569,4 +563,32 @@
             color: #9ca3af;            /* gray-400 */
         }
     </style>
+@endpush
+
+@push('scripts')
+    <script>
+        (function () {
+            const searchInput = document.getElementById('purokLiveSearch');
+            const statusSelect = document.getElementById('purokStatusFilter');
+            const form = searchInput ? searchInput.closest('form') : null;
+
+            if (!form) return;
+
+            let t;
+            const submitDebounced = () => {
+                clearTimeout(t);
+                t = setTimeout(() => {
+                    form.submit();
+                }, 350);
+            };
+
+            if (searchInput) {
+                searchInput.addEventListener('input', submitDebounced);
+            }
+
+            if (statusSelect) {
+                statusSelect.addEventListener('change', () => form.submit());
+            }
+        })();
+    </script>
 @endpush

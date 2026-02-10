@@ -20,6 +20,15 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
+    if (config('features.role_urls')) {
+        Route::get('superadmin', [AuthenticatedSessionController::class, 'create'])
+            ->name('login.superadmin');
+        Route::get('admin', [AuthenticatedSessionController::class, 'create'])
+            ->name('login.admin');
+        Route::get('purok', [AuthenticatedSessionController::class, 'create'])
+            ->name('login.purok');
+    }
+
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])

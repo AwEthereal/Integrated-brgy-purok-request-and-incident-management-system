@@ -58,7 +58,7 @@ class Kernel extends HttpKernel
 
         // Custom middleware for role-based access
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
-        'purok_president_only' => \App\Http\Middleware\PurokLeaderMiddleware::class,
+        'purok_leader_only' => \App\Http\Middleware\PurokLeaderMiddleware::class,
         'barangay_official' => \App\Http\Middleware\BarangayOfficialMiddleware::class,
         'checkrole' => \App\Http\Middleware\CheckRole::class,
         'resident_approved' => \App\Http\Middleware\CheckResidentApproved::class,

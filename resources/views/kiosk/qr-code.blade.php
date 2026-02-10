@@ -75,7 +75,7 @@
                             <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <span class="text-lg text-gray-700">Submit Clearance Requests</span>
+                            <span class="text-lg text-gray-700">Submit Purok Clearance Requests</span>
                         </div>
                         <div class="flex items-center">
                             <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +87,7 @@
                             <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <span class="text-lg text-gray-700">Track Request Status</span>
+                            <span class="text-lg text-gray-700">Send Feedback</span>
                         </div>
                         <div class="flex items-center">
                             <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

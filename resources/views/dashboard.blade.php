@@ -527,7 +527,7 @@ if (!function_exists('formatStatus')) {
                                             </div>
                                         </div>
                                     </div>
-                                    <a href="{{ $activity->type === 'request' ? route('requests.show', $activity->id) : route('incident_reports.show', $activity->id) }}" 
+                                    <a href="{{ $activity->type === 'request' ? route('requests.show', $activity->id) : route('incident_reports.show', ['id' => $activity->id, 'redirect_to' => url()->full()]) }}" 
                                        class="flex-shrink-0 p-1.5 sm:p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors" title="View Details">
                                         <svg class="h-4 w-4 sm:h-5 sm:w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -633,7 +633,7 @@ if (!function_exists('formatStatus')) {
                                 </h3>
                                 <div class="flex items-center gap-2">
                                     @if(auth()->user()->is_approved)
-                                        <a href="{{ route('requests.index') }}" class="text-sm font-medium text-white hover:text-green-100 hidden sm:block" onclick="event.stopPropagation()">View all →</a>
+                                        <a href="{{ route('official.clearance.view') }}" class="text-sm font-medium text-white hover:text-green-100 hidden sm:block" onclick="event.stopPropagation()">View all →</a>
                                     @endif
                                     <svg class="w-5 h-5 text-white transition-transform duration-200 sm:hidden" id="recentRequests-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>

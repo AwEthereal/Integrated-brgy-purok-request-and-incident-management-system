@@ -8,7 +8,7 @@
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Purok Clearance Requests Report Preview</h2>
+                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">Purok Clearance Requests Preview</h2>
                     <div class="flex gap-2">
                         <button onclick="printAll()" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition ease-in-out duration-150">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,10 +29,45 @@
                     <p class="text-sm">Select requests to print or click "Print All" to generate a report for all clearance requests.</p>
                 </div>
 
+                <div class="mb-6 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                    <form method="GET" action="{{ route('reports.purok-clearance') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
+                            <input type="text" id="search" name="search" value="{{ request('search') }}" placeholder="Live search: ID, resident, email, purpose..." class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-green-500 focus:ring-green-500" oninput="filterClearanceTable()">
+                            <p id="searchResults" class="mt-1 text-xs text-gray-500 dark:text-gray-400"></p>
+                        </div>
+
+                        <div>
+                            <label for="purok_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Purok</label>
+                            <select id="purok_id" name="purok_id" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-green-500 focus:ring-green-500" onchange="filterClearanceTable()">
+                                <option value="">All Puroks</option>
+                                @foreach(($puroks ?? \App\Models\Purok::orderBy('name')->get()) as $purok)
+                                    <option value="{{ $purok->id }}" {{ (string) request('purok_id') === (string) $purok->id ? 'selected' : '' }}>{{ $purok->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
+                            <select id="status" name="status" class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white shadow-sm focus:border-green-500 focus:ring-green-500" onchange="filterClearanceTable()">
+                                <option value="">All Status</option>
+                                @foreach(['pending','purok_approved','completed','rejected'] as $s)
+                                    <option value="{{ $s }}" {{ request('status') === $s ? 'selected' : '' }}>{{ format_label($s) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="md:col-span-4 flex items-end justify-end gap-2">
+                            <a href="{{ route('reports.purok-clearance') }}" class="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-md transition-colors duration-150">Clear Filter</a>
+                            
+                        </div>
+                    </form>
+                </div>
+
                 <form id="printForm" action="{{ route('reports.download.purok-clearance') }}" method="POST">
                     @csrf
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700" id="purokClearanceTable">
                             <thead class="bg-gray-50 dark:bg-gray-700">
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-left">
@@ -40,7 +75,6 @@
                                     </th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Request ID</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Resident</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Form Type</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Purpose</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Purok</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
@@ -48,9 +82,14 @@
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                @php
+                                    $viewerRole = auth()->user()->role ?? '';
+                                    $isOfficialViewer = in_array($viewerRole, ['secretary', 'barangay_captain', 'barangay_kagawad', 'admin'], true);
+                                @endphp
                                 @forelse($requests as $request)
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                        <td class="px-6 py-4 whitespace-nowrap">
+                                    @php($rowUrl = $isOfficialViewer ? route('official.clearance.view', $request->id) : route('requests.show', $request->id))
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer" onclick="window.location='{{ $rowUrl }}'" data-purok-id="{{ $request->purok_id ?? '' }}" data-status="{{ $request->status ?? '' }}">
+                                        <td class="px-6 py-4 whitespace-nowrap" onclick="event.stopPropagation()">
                                             <input type="checkbox" name="request_ids[]" value="{{ $request->id }}" class="request-checkbox rounded border-gray-300 text-green-600 shadow-sm focus:border-green-300 focus:ring focus:ring-green-200 focus:ring-opacity-50">
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
@@ -58,14 +97,12 @@
                                         </td>
                                         <td class="px-6 py-4 text-sm">
                                             <div class="font-medium text-gray-900 dark:text-white">
-                                                {{ $request->user->first_name }} {{ $request->user->last_name }}
+                                                @php($residentName = $request->requester_name ?? (optional($request->user)->full_name ?: optional($request->user)->name))
+                                                {{ $residentName ?: 'N/A' }}
                                             </div>
                                             <div class="text-gray-500 dark:text-gray-400 text-xs">
-                                                {{ $request->user->email }}
+                                                {{ $request->email ?? optional($request->user)->email ?? 'N/A' }}
                                             </div>
-                                        </td>
-                                        <td class="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                                            {{ format_label($request->form_type) }}
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-300">
                                             {{ $request->purpose ?? 'N/A' }}
@@ -74,17 +111,13 @@
                                             {{ $request->purok->name ?? 'N/A' }}
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            @php
-                                                $statusColors = [
-                                                    'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-                                                    'purok_approved' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-                                                    'barangay_approved' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-                                                    'completed' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-                                                    'rejected' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-                                                ];
-                                                $statusClass = $statusColors[$request->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-                                            @endphp
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $statusClass }}">
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ [
+                                                'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+                                                'purok_approved' => 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+                                                'barangay_approved' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300',
+                                                'completed' => 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+                                                'rejected' => 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+                                            ][$request->status] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300' }}">
                                                 {{ format_label($request->status) }}
                                             </span>
                                         </td>
@@ -94,7 +127,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                        <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                             No clearance requests found.
                                         </td>
                                     </tr>
@@ -102,6 +135,12 @@
                             </tbody>
                         </table>
                     </div>
+
+                    @if(method_exists($requests, 'links'))
+                        <div class="mt-4">
+                            {{ $requests->withQueryString()->links() }}
+                        </div>
+                    @endif
                 </form>
             </div>
         </div>
@@ -117,18 +156,58 @@ function toggleAll(source) {
 }
 
 function printAll() {
-    document.querySelectorAll('.request-checkbox').forEach(cb => cb.checked = false);
-    document.getElementById('selectAll').checked = false;
-    document.getElementById('printForm').submit();
+    const url = "{{ route('reports.preview.purok-clearance') }}";
+    window.open(url, '_blank');
 }
 
 function printSelected() {
-    const selected = document.querySelectorAll('.request-checkbox:checked');
+    const selected = Array.from(document.querySelectorAll('.request-checkbox:checked')).map(cb => cb.value);
     if (selected.length === 0) {
-        alert('Please select at least one request to print.');
+        alert('Please select at least one request to preview.');
         return;
     }
-    document.getElementById('printForm').submit();
+    const url = "{{ route('reports.preview.purok-clearance') }}" + '?ids=' + selected.join(',');
+    window.open(url, '_blank');
 }
+
+function filterClearanceTable() {
+    const search = (document.getElementById('search')?.value || '').toLowerCase();
+    const purokId = document.getElementById('purok_id')?.value || '';
+    const status = document.getElementById('status')?.value || '';
+
+    const table = document.getElementById('purokClearanceTable');
+    const tbody = table?.querySelector('tbody');
+    const rows = tbody ? Array.from(tbody.querySelectorAll('tr')) : [];
+
+    let total = 0;
+    let visible = 0;
+
+    rows.forEach(row => {
+        const isEmptyState = row.querySelector('td[colspan]');
+        if (isEmptyState) return;
+        total++;
+
+        const text = (row.textContent || '').toLowerCase();
+        const rowPurok = row.getAttribute('data-purok-id') || '';
+        const rowStatus = row.getAttribute('data-status') || '';
+
+        const matchesSearch = !search || text.includes(search);
+        const matchesPurok = !purokId || rowPurok === purokId;
+        const matchesStatus = !status || rowStatus === status;
+
+        const show = matchesSearch && matchesPurok && matchesStatus;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    const results = document.getElementById('searchResults');
+    if (results) {
+        results.textContent = search || purokId || status ? `Showing ${visible} of ${total} requests (this page)` : '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    filterClearanceTable();
+});
 </script>
 @endsection

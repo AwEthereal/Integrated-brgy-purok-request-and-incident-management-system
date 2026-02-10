@@ -19,6 +19,16 @@ class FeedbackController extends Controller
         $this->feedbackService = $feedbackService;
     }
 
+    public function general()
+    {
+        return $this->showFeedbackForm('general', null);
+    }
+
+    public function publicGeneral()
+    {
+        return view('public.feedback');
+    }
+
     /**
      * Show feedback form for a specific request or incident
      */
@@ -71,13 +81,15 @@ class FeedbackController extends Controller
             'sqd7_rating' => 'required|integer|min:1|max:5',
             'sqd8_rating' => 'required|integer|min:1|max:5',
             'comments' => 'nullable|string|max:1000',
-            'is_anonymous' => 'sometimes|boolean',
+            'is_anonymous' => 'sometimes',
         ]);
+
+        $isAnonymous = $request->boolean('is_anonymous');
 
         try {
             // Prepare feedback data
             $feedbackData = [
-                'user_id' => $validated['is_anonymous'] ? null : $user->id,
+                'user_id' => (!$user || $isAnonymous) ? null : $user->id,
                 'sqd0_rating' => $validated['sqd0_rating'],
                 'sqd1_rating' => $validated['sqd1_rating'],
                 'sqd2_rating' => $validated['sqd2_rating'],
@@ -88,13 +100,12 @@ class FeedbackController extends Controller
                 'sqd7_rating' => $validated['sqd7_rating'],
                 'sqd8_rating' => $validated['sqd8_rating'],
                 'comments' => $validated['comments'] ?? null,
-                'is_anonymous' => $validated['is_anonymous'] ?? false,
-                'submitted_at' => now(),
+                'is_anonymous' => $isAnonymous,
                 'incident_report_id' => null,
                 'request_id' => null,
             ];
 
-            $redirectUrl = route('dashboard');
+            $redirectUrl = $request->boolean('is_public') ? url('/public') : route('dashboard');
             
             // Associate with the correct item and mark as completed
             if ($validated['item_type'] === 'request' && !empty($validated['item_id'])) {
@@ -121,7 +132,7 @@ class FeedbackController extends Controller
                 $successMessage = 'Thank you for your feedback on your incident report!';
                 
             } else {
-                $redirectUrl = route('dashboard');
+                $redirectUrl = $request->boolean('is_public') ? url('/public') : route('dashboard');
                 $successMessage = 'Thank you for your feedback! Your input helps us improve our services.';
             }
 
@@ -137,7 +148,7 @@ class FeedbackController extends Controller
                 ->cookie('feedback_submitted', true, 60 * 24 * 7); // 1 week
 
             // Log successful submission if not anonymous
-            if (!$validated['is_anonymous']) {
+            if (!$isAnonymous) {
                 Log::info('Feedback submitted successfully', [
                     'user_id' => $user->id,
                     'item_type' => $validated['item_type'],
@@ -196,8 +207,10 @@ class FeedbackController extends Controller
                 'ratings' => 'required|array|size:9',
                 'ratings.*' => 'required|integer|min:1|max:5',
                 'comments' => 'nullable|string|max:1000',
-                'is_anonymous' => 'sometimes|boolean',
+                'is_anonymous' => 'sometimes',
             ]);
+
+            $isAnonymous = $request->boolean('is_anonymous');
             
             \Log::info('Validation passed', $validated);
             
@@ -212,7 +225,7 @@ class FeedbackController extends Controller
             try {
                 // Prepare feedback data with all 9 SQD ratings
                 $feedbackData = [
-                    'user_id' => $validated['is_anonymous'] ? null : $user->id,
+                    'user_id' => $isAnonymous ? null : $user->id,
                     'sqd0_rating' => $ratings[0] ?? 3,
                     'sqd1_rating' => $ratings[1] ?? 3,
                     'sqd2_rating' => $ratings[2] ?? 3,
@@ -223,8 +236,7 @@ class FeedbackController extends Controller
                     'sqd7_rating' => $ratings[7] ?? 3,
                     'sqd8_rating' => $ratings[8] ?? 3,
                     'comments' => $validated['comments'] ?? null,
-                    'is_anonymous' => $validated['is_anonymous'] ?? false,
-                    'submitted_at' => now(),
+                    'is_anonymous' => $isAnonymous,
                 ];
                 
                 \Log::info('Prepared feedback data:', $feedbackData);
@@ -319,16 +331,27 @@ class FeedbackController extends Controller
     public function skip(Request $request)
     {
         $validated = $request->validate([
-            'item_type' => 'required|in:request,incident',
-            'item_id' => 'required|integer',
+            'item_type' => 'nullable|in:request,incident',
+            'item_id' => 'nullable|integer',
+            'type' => 'nullable|in:request,incident',
+            'id' => 'nullable|integer',
         ]);
 
+        $itemType = $validated['item_type'] ?? $validated['type'] ?? null;
+        $itemId = $validated['item_id'] ?? $validated['id'] ?? null;
+        if (!$itemType || !$itemId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing item reference.'
+            ], 422);
+        }
+
         try {
-            if ($validated['item_type'] === 'request') {
-                $item = ServiceRequest::findOrFail($validated['item_id']);
+            if ($itemType === 'request') {
+                $item = ServiceRequest::findOrFail($itemId);
                 $this->feedbackService->skipFeedbackForRequest($item);
             } else {
-                $item = IncidentReport::findOrFail($validated['item_id']);
+                $item = IncidentReport::findOrFail($itemId);
                 $this->feedbackService->skipFeedbackForIncident($item);
             }
 
