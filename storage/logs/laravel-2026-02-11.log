@@ -2123,3 +2123,5 @@
 [2026-02-11 07:54:04] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
 [2026-02-11 07:54:06] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
 [2026-02-11 07:54:06] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-11 07:58:30] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 
+[2026-02-11 07:58:50] local.INFO: PurokLeaderMiddleware - User check {"user_id":55,"user_role":"purok_leader","purok_id":2,"allowed_roles":["purok_leader","admin"]} 

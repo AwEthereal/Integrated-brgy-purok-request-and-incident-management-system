@@ -128,25 +128,6 @@ class RequestController extends Controller
     public function store(HttpRequest $request)
     {
         try {
-            // Check if user has reached the pending request limit
-            $user = auth()->user();
-            $pendingCount = RequestModel::where('user_id', $user->id)
-                ->whereIn('status', ['pending', 'purok_approved'])
-                ->count();
-            
-            if ($pendingCount >= 5) {
-                if ($request->ajax() || $request->wantsJson()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You have reached the maximum limit of 5 pending requests. Please wait for your existing requests to be processed before submitting a new one.'
-                    ], 429);
-                }
-                
-                return back()->withErrors([
-                    'limit' => 'You have reached the maximum limit of 5 pending requests. Please wait for your existing requests to be processed before submitting a new one.'
-                ])->withInput();
-            }
-            
             $validated = $request->validate([
                 'form_type' => 'required|string|in:barangay_clearance,business_clearance,certificate_of_residency,certificate_of_indigency,other',
                 'purpose' => 'required|string|max:50',

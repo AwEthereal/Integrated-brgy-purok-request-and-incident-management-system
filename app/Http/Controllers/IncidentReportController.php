@@ -33,25 +33,6 @@ class IncidentReportController extends Controller
     // Resident submits incident report
     public function store(Request $request)
     {
-        // Check if user has reached the pending incident report limit
-        $user = auth()->user();
-        $pendingCount = IncidentReport::where('user_id', $user->id)
-            ->whereIn('status', ['pending', 'in_progress'])
-            ->count();
-        
-        if ($pendingCount >= 10) {
-            if ($request->ajax() || $request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You have reached the maximum limit of 10 pending incident reports. Please wait for your existing reports to be processed before submitting a new one.'
-                ], 429);
-            }
-            
-            return back()->withErrors([
-                'limit' => 'You have reached the maximum limit of 10 pending incident reports. Please wait for your existing reports to be processed before submitting a new one.'
-            ])->withInput();
-        }
-        
         $request->validate([
             'incident_type' => 'required|in:' . implode(',', array_keys(IncidentReport::TYPES)),
             'incident_type_other' => 'nullable|string|max:100',

@@ -129,7 +129,6 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\CheckResidentApprove
     Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
     Route::get('/requests/create', [RequestController::class, 'create'])->name('requests.create');
     Route::post('/requests', [RequestController::class, 'store'])
-        ->middleware('throttle:5,60') // 5 requests per hour
         ->name('requests.store');
     Route::get('/requests/{request}/edit', [RequestController::class, 'edit'])->name('requests.edit');
     Route::put('/requests/{request}', [RequestController::class, 'update'])->name('requests.update');
@@ -144,7 +143,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/my_reports', [IncidentReportController::class, 'myReports'])->name('my_reports');
         Route::get('/create', [IncidentReportController::class, 'create'])->name('create');
         Route::post('/', [IncidentReportController::class, 'store'])
-            ->middleware('throttle:10,60') // 10 incident reports per hour
             ->name('store');
         Route::get('/{id}', [IncidentReportController::class, 'show'])->name('show');
     });
@@ -479,14 +477,12 @@ if (config('features.public_forms')) {
         // Public Incident
         Route::get('/incident', [PublicIncidentController::class, 'create'])->name('incident.create');
         Route::post('/incident', [PublicIncidentController::class, 'store'])
-            ->middleware('throttle:10,60')
             ->name('incident.store');
 
         // Public Feedback
         Route::get('/feedback', [\App\Http\Controllers\FeedbackController::class, 'publicGeneral'])
             ->name('feedback.general');
         Route::post('/feedback', [\App\Http\Controllers\FeedbackController::class, 'store'])
-            ->middleware('throttle:10,60')
             ->name('feedback.store');
 
         // Thank You page
