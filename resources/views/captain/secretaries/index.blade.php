@@ -64,7 +64,7 @@
                   </span>
                 </td>
                 <td class="px-4 py-3 text-sm text-gray-700 dark:text-gray-300 text-center">
-                  {{ $u->purok?->name ?? '-' }}
+                  {{ $u->purok?->name ?? $u->latestResidentRecord?->purok?->name ?? '-' }}
                 </td>
                 <td class="px-4 py-2 text-sm text-right">
                   @if(($u->resident_records_count ?? 0) > 0)

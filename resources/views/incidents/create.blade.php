@@ -704,7 +704,7 @@
                     <!-- Upload Section -->
                     <div class="border-t pt-4">
                         <label for="photo" class="block text-sm font-medium text-gray-700 mb-3">Or Upload Photos from Device</label>
-                        <input type="file" name="photos[]" id="photo" accept="image/*" multiple
+                        <input type="file" name="photos[]" id="photo" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" multiple
                             class="block w-full text-sm text-gray-600 file:mr-4 file:py-3 file:px-6 file:rounded-lg file:border-0 file:bg-green-50 file:text-green-700 file:font-medium hover:file:bg-green-100 transition cursor-pointer"
                             data-action="upload-photos" />
                     </div>

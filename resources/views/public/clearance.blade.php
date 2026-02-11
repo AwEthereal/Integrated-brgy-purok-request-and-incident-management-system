@@ -116,20 +116,20 @@
             <div id="id-upload-block" class="space-y-3">
                 <div>
                     <label class="block text-sm font-medium mb-1">Valid ID Front</label>
-                    <input type="file" name="valid_id_front" accept="image/*,application/pdf" capture="environment" class="w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="file" name="valid_id_front" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" capture="environment" class="w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1">Valid ID Back (optional)</label>
-                    <input type="file" name="valid_id_back" accept="image/*,application/pdf" capture="environment" class="w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="file" name="valid_id_back" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" capture="environment" class="w-full rounded-lg border border-gray-300 px-3 py-2.5 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
                 </div>
-                <p class="text-xs text-gray-600">Accepted formats: JPG, PNG, or PDF. Max size 4MB each.</p>
+                <p class="text-xs text-gray-600">Accepted formats: JPG, PNG, or PDF. Max size 10MB each.</p>
             </div>
 
             <div id="face-upload-block" class="space-y-3 hidden">
                 <div>
                     <label class="block text-sm font-medium mb-1">Live Face Photo</label>
                     <!-- Fallback file input (we will programmatically populate this from the camera capture) -->
-                    <input type="file" name="face_photo" id="face_photo" accept="image/*" capture="user" class="hidden">
+                    <input type="file" name="face_photo" id="face_photo" accept=".jpg,.jpeg,.png,image/jpeg,image/png" capture="user" class="hidden">
 
                     <!-- Camera area (modeled after the dashboard request page) -->
                     <div id="face_camera_container" class="relative w-full max-w-md mx-auto aspect-[3/2] rounded-md border-2 border-dashed border-gray-300 overflow-hidden bg-gray-50 flex items-center justify-center mb-3 sm:mb-4">
@@ -153,7 +153,7 @@
                         <button type="button" id="face_retake_btn" class="hidden flex-1 sm:flex-none bg-white py-2 px-3 sm:px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">Retake</button>
                     </div>
                 </div>
-                <p class="text-xs text-gray-600">Tip: Use your phone's front camera for a clear, recent face photo. Max size 4MB.</p>
+                <p class="text-xs text-gray-600">Tip: Use your phone's front camera for a clear, recent face photo. Max size 10MB.</p>
             </div>
         </div>
 

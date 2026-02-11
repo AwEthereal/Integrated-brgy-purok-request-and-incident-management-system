@@ -34,7 +34,10 @@ class SecretaryAccountController extends Controller
                   ->orWhere('name', 'like', "%$s%");
             });
         }
-        $secretaries = $query->with('purok')->orderBy('created_at', 'desc')->paginate(15);
+        $secretaries = $query
+            ->with(['purok', 'latestResidentRecord.purok'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
         return view('captain.secretaries.index', compact('secretaries'));
     }
 

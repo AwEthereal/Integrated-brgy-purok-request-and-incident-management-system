@@ -53,9 +53,9 @@ class PublicClearanceRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:255'],
             'age' => ['nullable', 'integer', 'between:1,120'],
             // Either valid ID (front/back) OR live face photo
-            'valid_id_front' => ['required_without:face_photo', 'nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'mimetypes:image/jpeg,image/png,application/pdf', 'max:4096'],
-            'valid_id_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'mimetypes:image/jpeg,image/png,application/pdf', 'max:4096'],
-            'face_photo' => ['required_without:valid_id_front', 'nullable', 'image', 'mimes:jpg,jpeg,png', 'max:4096'],
+            'valid_id_front' => ['required_without:face_photo', 'nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'mimetypes:image/jpeg,image/png,application/pdf', 'max:10240'],
+            'valid_id_back' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'mimetypes:image/jpeg,image/png,application/pdf', 'max:10240'],
+            'face_photo' => ['required_without:valid_id_front', 'nullable', 'image', 'mimes:jpg,jpeg,png', 'max:10240'],
         ];
     }
 

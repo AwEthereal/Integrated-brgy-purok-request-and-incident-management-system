@@ -192,24 +192,32 @@
                         Photo Evidence
                         @php
                             $photos = $report->photo_paths ?? ($report->photo_path ? [$report->photo_path] : []);
+                            $imagePhotos = array_values(array_filter($photos, function ($p) {
+                                $ext = strtolower(pathinfo((string) $p, PATHINFO_EXTENSION));
+                                return $ext !== 'pdf';
+                            }));
+                            $pdfPhotos = array_values(array_filter($photos, function ($p) {
+                                $ext = strtolower(pathinfo((string) $p, PATHINFO_EXTENSION));
+                                return $ext === 'pdf';
+                            }));
                         @endphp
-                        @if(count($photos) > 1)
-                            <span class="text-xs text-gray-400">({{ count($photos) }} photos)</span>
+                        @if(count($imagePhotos) > 1)
+                            <span class="text-xs text-gray-400">({{ count($imagePhotos) }} photos)</span>
                         @endif
                     </dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                        @if(count($photos) === 1)
+                        @if(count($imagePhotos) === 1)
                             <!-- Single Photo -->
-                            <img src="{{ asset('storage/' . $photos[0]) }}" 
+                            <img src="{{ asset('storage/' . $imagePhotos[0]) }}" 
                                  alt="Incident photo" 
                                  class="mt-2 rounded-lg shadow-sm max-h-64 object-cover cursor-pointer hover:opacity-90 transition-opacity"
                                  onclick="openPhotoLightbox(0)">
-                        @else
+                        @elseif(count($imagePhotos) > 1)
                             <!-- Multiple Photos - Carousel -->
                             <div class="relative mt-2">
                                 <div class="photo-carousel mb-4">
                                     <div class="relative h-80 bg-gray-100 rounded-lg overflow-hidden">
-                                        @foreach($photos as $index => $photo)
+                                        @foreach($imagePhotos as $index => $photo)
                                             <div class="photo-slide {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}">
                                                 <img src="{{ asset('storage/' . $photo) }}" 
                                                      alt="Incident photo {{ $index + 1 }}" 
@@ -219,7 +227,7 @@
                                         @endforeach
                                         
                                         <!-- Navigation Arrows -->
-                                        @if(count($photos) > 1)
+                                        @if(count($imagePhotos) > 1)
                                             <button onclick="previousPhoto()" class="photo-nav-btn photo-nav-prev">
                                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -234,14 +242,14 @@
                                         
                                         <!-- Photo Counter -->
                                         <div class="absolute bottom-4 right-4 bg-black bg-opacity-60 text-white px-3 py-1 rounded-full text-sm">
-                                            <span id="current-photo">1</span> / {{ count($photos) }}
+                                            <span id="current-photo">1</span> / {{ count($imagePhotos) }}
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <!-- Thumbnail Strip -->
                                 <div class="flex gap-2 overflow-x-auto pb-2">
-                                    @foreach($photos as $index => $photo)
+                                    @foreach($imagePhotos as $index => $photo)
                                         <button onclick="goToPhoto({{ $index }})" 
                                                 class="photo-thumbnail {{ $index === 0 ? 'active' : '' }}" 
                                                 data-index="{{ $index }}">
@@ -251,6 +259,18 @@
                                         </button>
                                     @endforeach
                                 </div>
+                            </div>
+                        @else
+                            <div class="mt-2 text-sm text-gray-600">No image photos uploaded.</div>
+                        @endif
+
+                        @if(count($pdfPhotos) > 0)
+                            <div class="mt-3 space-y-2">
+                                @foreach($pdfPhotos as $pdf)
+                                    <a href="{{ asset('storage/' . $pdf) }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-sm text-blue-600 hover:underline">
+                                        View PDF attachment
+                                    </a>
+                                @endforeach
                             </div>
                         @endif
                     </dd>
@@ -471,7 +491,7 @@
             <img id="lightboxImage" src="" alt="Full size photo" class="max-w-full max-h-[90vh] object-contain">
             
             <!-- Navigation Arrows (for multiple photos) -->
-            @if(isset($photos) && count($photos) > 1)
+            @if(isset($imagePhotos) && count($imagePhotos) > 1)
             <button onclick="lightboxPrevious()" class="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-3 transition-all">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -499,9 +519,10 @@
     const totalPhotos = document.querySelectorAll('.photo-slide').length;
     
     // Photo data for lightbox
-    const photoUrls = @json(isset($photos) ? array_map(fn($p) => asset('storage/' . $p), $photos) : []);
+    const photoUrls = @json(isset($imagePhotos) ? array_map(fn($p) => asset('storage/' . $p), $imagePhotos) : []);
     
     function goToPhoto(index) {
+        if (!totalPhotos) return;
         // Hide all slides
         document.querySelectorAll('.photo-slide').forEach(slide => {
             slide.classList.remove('active');
@@ -535,11 +556,13 @@
     }
     
     function nextPhoto() {
+        if (!totalPhotos) return;
         const nextIndex = (currentPhotoIndex + 1) % totalPhotos;
         goToPhoto(nextIndex);
     }
     
     function previousPhoto() {
+        if (!totalPhotos) return;
         const prevIndex = (currentPhotoIndex - 1 + totalPhotos) % totalPhotos;
         goToPhoto(prevIndex);
     }
@@ -590,6 +613,7 @@
     let lightboxPhotoIndex = 0;
     
     function openPhotoLightbox(index) {
+        if (!photoUrls.length) return;
         lightboxPhotoIndex = index;
         updateLightboxImage();
         document.getElementById('photoLightbox').classList.remove('hidden');
@@ -612,11 +636,13 @@
     }
     
     function lightboxNext() {
+        if (!photoUrls.length) return;
         lightboxPhotoIndex = (lightboxPhotoIndex + 1) % photoUrls.length;
         updateLightboxImage();
     }
     
     function lightboxPrevious() {
+        if (!photoUrls.length) return;
         lightboxPhotoIndex = (lightboxPhotoIndex - 1 + photoUrls.length) % photoUrls.length;
         updateLightboxImage();
     }

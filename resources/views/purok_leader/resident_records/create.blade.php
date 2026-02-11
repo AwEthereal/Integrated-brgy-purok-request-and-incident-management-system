@@ -252,15 +252,15 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div>
                     <label class="block text-sm font-medium mb-1">Left Thumbmark</label>
-                    <input type="file" name="left_thumbmark" accept="image/*" class="w-full rounded-md border border-gray-300 px-3 py-2" />
+                    <input type="file" name="left_thumbmark" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" class="w-full rounded-md border border-gray-300 px-3 py-2" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1">Right Thumbmark</label>
-                    <input type="file" name="right_thumbmark" accept="image/*" class="w-full rounded-md border border-gray-300 px-3 py-2" />
+                    <input type="file" name="right_thumbmark" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" class="w-full rounded-md border border-gray-300 px-3 py-2" />
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1">Signature</label>
-                    <input type="file" name="signature" accept="image/*" class="w-full rounded-md border border-gray-300 px-3 py-2" />
+                    <input type="file" name="signature" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" class="w-full rounded-md border border-gray-300 px-3 py-2" />
                 </div>
             </div>
         </div>

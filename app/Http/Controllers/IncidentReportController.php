@@ -40,11 +40,20 @@ class IncidentReportController extends Controller
             'photo_data' => 'nullable|string', // base64 string (first photo for backward compatibility)
             'photos_data' => 'nullable|string', // JSON array of base64 strings
             'photos' => 'nullable|array', // fallback file upload
-            'photos.*' => 'nullable|image|max:2048',
+            'photos.*' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'location' => 'nullable|string'
         ]);
+
+        // Basic guard against extremely large base64 payloads that could exceed server limits.
+        // (This is in bytes, not KB.)
+        if ($request->filled('photo_data') && strlen((string) $request->input('photo_data')) > 15000000) {
+            return back()->withErrors(['photo_data' => 'Photo payload is too large. Please upload a smaller photo.'])->withInput();
+        }
+        if ($request->filled('photos_data') && strlen((string) $request->input('photos_data')) > 45000000) {
+            return back()->withErrors(['photos_data' => 'Photos payload is too large. Please upload smaller photos or fewer photos.'])->withInput();
+        }
 
     $photoPath = null;
     $photoPaths = [];

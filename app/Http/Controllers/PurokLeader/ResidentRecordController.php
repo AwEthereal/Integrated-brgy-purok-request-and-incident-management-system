@@ -267,9 +267,9 @@ class ResidentRecordController extends Controller
             'is_undergraduate' => ['nullable','boolean'],
             'date_accomplished' => ['nullable','date'],
             // uploads optional for now
-            'left_thumbmark' => ['nullable','image','max:4096'],
-            'right_thumbmark' => ['nullable','image','max:4096'],
-            'signature' => ['nullable','image','max:4096'],
+            'left_thumbmark' => ['nullable','file','mimes:jpg,jpeg,png,pdf','max:10240'],
+            'right_thumbmark' => ['nullable','file','mimes:jpg,jpeg,png,pdf','max:10240'],
+            'signature' => ['nullable','file','mimes:jpg,jpeg,png,pdf','max:10240'],
             'status' => ['nullable','string','in:draft,active,archived'],
         ];
         if (in_array($request->user()->role, ['secretary','barangay_captain','barangay_kagawad','admin'])) {
