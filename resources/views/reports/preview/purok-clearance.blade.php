@@ -148,11 +148,62 @@
 </div>
 
 <script>
+const PUROK_CLEARANCE_SELECTED_KEY = 'reports_purok_clearance_selected_ids';
+
+function getSelectedClearanceIds() {
+    try {
+        const raw = sessionStorage.getItem(PUROK_CLEARANCE_SELECTED_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function setSelectedClearanceIds(ids) {
+    const unique = Array.from(new Set((ids || []).map(String)));
+    sessionStorage.setItem(PUROK_CLEARANCE_SELECTED_KEY, JSON.stringify(unique));
+}
+
+function syncClearanceCheckboxesFromStorage() {
+    const selected = new Set(getSelectedClearanceIds());
+    const checkboxes = document.querySelectorAll('.request-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = selected.has(String(cb.value));
+    });
+    syncClearanceSelectAllState();
+}
+
+function syncClearanceSelectAllState() {
+    const all = Array.from(document.querySelectorAll('.request-checkbox'));
+    const selectAll = document.getElementById('selectAll');
+    if (!selectAll) return;
+    if (all.length === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+        return;
+    }
+    const checkedCount = all.filter(cb => cb.checked).length;
+    selectAll.checked = checkedCount > 0 && checkedCount === all.length;
+    selectAll.indeterminate = checkedCount > 0 && checkedCount < all.length;
+}
+
 function toggleAll(source) {
     const checkboxes = document.querySelectorAll('.request-checkbox');
     checkboxes.forEach(checkbox => {
         checkbox.checked = source.checked;
     });
+
+    const selected = new Set(getSelectedClearanceIds());
+    checkboxes.forEach(cb => {
+        if (source.checked) {
+            selected.add(String(cb.value));
+        } else {
+            selected.delete(String(cb.value));
+        }
+    });
+    setSelectedClearanceIds(Array.from(selected));
+    syncClearanceSelectAllState();
 }
 
 function printAll() {
@@ -161,8 +212,8 @@ function printAll() {
 }
 
 function printSelected() {
-    const selected = Array.from(document.querySelectorAll('.request-checkbox:checked')).map(cb => cb.value);
-    if (selected.length === 0) {
+    const selected = getSelectedClearanceIds();
+    if (!selected || selected.length === 0) {
         alert('Please select at least one request to preview.');
         return;
     }
@@ -207,7 +258,25 @@ function filterClearanceTable() {
 }
 
 document.addEventListener('DOMContentLoaded', function(){
+    syncClearanceCheckboxesFromStorage();
     filterClearanceTable();
+});
+
+document.addEventListener('change', function (e) {
+    const target = e.target;
+    if (!target || !target.classList || !target.classList.contains('request-checkbox')) {
+        return;
+    }
+
+    const selected = new Set(getSelectedClearanceIds());
+    const value = String(target.value);
+    if (target.checked) {
+        selected.add(value);
+    } else {
+        selected.delete(value);
+    }
+    setSelectedClearanceIds(Array.from(selected));
+    syncClearanceSelectAllState();
 });
 </script>
 @endsection

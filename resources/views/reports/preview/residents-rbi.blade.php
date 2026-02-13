@@ -148,9 +148,60 @@
 </div>
 
 <script>
+const RESIDENTS_RBI_SELECTED_KEY = 'reports_residents_rbi_selected_ids';
+
+function getSelectedResidentIds() {
+    try {
+        const raw = sessionStorage.getItem(RESIDENTS_RBI_SELECTED_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function setSelectedResidentIds(ids) {
+    const unique = Array.from(new Set((ids || []).map(String)));
+    sessionStorage.setItem(RESIDENTS_RBI_SELECTED_KEY, JSON.stringify(unique));
+}
+
+function syncResidentCheckboxesFromStorage() {
+    const selected = new Set(getSelectedResidentIds());
+    const checkboxes = document.querySelectorAll('.record-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = selected.has(String(cb.value));
+    });
+    syncSelectAllState();
+}
+
+function syncSelectAllState() {
+    const all = Array.from(document.querySelectorAll('.record-checkbox'));
+    const selectAll = document.getElementById('selectAll');
+    if (!selectAll) return;
+    if (all.length === 0) {
+        selectAll.checked = false;
+        selectAll.indeterminate = false;
+        return;
+    }
+    const checkedCount = all.filter(cb => cb.checked).length;
+    selectAll.checked = checkedCount > 0 && checkedCount === all.length;
+    selectAll.indeterminate = checkedCount > 0 && checkedCount < all.length;
+}
+
 function toggleAll(source) {
     const checkboxes = document.querySelectorAll('.record-checkbox');
     checkboxes.forEach(cb => { cb.checked = source.checked; });
+
+    const selected = new Set(getSelectedResidentIds());
+    checkboxes.forEach(cb => {
+        if (source.checked) {
+            selected.add(String(cb.value));
+        } else {
+            selected.delete(String(cb.value));
+        }
+    });
+    setSelectedResidentIds(Array.from(selected));
+    syncSelectAllState();
 }
 
 function printAll() {
@@ -158,13 +209,34 @@ function printAll() {
 }
 
 function printSelected() {
-    const selected = Array.from(document.querySelectorAll('.record-checkbox:checked')).map(cb => cb.value);
-    if (selected.length === 0) {
+    const selected = getSelectedResidentIds();
+    if (!selected || selected.length === 0) {
         alert('Please select at least one resident to preview.');
         return;
     }
     const url = "{{ route('reports.preview.residents-rbi') }}" + '?ids=' + selected.join(',');
     window.open(url, '_blank');
 }
+
+document.addEventListener('change', function (e) {
+    const target = e.target;
+    if (!target || !target.classList || !target.classList.contains('record-checkbox')) {
+        return;
+    }
+
+    const selected = new Set(getSelectedResidentIds());
+    const value = String(target.value);
+    if (target.checked) {
+        selected.add(value);
+    } else {
+        selected.delete(value);
+    }
+    setSelectedResidentIds(Array.from(selected));
+    syncSelectAllState();
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    syncResidentCheckboxesFromStorage();
+});
 </script>
 @endsection
