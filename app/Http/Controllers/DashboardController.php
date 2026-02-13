@@ -22,7 +22,7 @@ class DashboardController extends Controller
         }
 
         // Check if user has required role
-        $allowedRoles = ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin', 'resident'];
+        $allowedRoles = ['barangay_captain', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'sk_chairman', 'admin', 'resident'];
         if (!in_array($user->role, $allowedRoles)) {
             \Log::warning('Unauthorized access attempt to dashboard', [
                 'user_id' => $user->id,

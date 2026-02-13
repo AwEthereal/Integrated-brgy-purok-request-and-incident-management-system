@@ -47,6 +47,7 @@ class UserManagementController extends Controller
             'barangay_kagawad' => 'Barangay Kagawad',
             'barangay_captain' => 'Barangay Captain',
             'secretary' => 'Secretary',
+            'barangay_clerk' => 'Barangay Clerk',
             'sk_chairman' => 'SK Chairman',
             'admin' => 'Admin'
         ];
@@ -57,7 +58,7 @@ class UserManagementController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'role' => 'required|string|in:resident,purok_leader,barangay_kagawad,barangay_captain,secretary,sk_chairman,admin',
+            'role' => 'required|string|in:resident,purok_leader,barangay_kagawad,barangay_captain,secretary,barangay_clerk,sk_chairman,admin',
             'is_approved' => 'nullable|boolean',
         ]);
 

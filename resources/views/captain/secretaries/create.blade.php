@@ -47,6 +47,7 @@
                 class="w-full rounded-lg border border-gray-300 dark:border-gray-600 p-3 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
           <option value="secretary" @selected(old('role')==='secretary')>Secretary</option>
           <option value="barangay_kagawad" @selected(old('role')==='barangay_kagawad')>Barangay Kagawad</option>
+          <option value="barangay_clerk" @selected(old('role')==='barangay_clerk')>Barangay Clerk</option>
           <option value="sk_chairman" @selected(old('role')==='sk_chairman')>SK Chairman</option>
           <option value="purok_leader" @selected(old('role')==='purok_leader')>Purok Leader</option>
         </select>

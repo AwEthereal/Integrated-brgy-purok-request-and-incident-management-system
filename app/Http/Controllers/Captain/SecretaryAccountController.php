@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 
 class SecretaryAccountController extends Controller
 {
-    protected array $assignableRoles = ['secretary', 'barangay_kagawad', 'sk_chairman', 'purok_leader'];
+    protected array $assignableRoles = ['secretary', 'barangay_kagawad', 'barangay_clerk', 'sk_chairman', 'purok_leader'];
 
     public function index(Request $request)
     {

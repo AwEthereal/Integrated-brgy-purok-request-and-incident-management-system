@@ -56,7 +56,7 @@ class KioskController extends Controller
     public function officials()
     {
         // Get barangay officials
-        $officials = User::whereIn('role', ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman'])
+        $officials = User::whereIn('role', ['barangay_captain', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'sk_chairman'])
             ->select('name', 'role')
             ->get();
 

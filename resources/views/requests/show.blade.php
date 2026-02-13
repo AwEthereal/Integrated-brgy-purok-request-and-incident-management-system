@@ -368,7 +368,7 @@
                             $isAdmin = $role === 'admin';
                             $isSecretary = $role === 'secretary';
                             $isBarangayDecisionMaker = in_array($role, ['barangay_captain', 'barangay_kagawad']);
-                            $isBarangayOfficial = $isBarangayDecisionMaker || $isSecretary || $role === 'sk_chairman';
+                            $isBarangayOfficial = $isBarangayDecisionMaker || $isSecretary || $role === 'barangay_clerk' || $role === 'sk_chairman';
                             $isPurokLeaderForThisRequest = $isPurokLeader &&
                                 ($request->purok_id == auth()->user()->purok_id || $isAdmin);
                         @endphp

@@ -43,6 +43,7 @@ class IncidentReportPolicy
             'barangay_captain',
             'barangay_kagawad',
             'secretary',
+            'barangay_clerk',
             'sk_chairman',
             'admin'
         ]);

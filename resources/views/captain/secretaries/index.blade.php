@@ -29,6 +29,7 @@
             <option value="barangay_captain">Barangay Captain</option>
             <option value="secretary">Secretary</option>
             <option value="barangay_kagawad">Barangay Kagawad</option>
+            <option value="barangay_clerk">Barangay Clerk</option>
             <option value="sk_chairman">SK Chairman</option>
             <option value="purok_leader">Purok Leader</option>
           </select>

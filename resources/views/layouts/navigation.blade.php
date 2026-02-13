@@ -5,7 +5,7 @@
 
             <!-- Logo -->
             @auth
-                <a href="{{ auth()->user()->role === 'purok_leader' ? route('purok_leader.dashboard') : route('dashboard') }}" class="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity">
+                <a href="{{ auth()->user()->role === 'purok_leader' ? route('purok_leader.dashboard') : (auth()->user()->role === 'barangay_clerk' ? url('/') : route('dashboard')) }}" class="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity">
             @else
                 <a href="{{ route('login') }}" class="flex-shrink-0 flex items-center hover:opacity-80 transition-opacity">
             @endauth
@@ -19,7 +19,7 @@
             <!-- Desktop Navigation Links -->
             <div class="hidden md:ml-4 md:flex md:flex-wrap md:items-center md:gap-1 lg:gap-2 flex-1 justify-center max-w-4xl">
                 @auth
-                @if(auth()->user()->role !== 'purok_leader')
+                @if(auth()->user()->role !== 'purok_leader' && auth()->user()->role !== 'barangay_clerk')
                     <a href="{{ route('dashboard') }}"
                         class="flex items-center px-2 lg:px-3 py-1.5 lg:py-2 rounded-md text-xs lg:text-sm font-medium {{ request()->routeIs('dashboard') ? 'bg-green-100 text-green-800 font-semibold' : 'text-gray-800 hover:bg-gray-100 hover:text-green-800' }} transition-colors whitespace-nowrap">
                         <svg class="h-5 w-5 mr-2 {{ request()->routeIs('dashboard') ? 'text-green-600' : 'text-gray-600' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -30,6 +30,7 @@
                             'barangay_captain' => 'Barangay Captain',
                             'barangay_kagawad' => 'Barangay Kagawad',
                             'secretary' => 'Secretary',
+                            'barangay_clerk' => 'Barangay Clerk',
                             'sk_chairman' => 'SK Chairman',
                         ];
                         $roleLabel = $roleLabels[$official->role ?? ''] ?? format_label($official->role ?? 'barangay_official');

@@ -287,7 +287,7 @@ class IncidentReportController extends Controller
         $redirectTo = $this->safeRedirectTo((string) $request->query('redirect_to', ''));
         
         // Check if the authenticated user is an admin or barangay official
-        if (in_array(auth()->user()->role, ['admin', 'barangay_kagawad', 'barangay_captain', 'secretary', 'sk_chairman'])) {
+        if (in_array(auth()->user()->role, ['admin', 'barangay_kagawad', 'barangay_captain', 'secretary', 'barangay_clerk', 'sk_chairman'])) {
             // Mark as viewed if not already viewed
             if (is_null($report->viewed_at)) {
                 $report->update(['viewed_at' => now()]);

@@ -13,6 +13,7 @@
                     'barangay_captain' => 'Brgy. Capt.',
                     'secretary' => 'Secretary',
                     'barangay_kagawad' => 'Kagawad',
+                    'barangay_clerk' => 'Barangay Clerk',
                     'sk_chairman' => 'SK Chairman',
                     'admin' => 'Admin',
                 ];

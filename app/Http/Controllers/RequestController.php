@@ -603,7 +603,7 @@ class RequestController extends Controller
         // Store rejection reason in appropriate field based on user role
         if ($user->role === 'purok_leader') {
             $updates['purok_notes'] = 'Rejected by Purok: ' . $data['rejection_reason'];
-        } elseif (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin'])) {
+        } elseif (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'sk_chairman', 'admin'])) {
             $updates['barangay_notes'] = 'Rejected by Barangay: ' . $data['rejection_reason'];
         } else {
             $updates['barangay_notes'] = 'Rejected: ' . $data['rejection_reason'];

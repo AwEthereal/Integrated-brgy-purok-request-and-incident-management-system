@@ -18,6 +18,7 @@ class RequestPolicy
             'barangay_captain',
             'barangay_kagawad',
             'secretary',
+            'barangay_clerk',
             'sk_chairman',
             'purok_leader',
             'admin'
@@ -63,7 +64,7 @@ class RequestPolicy
         }
         
         // Allow barangay officials and admins to view all requests
-        if (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin'])) {
+        if (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'sk_chairman', 'admin'])) {
             \Log::debug('RequestPolicy@view - Allowed: User is barangay official or admin');
             return true;
         }
@@ -131,20 +132,20 @@ class RequestPolicy
     public function viewPendingBarangay(User $user): bool
     {
         // Barangay officials and admins can view pending barangay requests
-        return in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin']);
+        return in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'sk_chairman', 'admin']);
     }
 
     public function approveBarangay(User $user, Request $request): bool
     {
         // Only barangay officials can approve requests at barangay level
-        return (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin'])) &&
+        return (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'sk_chairman', 'admin'])) &&
                $request->status === 'purok_approved';
     }
 
     public function complete(User $user, Request $request): bool
     {
         // Only barangay officials can mark requests as completed
-        return (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin'])) &&
+        return (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'sk_chairman', 'admin'])) &&
                $request->status === 'barangay_approved';
     }
 
@@ -162,7 +163,7 @@ class RequestPolicy
         }
         
         // Barangay officials and admins can reject requests that are purok_approved or barangay_approved
-        if (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman', 'admin'])) {
+        if (in_array($user->role, ['barangay_captain', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'sk_chairman', 'admin'])) {
             return $request->status === 'purok_approved' || $request->status === 'barangay_approved';
         }
         

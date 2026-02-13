@@ -83,6 +83,7 @@ class User extends Authenticatable implements MustVerifyEmail
                 'barangay_kagawad' => ['view_dashboard', 'view_requests', 'approve_requests', 'view_reports'],
                 'secretary' => ['view_dashboard', 'manage_requests', 'view_reports'],
                 'sk_chairman' => ['view_dashboard', 'view_requests', 'view_reports'],
+                'barangay_clerk' => [],
                 'purok_leader' => ['view_dashboard', 'view_own_purok_requests', 'approve_own_purok_requests'],
                 'resident' => ['view_own_requests', 'create_requests'],
             ];
@@ -196,6 +197,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'admin',
             'barangay_captain',
             'barangay_kagawad',
+            'barangay_clerk',
             'secretary',
             'sk_chairman',
             'purok_leader',

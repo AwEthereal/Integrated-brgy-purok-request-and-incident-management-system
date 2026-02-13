@@ -112,6 +112,7 @@
                     'barangay_kagawad' => 'Barangay Official',
                     'barangay_captain' => 'Barangay Captain',
                     'secretary' => 'Secretary',
+                    'barangay_clerk' => 'Barangay Clerk',
                     'sk_chairman' => 'SK Chairman',
                 ];
 

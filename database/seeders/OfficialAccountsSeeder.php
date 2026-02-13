@@ -82,7 +82,7 @@ class OfficialAccountsSeeder extends Seeder
                 // Map to allowed enum values
                 'role' => (function ($role) {
                     $allowed = [
-                        'resident', 'purok_leader', 'sk_chairman', 'barangay_kagawad', 'secretary', 'barangay_captain', 'admin'
+                        'resident', 'purok_leader', 'sk_chairman', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'barangay_captain', 'admin'
                     ];
                     if (in_array($role, $allowed, true)) return $role;
                     return 'resident';
