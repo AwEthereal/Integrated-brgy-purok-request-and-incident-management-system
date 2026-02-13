@@ -51,13 +51,19 @@
                 $addrClean = trim($addrClean);
                 $addrClean = rtrim($addrClean, ' ,.-');
             }
+
+            $purokNameRaw = optional($req->purok)->name;
+            $purokNameNoPrefix = is_string($purokNameRaw) ? preg_replace('/^\s*purok\s+/i', '', $purokNameRaw) : null;
+            $purokNameNoPrefix = is_string($purokNameNoPrefix) ? trim($purokNameNoPrefix) : null;
+            $purokNameForTitle = $purokNameNoPrefix ?: '________';
+            $purokNameWithPrefix = 'Purok ' . ($purokNameNoPrefix ?: '________');
         @endphp
         <div class="pdf-header">
             <div>Republic of the Philippines</div>
             <div>Province of Sultan Kudarat</div>
             <div>Municipality of Isulan</div>
             <div style="font-weight:700;">BARANGAY GOVERNMENT OF KALAWAG II</div>
-            <div class="pdf-title" style="font-size: 13pt;"><span class="highlight-title">PUROK {{ strtoupper(optional($req->purok)->name ?? '________') }} CLEARANCE</span></div>
+            <div class="pdf-title" style="font-size: 13pt;"><span class="highlight-title">PUROK {{ strtoupper($purokNameForTitle) }} CLEARANCE</span></div>
         </div>
         <div class="pdf-row" style="text-align:left;"><strong>TO WHOM IT MAY CONCERN:</strong></div>
         <div class="pdf-row pdf-indent">
@@ -65,7 +71,7 @@
             <span class="pdf-u">{{ $req->gender ?? '_____' }}</span>, (Age)
             <span class="pdf-u">{{ isset($age) ? $age : '_____' }}</span> years old and presently residing at
             <span class="pdf-u">{{ $addrClean ?: '________________' }}</span> St., Kalawag II, Isulan, Sultan Kudarat has appeared before me personally and requested clearance from
-            <span class="pdf-u">PUROK {{ strtoupper(optional($req->purok)->name ?? '________') }}</span> with the following findings:
+            <span class="pdf-u">PUROK {{ strtoupper($purokNameForTitle) }}</span> with the following findings:
         </div>
         <div class="pdf-row pdf-indent"><span class="pdf-u">No derogatory record on file as of this date.</span></div>
         <div class="pdf-row pdf-indent"><span class="pdf-label">Purpose:</span> <span class="pdf-u">{{ $req->purpose }}</span></div>
@@ -75,7 +81,7 @@
             <div class="pdf-approved">
                 <div style="font-weight:700; margin-top: -45px; margin-right:190px;">APPROVED BY:</div>
                 <div class="pdf-small" style="text-decoration:underline; font-weight:700;">{{ strtoupper(optional($req->purokLeader)->name ?? '________________') }}</div>
-                <div class="pdf-small">Purok {{ optional($req->purok)->name }} President</div>
+                <div class="pdf-small">{{ $purokNameWithPrefix }} President</div>
             </div>
         </div>
     </div>
