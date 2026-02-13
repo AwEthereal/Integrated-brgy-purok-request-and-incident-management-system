@@ -36,6 +36,10 @@ class PublicIncidentRequest extends FormRequest
             'location' => ['nullable', 'string', 'max:255'],
             'incident_type' => ['nullable', 'in:' . implode(',', array_keys(IncidentReport::TYPES))],
             'incident_type_other' => ['nullable', 'string', 'max:100'],
+            'photo_data' => ['nullable', 'string'],
+            'photos_data' => ['nullable', 'string'],
+            'photos' => ['nullable', 'array'],
+            'photos.*' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:10240'],
         ];
     }
 
