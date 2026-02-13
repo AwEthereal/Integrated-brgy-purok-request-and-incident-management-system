@@ -86,6 +86,8 @@
         </thead>
         <tbody>
             @foreach($reports as $report)
+                @php($uiStatusKey = in_array($report->status, ['rejected', 'invalid'], true) ? 'invalid' : (in_array($report->status, ['pending','in_progress'], true) ? $report->status : 'closed'))
+                @php($uiStatusLabel = $uiStatusKey === 'pending' ? 'Pending' : ($uiStatusKey === 'in_progress' ? 'In Progress' : ($uiStatusKey === 'invalid' ? 'Invalid' : 'Closed/Completed')))
                 <tr>
                     <td>#{{ $report->id }}</td>
                     <td>
@@ -104,8 +106,8 @@
                             <br><small>{{ $report->purok->name }}</small>
                         @endif
                     </td>
-                    <td class="status-{{ $report->status }}">
-                        {{ format_label($report->status) }}
+                    <td class="status-{{ $uiStatusKey }}">
+                        {{ $uiStatusLabel }}
                     </td>
                     <td>{{ optional($report->created_at)->format('M d, Y h:i A') ?? 'N/A' }}</td>
                 </tr>

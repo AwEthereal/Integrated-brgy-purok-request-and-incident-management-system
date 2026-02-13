@@ -24,8 +24,8 @@ class IncidentReport extends Model
         return [
             self::STATUS_PENDING => 'Pending',
             self::STATUS_IN_PROGRESS => 'In Progress',
-            self::STATUS_RESOLVED => 'Resolved',
-            self::STATUS_APPROVED => 'Resolved', // Display as "Resolved" for consistency
+            self::STATUS_RESOLVED => 'Closed/Completed',
+            self::STATUS_APPROVED => 'Closed/Completed',
             self::STATUS_REJECTED => 'Rejected',
             self::STATUS_INVALID => 'Invalid Report'
         ];
