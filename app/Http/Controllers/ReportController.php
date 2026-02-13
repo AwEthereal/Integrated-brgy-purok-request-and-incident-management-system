@@ -297,7 +297,7 @@ class ReportController extends Controller
             });
         }
 
-        $requests = $query->paginate(15)->withQueryString();
+        $requests = $query->paginate(10)->withQueryString();
         $puroks = Purok::orderBy('name')->get();
 
         return view('reports.preview.purok-clearance', compact('requests', 'puroks'));

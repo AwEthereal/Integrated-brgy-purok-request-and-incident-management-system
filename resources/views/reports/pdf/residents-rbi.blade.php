@@ -58,7 +58,7 @@
 <body>
     <div class="header">
         <h1>BARANGAY KALAWAG II</h1>
-        <p>RBI Resident Records (Form B)</p>
+        <p>List of Residents</p>
         <p>Generated on {{ now()->format('F j, Y g:i A') }}</p>
     </div>
 
@@ -86,9 +86,7 @@
                     <td>{{ $r->purok->name ?? 'N/A' }}</td>
                     <td>
                         {{ $leader?->name ?? ($leader?->first_name ? ($leader->first_name.' '.$leader->last_name) : 'N/A') }}
-                        @if($leader?->username)
-                            <br><small>({{ $leader->username }})</small>
-                        @elseif($leader?->contact_number)
+                        @if($leader?->contact_number)
                             <br><small>{{ $leader->contact_number }}</small>
                         @endif
                     </td>

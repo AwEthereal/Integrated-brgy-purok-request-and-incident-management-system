@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Residents (RBI Form B)')
+@section('title', 'List of Residents')
 
 @section('content')
 <div class="py-6">
@@ -8,7 +8,7 @@
         <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
             <div class="p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">RBI Resident Records</h2>
+                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-gray-200">List of Residents</h2>
                     <div class="flex items-center gap-2">
                         <button type="button" onclick="printAll()" class="inline-flex items-center bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-3 rounded-md transition-colors duration-150 text-sm">
                             Print All

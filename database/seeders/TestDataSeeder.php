@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Purok;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class TestDataSeeder extends Seeder
 {
@@ -24,9 +25,15 @@ class TestDataSeeder extends Seeder
 
         // Get users for testing
         $residents = User::where('role', 'resident')->where('is_approved', true)->get();
-        
         if ($residents->isEmpty()) {
-            $this->command->error('No approved residents found! Please create users first.');
+            $this->command->warn('No approved residents found. Creating dummy approved residents...');
+            $this->ensurePuroksExist();
+            $this->createDummyResidents(25);
+            $residents = User::where('role', 'resident')->where('is_approved', true)->get();
+        }
+
+        if ($residents->isEmpty()) {
+            $this->command->error('No approved residents found! Unable to generate test data.');
             return;
         }
 
@@ -41,6 +48,75 @@ class TestDataSeeder extends Seeder
         $this->command->newLine();
         $this->command->info('✓ Test data generation complete!');
         $this->showSummary();
+    }
+
+    private function ensurePuroksExist(): void
+    {
+        if (Purok::count() > 0) {
+            return;
+        }
+
+        $this->command->warn('No puroks found. Inserting default puroks...');
+
+        DB::table('puroks')->insert([
+            ['name' => 'Purok Tagumpay I'],
+            ['name' => 'Purok Tagumpay II'],
+            ['name' => 'Purok Tagumpay III'],
+            ['name' => 'Purok Maunlad'],
+            ['name' => 'Purok Pagkakaisa'],
+            ['name' => 'Purok Masagana'],
+            ['name' => 'Purok Maligaya'],
+            ['name' => 'Purok Malinis'],
+            ['name' => 'Purok Magsasaka'],
+            ['name' => 'Purok Mabuhay'],
+            ['name' => 'Purok Malakas'],
+            ['name' => 'Purok Malusog'],
+            ['name' => 'Purok Matatag'],
+            ['name' => 'Purok Masipag'],
+            ['name' => 'Purok Masaya'],
+            ['name' => 'Purok Mapayapa'],
+            ['name' => 'Purok Capitol Centro'],
+            ['name' => 'Purok Malinaw'],
+            ['name' => 'Purok Masigla'],
+            ['name' => 'Purok Matapat'],
+            ['name' => 'Purok Malaya'],
+            ['name' => 'Purok Malinis II'],
+            ['name' => 'Purok Masinop'],
+            ['name' => 'Purok Matibay'],
+        ]);
+    }
+
+    private function createDummyResidents(int $count): void
+    {
+        $purokIds = Purok::pluck('id')->all();
+        if (empty($purokIds)) {
+            return;
+        }
+
+        for ($i = 1; $i <= $count; $i++) {
+            $firstName = fake()->firstName();
+            $lastName = fake()->lastName();
+            $email = fake()->unique()->safeEmail();
+
+            User::create([
+                'name' => $firstName . ' ' . $lastName,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
+                'email' => $email,
+                'username' => 'resident' . strtolower((string) $i) . '_' . fake()->unique()->numerify('###'),
+                'email_verified_at' => now(),
+                'password' => Hash::make('password'),
+                'role' => 'resident',
+                'is_approved' => true,
+                'is_dummy' => true,
+                'approved_at' => now(),
+                'purok_id' => $purokIds[array_rand($purokIds)],
+                'contact_number' => fake()->numerify('09#########'),
+                'address' => fake()->address(),
+            ]);
+        }
+
+        $this->command->info("  ✓ Created {$count} dummy approved residents (password: password)");
     }
 
     /**
@@ -72,6 +148,8 @@ class TestDataSeeder extends Seeder
     private function createTestRequests($residents): void
     {
         $this->command->info('Creating test requests...');
+
+        $targetCount = 80;
 
         $formTypes = array_keys(Request::FORM_TYPES);
         $statuses = ['pending', 'purok_approved', 'barangay_approved', 'rejected', 'completed'];
@@ -160,7 +238,53 @@ class TestDataSeeder extends Seeder
             Request::create($requestData);
         }
 
-        $this->command->info("  ✓ Created " . count($testRequests) . " test requests");
+        $remaining = $targetCount - count($testRequests);
+        if ($remaining > 0) {
+            for ($i = 0; $i < $remaining; $i++) {
+                $resident = $residents->random();
+                $status = $statuses[array_rand($statuses)];
+                $formType = $formTypes[array_rand($formTypes)];
+
+                $createdAt = now()->subDays(rand(0, 30))->subHours(rand(0, 23))->subMinutes(rand(0, 59));
+                $updatedAt = (clone $createdAt)->addMinutes(rand(0, 60 * 24));
+
+                $data = [
+                    'user_id' => $resident->id,
+                    'purok_id' => $resident->purok_id,
+                    'form_type' => $formType,
+                    'purpose' => 'Test Data - ' . fake()->sentence(6),
+                    'status' => $status,
+                    'requester_name' => $resident->full_name ?? $resident->name,
+                    'email' => $resident->email,
+                    'contact_number' => $resident->contact_number ?? fake()->numerify('09#########'),
+                    'created_at' => $createdAt,
+                    'updated_at' => $updatedAt,
+                ];
+
+                if ($status === 'rejected') {
+                    $data['rejection_reason'] = 'Test Data - ' . fake()->sentence(8);
+                    $data['rejected_at'] = $updatedAt;
+                }
+
+                if ($status === 'purok_approved') {
+                    $data['purok_approved_at'] = $updatedAt;
+                    $data['purok_approved_by'] = null;
+                }
+
+                if ($status === 'barangay_approved') {
+                    $data['barangay_approved_at'] = $updatedAt;
+                    $data['barangay_approved_by'] = null;
+                }
+
+                if ($status === 'completed') {
+                    $data['document_generated_at'] = $updatedAt;
+                }
+
+                Request::create($data);
+            }
+        }
+
+        $this->command->info("  ✓ Created " . $targetCount . " test requests");
     }
 
     /**
@@ -169,6 +293,8 @@ class TestDataSeeder extends Seeder
     private function createTestIncidents($residents): void
     {
         $this->command->info('Creating test incident reports...');
+
+        $targetCount = 80;
 
         $incidentTypes = array_keys(IncidentReport::TYPES);
         $resident1 = $residents->first();
@@ -230,7 +356,37 @@ class TestDataSeeder extends Seeder
             IncidentReport::create($incidentData);
         }
 
-        $this->command->info("  ✓ Created " . count($testIncidents) . " test incidents");
+        $remaining = $targetCount - count($testIncidents);
+        if ($remaining > 0) {
+            $statuses = ['pending', 'in_progress', 'resolved'];
+            for ($i = 0; $i < $remaining; $i++) {
+                $resident = $residents->random();
+                $status = $statuses[array_rand($statuses)];
+                $incidentType = $incidentTypes[array_rand($incidentTypes)];
+
+                $createdAt = now()->subDays(rand(0, 30))->subHours(rand(0, 23))->subMinutes(rand(0, 59));
+                $updatedAt = (clone $createdAt)->addMinutes(rand(0, 60 * 24));
+
+                $data = [
+                    'user_id' => $resident->id,
+                    'purok_id' => $resident->purok_id,
+                    'incident_type' => $incidentType,
+                    'description' => 'Test Data - ' . fake()->paragraph(2),
+                    'location' => fake()->streetAddress(),
+                    'status' => $status,
+                    'created_at' => $createdAt,
+                    'updated_at' => $updatedAt,
+                ];
+
+                if ($status === 'resolved') {
+                    $data['staff_notes'] = 'Test Data - ' . fake()->sentence(10);
+                }
+
+                IncidentReport::create($data);
+            }
+        }
+
+        $this->command->info("  ✓ Created " . $targetCount . " test incidents");
     }
 
     /**
