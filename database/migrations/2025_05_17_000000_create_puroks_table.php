@@ -26,7 +26,7 @@ return new class extends Migration
             ['name' => 'Bagong Sikat'],
             ['name' => 'Capitol West'],
             ['name' => 'Capitol East'],
-            ['name' => 'Capitol Sentro'],
+            ['name' => 'Capitol Centro'],
             ['name' => 'PC Barracks'],
             ['name' => 'Masagana I'],
             ['name' => 'Masagana II'],
