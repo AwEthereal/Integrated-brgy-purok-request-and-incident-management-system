@@ -95,9 +95,9 @@
 <body class="font-sans antialiased bg-gradient-to-br from-blue-50 to-blue-100">
     <!-- Header - Fixed at Top -->
     <header class="fixed top-0 left-0 right-0 bg-blue-600 text-white shadow-lg z-50">
-        <div class="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+        <div class="container mx-auto px-4 sm:px-6 py-3 sm:py-4" id="kiosk-header">
             <div class="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0">
-                <div class="flex items-center space-x-3 sm:space-x-4">
+                <div class="flex items-center space-x-3 sm:space-x-4" id="kiosk-fullscreen-target">
                     <img src="{{ asset('images/Kal2Logo.png') }}" alt="Barangay Logo" class="h-12 sm:h-16 w-auto flex-shrink-0">
                     <div>
                         <h1 class="text-lg sm:text-2xl font-bold">Barangay Kalawag Dos</h1>
@@ -142,6 +142,15 @@
             <p class="text-2xl mt-8 animate-pulse">Touch anywhere to start</p>
         </div>
     </div>
+
+    <button type="button" id="kiosk-fullscreen-btn" class="fixed bottom-3 right-3 z-50 select-none bg-white/50 hover:bg-white/70 text-blue-700 rounded-full shadow-sm w-10 h-10 flex items-center justify-center opacity-20 hover:opacity-80 transition" aria-label="Toggle fullscreen" title="Fullscreen">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3" />
+            <path d="M16 3h3a2 2 0 0 1 2 2v3" />
+            <path d="M8 21H5a2 2 0 0 1-2-2v-3" />
+            <path d="M16 21h3a2 2 0 0 0 2-2v-3" />
+        </svg>
+    </button>
 
     @stack('scripts')
 
@@ -223,6 +232,85 @@
 
         // Log kiosk activity (optional)
         console.log('Kiosk mode active - Idle timeout: 2 minutes');
+
+        // Fullscreen toggle (tablet-friendly)
+        const fullscreenBtn = document.getElementById('kiosk-fullscreen-btn');
+        const fullscreenTarget = document.getElementById('kiosk-fullscreen-target');
+
+        function isFullscreenSupported() {
+            const el = document.documentElement;
+            return !!(el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen);
+        }
+
+        function isFullscreenActive() {
+            return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+        }
+
+        async function enterFullscreen() {
+            const el = document.documentElement;
+            if (el.requestFullscreen) return el.requestFullscreen();
+            if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+            if (el.msRequestFullscreen) return el.msRequestFullscreen();
+        }
+
+        async function exitFullscreen() {
+            if (document.exitFullscreen) return document.exitFullscreen();
+            if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+            if (document.msExitFullscreen) return document.msExitFullscreen();
+        }
+
+        async function toggleFullscreen() {
+            if (!isFullscreenSupported()) {
+                return;
+            }
+            try {
+                if (isFullscreenActive()) {
+                    await exitFullscreen();
+                } else {
+                    await enterFullscreen();
+                }
+            } catch (e) {
+                console.warn('Fullscreen request failed:', e);
+            }
+        }
+
+        if (!isFullscreenSupported() && fullscreenBtn) {
+            fullscreenBtn.style.display = 'none';
+        }
+
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleFullscreen();
+            });
+        }
+
+        let fsPressTimer = null;
+        const LONG_PRESS_MS = 800;
+
+        function startFsLongPress() {
+            if (!isFullscreenSupported()) return;
+            if (fsPressTimer) clearTimeout(fsPressTimer);
+            fsPressTimer = setTimeout(() => {
+                toggleFullscreen();
+            }, LONG_PRESS_MS);
+        }
+
+        function cancelFsLongPress() {
+            if (fsPressTimer) {
+                clearTimeout(fsPressTimer);
+                fsPressTimer = null;
+            }
+        }
+
+        if (fullscreenTarget) {
+            fullscreenTarget.addEventListener('touchstart', startFsLongPress, { passive: true });
+            fullscreenTarget.addEventListener('touchend', cancelFsLongPress, { passive: true });
+            fullscreenTarget.addEventListener('touchcancel', cancelFsLongPress, { passive: true });
+            fullscreenTarget.addEventListener('mousedown', startFsLongPress);
+            fullscreenTarget.addEventListener('mouseup', cancelFsLongPress);
+            fullscreenTarget.addEventListener('mouseleave', cancelFsLongPress);
+        }
     </script>
 </body>
 </html>

@@ -1,3 +1,4 @@
 [2026-02-14 00:36:53] local.DEBUG: CheckRole: Checking access {"user_id":1,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
 [2026-02-14 00:38:00] local.DEBUG: CheckRole: Checking access {"user_id":1,"user_role":"barangay_captain","allowed_roles":["barangay_captain","barangay_kagawad","secretary","purok_leader","admin"],"path":"reports/purok-clearance"} 
 [2026-02-14 00:38:02] local.DEBUG: CheckRole: Checking access {"user_id":1,"user_role":"barangay_captain","allowed_roles":["secretary","barangay_captain","barangay_kagawad","admin"],"path":"official/requests/1/document"} 
+[2026-02-14 00:40:10] local.DEBUG: CheckRole: Checking access {"user_id":1,"user_role":"barangay_captain","allowed_roles":["secretary","barangay_captain","barangay_kagawad","admin"],"path":"official/requests/1/document"} 
