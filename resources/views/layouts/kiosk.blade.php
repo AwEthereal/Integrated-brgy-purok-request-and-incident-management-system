@@ -236,6 +236,8 @@
         // Fullscreen toggle (tablet-friendly)
         const fullscreenBtn = document.getElementById('kiosk-fullscreen-btn');
         const fullscreenTarget = document.getElementById('kiosk-fullscreen-target');
+        const FULLSCREEN_PREF_KEY = 'kiosk_fullscreen_enabled';
+        let fullscreenReenterArmed = false;
 
         function isFullscreenSupported() {
             const el = document.documentElement;
@@ -274,6 +276,22 @@
             }
         }
 
+        function setFullscreenPref(enabled) {
+            try {
+                sessionStorage.setItem(FULLSCREEN_PREF_KEY, enabled ? '1' : '0');
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        function getFullscreenPref() {
+            try {
+                return sessionStorage.getItem(FULLSCREEN_PREF_KEY) === '1';
+            } catch (e) {
+                return false;
+            }
+        }
+
         if (!isFullscreenSupported() && fullscreenBtn) {
             fullscreenBtn.style.display = 'none';
         }
@@ -283,6 +301,26 @@
                 e.preventDefault();
                 toggleFullscreen();
             });
+        }
+
+        function armFullscreenReenterIfNeeded() {
+            if (!isFullscreenSupported()) return;
+            if (!getFullscreenPref()) return;
+            if (isFullscreenActive()) return;
+            if (fullscreenReenterArmed) return;
+
+            fullscreenReenterArmed = true;
+
+            const reenter = async () => {
+                if (!fullscreenReenterArmed) return;
+                fullscreenReenterArmed = false;
+                document.removeEventListener('pointerdown', reenter, true);
+                await enterFullscreen();
+            };
+
+            // Use pointer events so Android Chrome/Brave can re-enter fullscreen on the same tap
+            // without requiring an extra interaction.
+            document.addEventListener('pointerdown', reenter, true);
         }
 
         let fsPressTimer = null;
@@ -311,6 +349,23 @@
             fullscreenTarget.addEventListener('mouseup', cancelFsLongPress);
             fullscreenTarget.addEventListener('mouseleave', cancelFsLongPress);
         }
+
+        function onFullscreenChange() {
+            setFullscreenPref(isFullscreenActive());
+            if (!isFullscreenActive()) {
+                armFullscreenReenterIfNeeded();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+        document.addEventListener('msfullscreenchange', onFullscreenChange);
+
+        window.addEventListener('pageshow', () => {
+            armFullscreenReenterIfNeeded();
+        });
+
+        armFullscreenReenterIfNeeded();
     </script>
 </body>
 </html>
