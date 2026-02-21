@@ -277,6 +277,17 @@ class ReportController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('ui_status')) {
+            $uiStatus = (string) $request->ui_status;
+            if ($uiStatus === 'completed') {
+                $query->whereIn('status', ['completed', 'barangay_approved']);
+            } elseif ($uiStatus === 'awaiting_approval') {
+                $query->where('status', 'purok_approved');
+            } elseif ($uiStatus === 'pending') {
+                $query->where('status', 'pending');
+            }
+        }
+
         if ($request->filled('search')) {
             $search = (string) $request->search;
             $query->where(function ($q) use ($search) {
@@ -390,6 +401,17 @@ class ReportController extends Controller
 
         if (request()->filled('status')) {
             $query->where('status', request('status'));
+        }
+
+        if (request()->filled('ui_status')) {
+            $uiStatus = (string) request('ui_status');
+            if ($uiStatus === 'closed') {
+                $query->whereIn('status', ['resolved', 'approved']);
+            } elseif ($uiStatus === 'active') {
+                $query->whereIn('status', ['pending', 'in_progress']);
+            } elseif ($uiStatus === 'pending') {
+                $query->where('status', 'pending');
+            }
         }
 
         if (request()->filled('search')) {

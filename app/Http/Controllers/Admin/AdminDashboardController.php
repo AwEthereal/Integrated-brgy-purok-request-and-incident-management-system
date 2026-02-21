@@ -20,23 +20,25 @@ class AdminDashboardController extends Controller
         $totalPuroks = Purok::count();
         
         // Get request statistics
-        $pendingRequests = ServiceRequest::where('status', 'purok_approved')->count();
-        $completedRequests = ServiceRequest::whereIn('status', ['completed', 'barangay_approved'])->count();
-        $rejectedRequests = ServiceRequest::where('status', 'rejected')->count();
-        $allPendingRequests = ServiceRequest::where('status', 'pending')->count();
+        $pendingRequests = ServiceRequest::whereRaw('LOWER(status) = ?', ['pending'])->count();
+        $awaitingApprovalRequests = ServiceRequest::whereRaw('LOWER(status) = ?', ['purok_approved'])->count();
+        $completedRequests = ServiceRequest::whereRaw("LOWER(status) IN ('completed','barangay_approved')")->count();
+        $rejectedRequests = ServiceRequest::whereRaw('LOWER(status) = ?', ['rejected'])->count();
+        // Backward-compatible alias (older blade/chart uses this name)
+        $allPendingRequests = $pendingRequests;
         
         // Get incident statistics
-        $activeIncidents = IncidentReport::whereIn('status', ['pending', 'in_progress'])->count();
-        $resolvedIncidents = IncidentReport::whereIn('status', ['resolved', 'approved'])->count();
-        $pendingIncidents = IncidentReport::where('status', 'pending')->count();
-        $inProgressIncidents = IncidentReport::where('status', 'in_progress')->count();
+        $activeIncidents = IncidentReport::whereRaw("LOWER(status) IN ('pending','in_progress')")->count();
+        $resolvedIncidents = IncidentReport::whereRaw("LOWER(status) IN ('resolved','approved')")->count();
+        $pendingIncidents = IncidentReport::whereRaw('LOWER(status) = ?', ['pending'])->count();
+        $inProgressIncidents = IncidentReport::whereRaw('LOWER(status) = ?', ['in_progress'])->count();
         
         // Get user statistics by role
         $residents = User::where('role', 'resident')->count();
         $approvedUsers = User::where('is_approved', true)->count();
         $pendingApproval = User::where('is_approved', false)->count();
         $purokLeaders = User::where('role', 'purok_leader')->count();
-        $barangayOfficials = User::whereIn('role', ['barangay_captain', 'barangay_kagawad', 'secretary', 'sk_chairman'])->count();
+        $barangayOfficials = User::whereIn('role', ['barangay_captain', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'sk_chairman'])->count();
         $admins = User::where('role', 'admin')->count();
         
         // Get purok statistics
@@ -80,6 +82,7 @@ class AdminDashboardController extends Controller
             'totalUsers',
             'totalPuroks',
             'pendingRequests',
+            'awaitingApprovalRequests',
             'completedRequests',
             'rejectedRequests',
             'allPendingRequests',

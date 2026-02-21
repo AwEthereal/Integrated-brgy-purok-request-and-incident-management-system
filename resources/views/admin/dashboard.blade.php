@@ -326,30 +326,22 @@
             <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">System Statistics</h2>
                 <div class="space-y-4">
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Approved Users</span>
-                        <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $approvedUsers }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Pending Approval</span>
-                        <span class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">{{ $pendingApproval }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
+                    <a href="{{ route('reports.purok-clearance', ['ui_status' => 'pending']) }}" class="flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md px-2 py-1 transition">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Pending Purok Clearance Requests</span>
+                        <span class="text-sm font-semibold text-yellow-600 dark:text-yellow-400">{{ $pendingRequests }}</span>
+                    </a>
+                    <a href="{{ route('reports.purok-clearance', ['ui_status' => 'completed']) }}" class="flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md px-2 py-1 transition">
                         <span class="text-sm text-gray-600 dark:text-gray-400">Completed Requests</span>
                         <span class="text-sm font-semibold text-green-600 dark:text-green-400">{{ $completedRequests }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Resolved Incidents</span>
+                    </a>
+                    <a href="{{ route('reports.incident-reports', ['ui_status' => 'closed']) }}" class="flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md px-2 py-1 transition">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Closed/Completed Incidents</span>
                         <span class="text-sm font-semibold text-green-600 dark:text-green-400">{{ $resolvedIncidents }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Purok Leaders</span>
-                        <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $purokLeaders }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-sm text-gray-600 dark:text-gray-400">Barangay Officials</span>
-                        <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ $barangayOfficials }}</span>
-                    </div>
+                    </a>
+                    <a href="{{ route('captain.secretaries.index') }}" class="flex justify-between items-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md px-2 py-1 transition">
+                        <span class="text-sm text-gray-600 dark:text-gray-400">Manage Accounts</span>
+                        <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ ($purokLeaders ?? 0) + ($barangayOfficials ?? 0) }}</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -510,7 +502,7 @@ document.addEventListener('DOMContentLoaded', function() {
             data: {
                 labels: ['Pending', 'Awaiting Approval', 'Completed', 'Rejected'],
                 datasets: [{
-                    data: [{{ $allPendingRequests }}, {{ $pendingRequests }}, {{ $completedRequests }}, {{ $rejectedRequests }}],
+                    data: [{{ $pendingRequests }}, {{ $awaitingApprovalRequests ?? 0 }}, {{ $completedRequests }}, {{ $rejectedRequests }}],
                     backgroundColor: [
                         'rgba(251, 191, 36, 0.8)',  // Yellow
                         'rgba(59, 130, 246, 0.8)',  // Blue

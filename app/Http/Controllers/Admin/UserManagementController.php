@@ -21,7 +21,22 @@ class UserManagementController extends Controller
         
         // Filter by role if needed
         if ($request->filled('role')) {
-            $query->where('role', $request->role);
+            $role = (string) $request->role;
+            if ($role === 'barangay_official') {
+                $query->whereIn('role', ['barangay_captain', 'barangay_kagawad', 'secretary', 'barangay_clerk', 'sk_chairman']);
+            } else {
+                $query->where('role', $role);
+            }
+        }
+
+        // Filter by approval status if needed (0/1)
+        if ($request->filled('is_approved')) {
+            $isApproved = filter_var($request->is_approved, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($isApproved === null) {
+                $query->where('is_approved', (int) $request->is_approved);
+            } else {
+                $query->where('is_approved', $isApproved);
+            }
         }
         
         $users = $query->orderBy('created_at', 'desc')->paginate(15);
